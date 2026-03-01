@@ -43,6 +43,5 @@ The system is designed to automate and manage common library operations such as 
 ## 🔽 Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/LibraryManagementSystem.git  
-- MVC-style separation (basic)  
+git clone https://github.com/Ali309455/OOP_1_LMS.git
 
