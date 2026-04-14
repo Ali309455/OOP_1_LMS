@@ -15,7 +15,7 @@ The system is designed to automate and manage common library operations such as 
 
 ## 🛠️ Technologies Used
 - **Programming Language:** C++  
-- **GUI Framework:** Qt (Qt Widgets)  
+- **GUI Framework:** Qt (Qt QML)  
 - **IDE:** Qt Creator  
 - **Version Control:** Git & GitHub  
 
