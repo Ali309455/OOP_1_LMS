@@ -18,7 +18,7 @@ Window {
         anchors.fill: parent
         anchors.margins: 10   // gives floating effect
         radius: 14
-        color: "#ffffff"
+        color: "#0f172a"
 
         // optional shadow effect
         border.color: "#e5e7eb"
@@ -31,7 +31,7 @@ Window {
             Rectangle {
                 Layout.fillWidth: true
                 height: 40
-                color: "transparent"
+                color: "white"
 
                 RowLayout {
                     anchors.fill: parent

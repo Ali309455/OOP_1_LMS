@@ -5,8 +5,8 @@ Rectangle {
     id: sidebar
     width: 200
     height: 800
-    color: "#ffffff"
-    border.color: "#e5e7eb"
+    color: "#1e293b"
+    border.color: "#334155"
     border.width: 1
 
     signal navigationRequested(string page)
@@ -105,7 +105,7 @@ Rectangle {
 
                     Text {
                         text: modelData.label
-                        color: sidebar.activePage === modelData.label ? "#ffffff" : "#374151"
+                        color: sidebar.activePage === modelData.label ? "#ffffff" : "white"
                         font.bold: sidebar.activePage === modelData.label
                     }
                 }

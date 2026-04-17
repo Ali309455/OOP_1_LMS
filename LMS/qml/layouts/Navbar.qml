@@ -5,7 +5,7 @@ Rectangle {
     id: navbar
     width: parent ? parent.width : 824
     height: 56
-    color: "#ffffff"   // ✅ fixed
+    color: "#0f172a"   // ✅ fixed
 
     signal searchTextChanged(string text)
     signal notificationsClicked()
@@ -26,7 +26,7 @@ Rectangle {
             Layout.fillWidth: true
             height: 36
             radius: 8
-            color: "#f3f4f6"
+            color: "#1e293b"
 
             RowLayout {
                 anchors.fill: parent
@@ -39,7 +39,7 @@ Rectangle {
                 TextInput {
                     id: searchInput
                     Layout.fillWidth: true
-                    color: "#111827"
+                    color: "white"
 
                     onTextChanged: navbar.searchTextChanged(text)
 
@@ -120,7 +120,7 @@ Rectangle {
 
                 Text {
                     text: navbar.userName
-                    color: "#111827"
+                    color: "white"
                     font.bold: true
                 }
 
