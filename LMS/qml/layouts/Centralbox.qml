@@ -4,13 +4,15 @@ import QtQuick.Layouts
 import LMS
 
 Item {
-    anchors.fill: parent
+    id: centralBoxRoot
+
     ColumnLayout{
         anchors.fill: parent
+        spacing: 0
         Navbar {
             id: navbar
             Layout.fillWidth: true
-            height: 56
+            Layout.preferredHeight: 56
 
             userName: "Admin User"
             userRole: "Librarian"
@@ -24,10 +26,10 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            color: "#f9fafb"
+            color: "#0f172a"
 
-            LibrarianDashboard {
-            anchors.centerIn: parent
+            StudentDashboard {
+            anchors.fill: parent
             }
         }
     }

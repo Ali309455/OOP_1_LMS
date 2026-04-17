@@ -21,7 +21,7 @@ Window {
         color: "#0f172a"
 
         // optional shadow effect
-        border.color: "#e5e7eb"
+        border.color: "#334155"
 
         ColumnLayout {
             anchors.fill: parent
@@ -29,9 +29,10 @@ Window {
 
             // ── Custom Title Bar ──
             Rectangle {
+                id: titleBar
                 Layout.fillWidth: true
                 height: 40
-                color: "white"
+                color: "#0f172a"
 
                 RowLayout {
                     anchors.fill: parent
@@ -40,8 +41,9 @@ Window {
                     spacing : 10
 
                     Text {
-                        text: "Library System"
+                        text: "LIBRARY PORTAL"
                         font.bold: true
+                        color: "white"
                         Layout.alignment: Qt.AlignVCenter
                     }
 
@@ -50,7 +52,7 @@ Window {
                     // Minimize Button
                     Text {
                         text: "—"
-
+                        color: "white"
                         font.pixelSize: 13
 
                         MouseArea {
@@ -64,6 +66,7 @@ Window {
                     Text {
                         text: "✕"
                         font.pixelSize: 16
+                        color: "white"
                         anchors.margins: 10
 
 
@@ -87,7 +90,7 @@ Window {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-
+                spacing: 0
 
                 Sidebar {
                     Layout.preferredWidth: 200
@@ -95,10 +98,18 @@ Window {
                 }
                 Centralbox{
                     Layout.fillHeight:true
-                    anchors.leftMargin: 230
                     Layout.fillWidth: true
                 }
             }
         }
+    }
+
+    MouseArea {
+        width: 20
+        height: 20
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        cursorShape: Qt.SizeFDiagCursor
+        onPressed: root.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
     }
 }

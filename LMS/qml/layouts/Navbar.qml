@@ -3,9 +3,16 @@ import QtQuick.Layouts
 
 Rectangle {
     id: navbar
-    width: parent ? parent.width : 824
+    Layout.fillWidth: true
     height: 56
     color: "#0f172a"   // ✅ fixed
+
+    Rectangle {
+        anchors.top: parent.top
+        width: parent.width
+        height: 1
+        color: "#334155"
+    }
 
     signal searchTextChanged(string text)
     signal notificationsClicked()
@@ -58,7 +65,7 @@ Rectangle {
             width: 36
             height: 36
             radius: 8
-            color: bellMA.containsMouse ? "#f3f4f6" : "transparent"
+            color: bellMA.containsMouse ? "#1e293b" : "transparent"
 
             Text {
                 anchors.centerIn: parent
@@ -96,7 +103,7 @@ Rectangle {
         Rectangle {
             width: 1
             height: 28
-            color: "#e5e7eb"
+            color: "#334155"
         }
 
         // ── Profile ──
@@ -126,7 +133,7 @@ Rectangle {
 
                 Text {
                     text: navbar.userRole
-                    color: "#6b7280"
+                    color: "#94a3b8"
                     font.pixelSize: 11
                 }
             }
@@ -139,4 +146,10 @@ Rectangle {
             }
         }
     }
+    Rectangle {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            height: 1
+            color: "#334155"
+        }
 }

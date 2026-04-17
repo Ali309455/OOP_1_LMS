@@ -1,13 +1,15 @@
 import QtQuick
 import QtQuick.Layouts
 
-Rectangle {
+Item {
     id: sidebar
     width: 200
-    height: 800
-    color: "#1e293b"
-    border.color: "#334155"
-    border.width: 1
+    Rectangle {
+            anchors.fill: parent
+            color: "#1e293b"
+            border.color: "#334155"
+            border.width: 1
+        }
 
     signal navigationRequested(string page)
     property string activePage: "Dashboard"
@@ -30,13 +32,13 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 56
-            color: "#ffffff"
+            color: "#1e293b"
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: "#e5e7eb"
+                color: "#334155"
             }
 
             RowLayout {
@@ -59,6 +61,7 @@ Rectangle {
                 Text {
                     text: "Library System"
                     font.bold: true
+                    color: "white"
                 }
             }
                 Rectangle {
@@ -66,7 +69,7 @@ Rectangle {
                     anchors.right: parent.right
                     height: parent.height
                     width:  1
-                    color: "#e5e7eb"
+                    color: "transparent"
                 }
         }
 
@@ -129,7 +132,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#e5e7eb"
+            color: "#334155"
         }
 
         // ── Logout ──
