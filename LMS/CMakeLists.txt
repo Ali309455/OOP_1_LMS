@@ -29,8 +29,8 @@ qt_add_qml_module(appLMS
                qml/screens/librarian/Reports.qml
                qml/screens/librarian/UserManagement.qml
                qml/components/Button.qml
-               qml/layouts/sidebar.qml
-               qml/layouts/centralbox.qml
+               qml/layouts/Sidebar.qml
+               qml/layouts/Centralbox.qml
                qml/layouts/Navbar.qml
                qml/navigation/Router.qml
 )
