@@ -15,24 +15,26 @@ qt_add_executable(appLMS
 qt_add_qml_module(appLMS
     URI LMS
     QML_FILES
-               Main.qml
-               qml/screens/auth/Login.qml
-               qml/screens/auth/Signup.qml
-               qml/screens/shared/BookCatalog.qml
-               qml/screens/shared/BookDetail.qml
-               qml/screens/shared/Transactions.qml
-               qml/screens/shared/Reviews.qml
-               qml/screens/shared/Profile.qml
-               qml/screens/student/StudentDashboard.qml
-               qml/screens/student/Membership.qml
-               qml/screens/librarian/LibrarianDashboard.qml
-               qml/screens/librarian/Reports.qml
-               qml/screens/librarian/UserManagement.qml
-               qml/components/Button.qml
-               qml/layouts/sidebar.qml
-               qml/layouts/centralbox.qml
-               qml/layouts/Navbar.qml
-               qml/navigation/Router.qml
+        Main.qml
+        qml/screens/auth/Login.qml
+        qml/screens/auth/Signup.qml
+        qml/screens/shared/BookCatalog.qml
+        qml/screens/shared/BookDetail.qml
+        qml/screens/shared/Transactions.qml
+        qml/screens/shared/Reviews.qml
+        qml/screens/shared/Profile.qml
+        qml/screens/student/StudentDashboard.qml
+        qml/screens/student/Membership.qml
+        qml/screens/librarian/LibrarianDashboard.qml
+        qml/screens/librarian/Reports.qml
+        qml/screens/librarian/UserManagement.qml
+        qml/components/Button.qml
+        qml/layouts/sidebar.qml
+        qml/layouts/centralbox.qml
+        qml/layouts/Navbar.qml
+        qml/navigation/Router.qml
+        QML_FILES qml/screens/shared/TransactionsAdmin.qml
+        QML_FILES qml/screens/shared/TransactionsStudent.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
