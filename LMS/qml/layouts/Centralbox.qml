@@ -26,7 +26,7 @@ Item {
             Layout.fillHeight: true
             color: "#f9fafb"
 
-            LibrarianDashboard {
+            UserManagement {
             anchors.centerIn: parent
             }
         }

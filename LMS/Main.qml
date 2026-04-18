@@ -17,11 +17,11 @@ Window {
         id: container
         anchors.fill: parent
         anchors.margins: 10   // gives floating effect
-        radius: 14
-        color: "#0f172a"
+        radius: 23
+        color: "#0f1117"
 
         // optional shadow effect
-        border.color: "#e5e7eb"
+        border.color: "#696969"
 
         ColumnLayout {
             anchors.fill: parent
@@ -41,6 +41,7 @@ Window {
 
                     Text {
                         text: "Library System"
+                        color: "#ffffff"
                         font.bold: true
                         Layout.alignment: Qt.AlignVCenter
                     }
@@ -50,7 +51,7 @@ Window {
                     // Minimize Button
                     Text {
                         text: "—"
-
+                        color: "#ffffff"
                         font.pixelSize: 13
 
                         MouseArea {
@@ -63,6 +64,7 @@ Window {
                     // Close Button
                     Text {
                         text: "✕"
+                        color: "#ffffff"
                         font.pixelSize: 16
                         anchors.margins: 10
 

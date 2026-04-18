@@ -34,6 +34,11 @@ qt_add_qml_module(appLMS
                qml/layouts/Navbar.qml
                qml/navigation/Router.qml
 )
+qt_add_resources(appLMS "resources"
+    PREFIX "/"
+    FILES
+        "assets/fonts/Lato-Regular.ttf"
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
