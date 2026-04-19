@@ -32,10 +32,13 @@ Window {
     }
 
     // Your actual content area
-    Transactions {
+    BookDetail {
         x: 200
         y: 60
         width: parent.width - 200
         height: parent.height - 60
     }
+
+
 }
+
