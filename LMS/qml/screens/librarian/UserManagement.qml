@@ -204,7 +204,12 @@ Rectangle {
                     RowLayout {
                         anchors.centerIn: parent
                         spacing: 8
-                        Text { text: "👤"; font.pixelSize: 14 }
+                        Image {
+                            anchors.left: parent.left
+                            source: "qrc:/assets/icons/adduser.png"
+                            width: 5
+                            height: 5
+                        }
                         Text { text: "Add User"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
                     }
 
@@ -473,7 +478,7 @@ Rectangle {
 
                                 // Status badge
                                 Item {
-                                    Layout.preferredWidth: 75
+                                    Layout.preferredWidth: 85
                                     height: parent.height
 
                                     Rectangle {
@@ -500,16 +505,18 @@ Rectangle {
                                     spacing: 8
 
                                     // Edit
+
                                     Rectangle {
                                         width: 30; height: 30
                                         radius: 6
                                         color: editMA.containsMouse ? "#1e3a5f" : "transparent"
                                         Behavior on color { ColorAnimation { duration: 100 } }
 
-                                        Text {
+                                        Image {
                                             anchors.centerIn: parent
-                                            text: "✏️"
-                                            font.pixelSize: 14
+                                            source: "qrc:/assets/icons/edit.png"
+                                            width: 16
+                                            height: 16
                                         }
 
                                         MouseArea {

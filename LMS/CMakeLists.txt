@@ -38,6 +38,10 @@ qt_add_resources(appLMS "resources"
     PREFIX "/"
     FILES
         "assets/fonts/Lato-Regular.ttf"
+        "assets/icons/edit.png"
+        "assets/icons/adduser.png"
+        "assets/icons/eye.png"
+        "assets/icons/addreview.png"
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

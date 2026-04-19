@@ -5,7 +5,6 @@ import QtQuick.Controls
 Rectangle {
     id: dashboard
     color: "#0f1117"
-    anchors.fill: parent
 
     signal quickActionClicked(string action)
 

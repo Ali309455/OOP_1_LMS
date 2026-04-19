@@ -3,7 +3,7 @@ import QtQuick.Layouts
 
 Rectangle {
     id: navbar
-    width: parent ? parent.width : 824
+    width: 600
     height: 56
     color: "#0f172a"   // ✅ fixed
 

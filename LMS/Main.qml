@@ -19,6 +19,7 @@ Window {
         anchors.margins: 10   // gives floating effect
         radius: 23
         color: "#0f1117"
+        clip: true
 
         // optional shadow effect
         border.color: "#696969"
@@ -31,7 +32,7 @@ Window {
             Rectangle {
                 Layout.fillWidth: true
                 height: 40
-                color: "white"
+                color: "transparent"
 
                 RowLayout {
                     anchors.fill: parent
@@ -89,8 +90,6 @@ Window {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-
-
                 Sidebar {
                     Layout.preferredWidth: 200
                     Layout.fillHeight: true
@@ -98,6 +97,7 @@ Window {
                 Centralbox{
                     Layout.fillHeight:true
                     anchors.leftMargin: 230
+                    Layout.margins: 10
                     Layout.fillWidth: true
                 }
             }

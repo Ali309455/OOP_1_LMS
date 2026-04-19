@@ -6,7 +6,7 @@ Rectangle {
     width: 200
     height: 800
     color: "#1e293b"
-    border.color: "#334155"
+    border.color: "#696969"
     border.width: 1
 
     signal navigationRequested(string page)
@@ -30,13 +30,13 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 56
-            color: "#ffffff"
+            color: "#1e293b"
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: "#e5e7eb"
+                color: "#696969"
             }
 
             RowLayout {
@@ -57,6 +57,8 @@ Rectangle {
                 }
 
                 Text {
+                    color: "#ffffff"
+
                     text: "Library System"
                     font.bold: true
                 }
@@ -66,7 +68,7 @@ Rectangle {
                     anchors.right: parent.right
                     height: parent.height
                     width:  1
-                    color: "#e5e7eb"
+                    color: "#696969"
                 }
         }
 
@@ -86,7 +88,7 @@ Rectangle {
                 // ✅ FIXED COLOR LOGIC
                 color: sidebar.activePage === modelData.label
                        ? "#3B82F6"
-                       : (mouseArea.containsMouse ? "#DBEAFE" : "transparent")
+                       : (mouseArea.containsMouse ? "#0f5ec7" : "transparent")
 
                 Behavior on color {
                     ColorAnimation { duration: 120 }
@@ -137,7 +139,7 @@ Rectangle {
             Layout.fillWidth: true
             height: 52
 
-            color: mouseAreaLogout.containsMouse ? "#fef2f2" : "transparent"
+            color: mouseAreaLogout.containsMouse ? "#143dc4" : "transparent"
 
             RowLayout {
                 anchors.verticalCenter: parent.verticalCenter
@@ -145,8 +147,10 @@ Rectangle {
                 anchors.leftMargin: 20
                 spacing: 10
 
-                Text { text: "↪" }
-                Text { text: "Logout" }
+                Text { text: "↪"
+                    color: "#f3f6f4" }
+                Text { text: "Logout"
+                color: "#f3f6f4"}
             }
 
             MouseArea {

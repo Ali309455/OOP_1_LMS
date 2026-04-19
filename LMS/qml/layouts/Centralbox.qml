@@ -4,14 +4,15 @@ import QtQuick.Layouts
 import LMS
 
 Item {
-    anchors.fill: parent
+    width: 1000
+    height: 700
     ColumnLayout{
         anchors.fill: parent
         Navbar {
             id: navbar
-            Layout.fillWidth: true
+            Layout.preferredWidth: 800
             height: 56
-
+            clip: true
             userName: "Admin User"
             userRole: "Librarian"
             notificationCount: 3
@@ -26,7 +27,7 @@ Item {
             Layout.fillHeight: true
             color: "#f9fafb"
 
-            UserManagement {
+            LibrarianDashboard {
             anchors.centerIn: parent
             }
         }
