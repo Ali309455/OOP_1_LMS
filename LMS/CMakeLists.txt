@@ -42,6 +42,10 @@ qt_add_resources(appLMS "resources"
         "assets/icons/adduser.png"
         "assets/icons/eye.png"
         "assets/icons/addreview.png"
+        "assets/icons/clock.png"
+        "assets/icons/book.png"
+        "assets/icons/dashboard.png"
+        "assets/icons/transaction.png"
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

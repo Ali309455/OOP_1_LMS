@@ -4,7 +4,7 @@ import QtQuick.Layouts
 Rectangle {
     id: sidebar
     width: 200
-    height: 800
+    height: 700
     color: "#1e293b"
     border.color: "#696969"
     border.width: 1

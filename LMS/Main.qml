@@ -92,7 +92,7 @@ Window {
                 Layout.fillHeight: true
                 Sidebar {
                     Layout.preferredWidth: 200
-                    Layout.fillHeight: true
+                    Layout.preferredHeight: 700
                 }
                 Centralbox{
                     Layout.fillHeight:true

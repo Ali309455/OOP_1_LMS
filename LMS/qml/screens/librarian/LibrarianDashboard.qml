@@ -13,10 +13,10 @@ Rectangle {
     property var colW: [140, 160, 190, 120, 120]
 
     property var statsData: [
-        { icon: "📖", value: "2,847", label: "Total Books",         iconColor: "#3b82f6" },
-        { icon: "📋", value: "156",   label: "Active Transactions", iconColor: "#8b5cf6" },
-        { icon: "⏰", value: "23",    label: "Overdue Books",       iconColor: "#f59e0b" },
-        { icon: "💬", value: "8",     label: "Pending Reviews",     iconColor: "#8b5cf6" }
+        { icon: "qrc:/assets/icons/book.png", value: "2,847", label: "Total Books",         iconColor: '#FF5722' },
+        { icon: "qrc:/assets/icons/transaction.png", value: "156",   label: "Active Transactions", iconColor: "#FF5722" },
+        { icon: "qrc:/assets/icons/addreview.png", value: "23",    label: "Overdue Books",       iconColor: "#091291" },
+        { icon: "qrc:/assets/icons/addreview.png", value: "8",     label: "Pending Reviews",     iconColor: "#091291" }
     ]
 
     property var transactions: [
@@ -27,10 +27,10 @@ Rectangle {
     ]
 
     property var quickActions: [
-        { label: "+ Add Book",       color: "#3b82f6", action: "addBook"       },
-        { label: "📖 Issue Book",    color: "#10b981", action: "issueBook"     },
-        { label: "↩ Return Book",    color: "#10b981", action: "returnBook"    },
-        { label: "✓ Approve Review", color: "#8b5cf6", action: "approveReview" }
+        { label: "Add Book",       color: "#3b82f6", action: "addBook"       },
+        { label: "Issue Book",    color: "#10b981", action: "issueBook"     },
+        { label: "Return Book",    color: "#10b981", action: "returnBook"    },
+        { label: "Approve Review", color: "#8b5cf6", action: "approveReview" }
     ]
 
     property var chartData: [
@@ -100,13 +100,15 @@ Rectangle {
                             Rectangle {
                                 width: 44; height: 44
                                 radius: 12
-                                color: modelData.iconColor + "22"
+                                color: modelData.iconColor
                                 Layout.alignment: Qt.AlignHCenter
 
-                                Text {
+                                Image{
                                     anchors.centerIn: parent
-                                    text: modelData.icon
-                                    font.pixelSize: 20
+                                    height: 30
+                                    width: 30
+                                    source: modelData.icon
+                                    fillMode: Image.PreserveAspectFit
                                 }
                             }
 

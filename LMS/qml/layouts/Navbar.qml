@@ -38,7 +38,7 @@ Rectangle {
 
                 TextInput {
                     id: searchInput
-                    Layout.fillWidth: true
+                    Layout.preferredWidth: 600
                     color: "white"
 
                     onTextChanged: navbar.searchTextChanged(text)
