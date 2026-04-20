@@ -8,6 +8,7 @@ Item {
     height: 700
     ColumnLayout{
         anchors.fill: parent
+        spacing: 0
         Navbar {
             id: navbar
             Layout.preferredWidth: 800
@@ -25,10 +26,10 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            color: "#f9fafb"
+            color: "#0f172a"
 
-            LibrarianDashboard {
-            anchors.centerIn: parent
+            Membership {
+            anchors.fill: parent
             }
         }
     }

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 
-Rectangle {
+Item {
     id: sidebar
     width: 200
     height: 700
@@ -61,6 +61,7 @@ Rectangle {
 
                     text: "Library System"
                     font.bold: true
+                    color: "white"
                 }
             }
                 Rectangle {
@@ -131,7 +132,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#e5e7eb"
+            color: "#334155"
         }
 
         // ── Logout ──

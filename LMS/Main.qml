@@ -30,6 +30,7 @@ Window {
 
             // ── Custom Title Bar ──
             Rectangle {
+                id: titleBar
                 Layout.fillWidth: true
                 height: 40
                 color: "transparent"
@@ -44,6 +45,7 @@ Window {
                         text: "Library System"
                         color: "#ffffff"
                         font.bold: true
+                        color: "white"
                         Layout.alignment: Qt.AlignVCenter
                     }
 
@@ -67,6 +69,7 @@ Window {
                         text: "✕"
                         color: "#ffffff"
                         font.pixelSize: 16
+                        color: "white"
                         anchors.margins: 10
 
 
@@ -102,5 +105,14 @@ Window {
                 }
             }
         }
+    }
+
+    MouseArea {
+        width: 20
+        height: 20
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        cursorShape: Qt.SizeFDiagCursor
+        onPressed: root.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
     }
 }
