@@ -3,8 +3,8 @@ import QtQuick.Controls
 import LMS
 
 Window {
-    width: 1536
-    height: 864
+    width: 1024
+    height: 800
     visible: true
     title: "LMS"
 
@@ -13,7 +13,7 @@ Window {
         color: "#0b1220"
     }
 
-    // Fake sidebar preview
+    //  sidebar preview
     Rectangle {
         x: 0
         y: 0
@@ -22,7 +22,7 @@ Window {
         color: "#111827"
     }
 
-    // Fake top bar preview
+    // top bar preview
     Rectangle {
         x: 200
         y: 0
@@ -31,14 +31,21 @@ Window {
         color: "#161c2d"
     }
 
-    // Your actual content area
-    BookDetail {
+    // content area
+
+    // BookDetail {
+    //     x: 200
+    //     y: 60
+    //     width: parent.width - 200
+    //     height: parent.height - 60
+    // }
+
+    Transactions {
         x: 200
         y: 60
         width: parent.width - 200
         height: parent.height - 60
     }
-
 
 }
 

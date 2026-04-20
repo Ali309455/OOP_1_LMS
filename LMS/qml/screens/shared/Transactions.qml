@@ -7,8 +7,8 @@ Item {
     anchors.fill: parent
 
     // Temporary testing switch
-    // Later this value should come from C++ backend after login
-    property bool isLibrarian: true
+
+    property bool isLibrarian: false
 
     Loader {
         anchors.fill: parent
