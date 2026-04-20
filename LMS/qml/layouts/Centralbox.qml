@@ -28,7 +28,7 @@ Item {
             Layout.fillHeight: true
             color: "#0f172a"
 
-            StudentDashboard {
+            Membership {
             anchors.fill: parent
             }
         }
