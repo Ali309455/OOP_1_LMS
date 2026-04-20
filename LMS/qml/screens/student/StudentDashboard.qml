@@ -33,7 +33,6 @@ Rectangle {
                 spacing: 20
 
                 Repeater {
-                    // Sirf icon names aur colors define kiye hain
                     model: [
                         { name: "Borrowed Books", img: "book-read-fill.svg", col: "#3b82f6" },
                         { name: "Due Books",      img: "time-fill.svg", col: "#ef4444" },
@@ -51,11 +50,11 @@ Rectangle {
                             anchors.fill: parent
                             anchors.margins: 20
 
-                            // --- MODIFIED ICON SECTION ---
+                            // --- ICON SECTION ---
                             Rectangle {
                                 width: 42; height: 42
                                 radius: 10
-                                color: Qt.rgba(modelData.col, 0.1) // Subtle background tint
+                                color: Qt.rgba(modelData.col, 0.1)
                                 border.color: modelData.col
                                 border.width: 1
 
@@ -92,7 +91,7 @@ Rectangle {
                     }
                 }
             }
-            // --- Recent Activity Section (Exactly like your original) ---
+            // --- Recent Activity Section ---
             Text {
                 text: "Recent Activity"
                 color: "white"
@@ -125,7 +124,7 @@ Rectangle {
                             if (s === "DUE" || s === "PENDING") return "#ef4444"
                             if (s === "RETURNED") return "#22c55e"
                             if (s === "ACTIVE") return "#3b82f6"
-                            return "#334155" // Default gray when no data
+                            return "#334155"
                         }
 
                         RowLayout {

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects // Required for ColorOverlay/OpacityMask
+import Qt5Compat.GraphicalEffects
 
 Rectangle {
     id: membershipRoot
@@ -50,14 +50,14 @@ Rectangle {
                     RowLayout {
                         Layout.fillWidth: true
 
-                        // --- UPDATED MAIN ICON ---
+                        // --- MAIN ICON ---
                         Rectangle {
                             width: 44; height: 44; radius: 8; color: "#334155"
                             Image {
                                 id: mainIconRaw
                                 anchors.centerIn: parent
                                 width: 24; height: 24
-                                source: "qrc:/LMS/qml/assets/icons/shield-user-fill.svg" // Replace with your file
+                                source: "qrc:/LMS/qml/assets/icons/shield-user-fill.svg"
                                 fillMode: Image.PreserveAspectFit
                                 visible: false
                             }
@@ -119,7 +119,7 @@ Rectangle {
         RowLayout {
             anchors.fill: parent; anchors.leftMargin: 12; spacing: 10
 
-            // --- UPDATED STAT ICON ---
+            // --- STAT ICON ---
             Item {
                 width: 20; height: 20
                 Image {
@@ -153,7 +153,7 @@ Rectangle {
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter; width: 50; height: 50; radius: 12; color: iconBg
 
-                // --- UPDATED PLAN ICON ---
+                // --- PLAN ICON ---
                 Image {
                     id: pIcon
                     anchors.centerIn: parent
@@ -165,7 +165,7 @@ Rectangle {
                 ColorOverlay {
                     anchors.fill: pIcon
                     source: pIcon
-                    color: "white" // Icons inside colored boxes look best in white
+                    color: "white"
                 }
             }
             Text { Layout.alignment: Qt.AlignHCenter; text: tier; color: iconBg; font.pixelSize: 18; font.bold: true }
