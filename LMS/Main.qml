@@ -23,6 +23,7 @@ Window {
 
         // optional shadow effect
         border.color: "#696969"
+        property string currentRoute: "dashboard"   // default screen
 
         ColumnLayout {
             anchors.fill: parent
@@ -45,7 +46,6 @@ Window {
                         text: "Library System"
                         color: "#ffffff"
                         font.bold: true
-                        color: "white"
                         Layout.alignment: Qt.AlignVCenter
                     }
 
@@ -68,8 +68,7 @@ Window {
                     Text {
                         text: "✕"
                         color: "#ffffff"
-                        font.pixelSize: 16
-                        color: "white"
+                        font.pixelSize: 20
                         anchors.margins: 10
 
 
@@ -84,10 +83,12 @@ Window {
                 // Drag window
                 MouseArea {
                     anchors.fill: parent
-                    drag.target: root
+
                     onPressed: root.startSystemMove()
                 }
             }
+
+
 
             // ── Content Area ──
             RowLayout {
@@ -95,13 +96,17 @@ Window {
                 Layout.fillHeight: true
                 Sidebar {
                     Layout.preferredWidth: 200
-                    Layout.preferredHeight: 700
+                    Layout.preferredHeight: 710
+                    onNavigationRequested: function(page) {
+                           container.currentRoute = page
+                       }
                 }
                 Centralbox{
                     Layout.fillHeight:true
                     anchors.leftMargin: 230
                     Layout.margins: 10
                     Layout.fillWidth: true
+                    route: container.currentRoute
                 }
             }
         }

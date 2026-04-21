@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
 
-Item {
+Rectangle {
     id: sidebar
     width: 200
-    height: 700
+    height: parent.height
     color: "#1e293b"
     border.color: "#696969"
     border.width: 1
@@ -24,7 +24,6 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 0
 
         // ── Header ──
         Rectangle {
@@ -61,7 +60,6 @@ Item {
 
                     text: "Library System"
                     font.bold: true
-                    color: "white"
                 }
             }
                 Rectangle {

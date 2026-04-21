@@ -186,7 +186,7 @@ Rectangle {
                 // Genre dropdown
                 Rectangle {
                     width: 140; height: 40; radius: 8
-                    color: "#0f1117"; border.color: "#2d3748"; border.width: 1
+                    color: "#0f1117"; border.color: "#2d3748"; border.width: 1;
                     RowLayout { anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
                         Text { Layout.fillWidth: true; text: genreCombo.currentText; color: "#e5e7eb"; font.pixelSize: 12 }
                         Text { text: "▼"; color: "#9ca3af"; font.pixelSize: 9 }

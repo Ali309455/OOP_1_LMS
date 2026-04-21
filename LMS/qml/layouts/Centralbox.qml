@@ -6,6 +6,7 @@ import LMS
 Item {
     width: 1000
     height: 700
+    property string route: "dashboard"
     ColumnLayout{
         anchors.fill: parent
         spacing: 0
@@ -24,15 +25,38 @@ Item {
 
         }
         Rectangle {
+            color: "#0f172a"
             Layout.fillWidth: true
             Layout.fillHeight: true
-            color: "#0f172a"
 
-            Membership {
+        //     Transactions {
+        //     anchors.fill: parent
+        //     }
+        // }
+
+
+        Loader {
             anchors.fill: parent
-            }
+            sourceComponent: {
+                   console.log("Loading route:", route)
+
+                   if (route === "Reviews") return reviewsComp
+                   if (route === "Books") return booksComp
+                   if (route === "Transactions") return transactionComp
+                   if (route === "Users") return usersComp
+                   if (route === "Settings") return settingsComp
+                   return dashboardComp
+               }
+        }
+
+        Component { id: reviewsComp; Reviews {} }
+        Component { id: usersComp; UserManagement {} }
+        Component { id: settingsComp; Profile {} }
+        Component { id: transactionComp; Transactions {} }
+        Component { id: booksComp; BookCatalog {} }
+        Component { id: dashboardComp; LibrarianDashboard {} }
         }
     }
-
-
 }
+
+
