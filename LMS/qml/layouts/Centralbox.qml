@@ -7,6 +7,7 @@ Item {
     width: 1000
     height: 700
     property string route: "dashboard"
+    property bool islibrarian: false
     ColumnLayout{
         anchors.fill: parent
         spacing: 0
@@ -45,16 +46,20 @@ Item {
                    if (route === "Transactions") return transactionComp
                    if (route === "Users") return usersComp
                    if (route === "Settings") return settingsComp
-                   return dashboardComp
+                   // if (route === "Membership") return membershipComp
+                   // return islibrarian? librariandashboardComp: studentdashboardComp
+                   return librariandashboardComp
                }
         }
 
         Component { id: reviewsComp; Reviews {} }
+        // Component { id: membershipComp; Membership {} }
         Component { id: usersComp; UserManagement {} }
         Component { id: settingsComp; Profile {} }
         Component { id: transactionComp; Transactions {} }
         Component { id: booksComp; BookCatalog {} }
-        Component { id: dashboardComp; LibrarianDashboard {} }
+        Component { id: librariandashboardComp;  LibrarianDashboard {} }
+        // Component { id: studentdashboardComp;  StudentDashboard {} }
         }
     }
 }

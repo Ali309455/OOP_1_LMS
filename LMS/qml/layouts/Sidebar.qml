@@ -10,17 +10,25 @@ Rectangle {
     border.width: 1
 
     signal navigationRequested(string page)
+    property bool islibrarian: false
     property string activePage: "Dashboard"
-
-    property var navItems: [
+    property var librarianItems: [
         { label: "Dashboard",    icon: "🏠" },
         { label: "Books",        icon: "📖" },
         { label: "Transactions", icon: "🧾" },
         { label: "Reviews",      icon: "💬" },
-        { label: "Reports",      icon: "📊" },
         { label: "Users",        icon: "👥" },
         { label: "Settings",     icon: "⚙️"  }
     ]
+    property var studentItems: [
+        { label: "Dashboard",    icon: "🏠" },
+        { label: "Books",        icon: "📖" },
+        { label: "Transactions", icon: "🧾" },
+        { label: "Reviews",      icon: "💬" },
+        { label: "Membership",      icon: "👥" },
+        { label: "Settings",     icon: "⚙️"  }
+    ]
+    property var navItems: islibrarian ? librarianItems : studentItems
 
     ColumnLayout {
         anchors.fill: parent
