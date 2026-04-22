@@ -46,20 +46,20 @@ Item {
                    if (route === "Transactions") return transactionComp
                    if (route === "Users") return usersComp
                    if (route === "Settings") return settingsComp
-                   // if (route === "Membership") return membershipComp
-                   // return islibrarian? librariandashboardComp: studentdashboardComp
-                   return librariandashboardComp
+                   if (route === "Membership") return membershipComp
+                   return islibrarian? librariandashboardComp: studentdashboardComp
+                   // return librariandashboardComp
                }
         }
 
         Component { id: reviewsComp; Reviews {} }
-        // Component { id: membershipComp; Membership {} }
+        Component { id: membershipComp; Membership {} }
         Component { id: usersComp; UserManagement {} }
         Component { id: settingsComp; Profile {} }
         Component { id: transactionComp; Transactions {} }
         Component { id: booksComp; BookCatalog {} }
         Component { id: librariandashboardComp;  LibrarianDashboard {} }
-        // Component { id: studentdashboardComp;  StudentDashboard {} }
+        Component { id: studentdashboardComp;  StudentDashboard {} }
         }
     }
 }

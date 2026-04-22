@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
 
 Rectangle {
     id: membershipRoot
@@ -39,7 +38,7 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 180
                 color: "#1e293b"
-                radius: 12
+                radius: 15
                 border.color: "#334155"
 
                 ColumnLayout {
@@ -52,20 +51,21 @@ Rectangle {
 
                         // --- MAIN ICON ---
                         Rectangle {
-                            width: 44; height: 44; radius: 8; color: "#334155"
+                            width: 44; height: 44; radius: 8
+                            color: isMembershipActive ? "#8b5cf6" : "#475569"
+                            border.color: Qt.rgba(color.r, color.g, color.b, 0.4)
+                            border.width: 1
                             Image {
-                                id: mainIconRaw
                                 anchors.centerIn: parent
                                 width: 24; height: 24
-                                source: "qrc:/LMS/qml/assets/icons/shield-user-fill.svg"
+                                source: "qrc:/assets/icons/shield-user-fill.svg"
                                 fillMode: Image.PreserveAspectFit
-                                visible: false
                             }
-                            ColorOverlay {
-                                anchors.fill: mainIconRaw
-                                source: mainIconRaw
-                                color: "#fbbf24"
-                            }
+                            // ColorOverlay {
+                            //     anchors.fill: mainIconRaw
+                            //     source: mainIconRaw
+                            //     color: "#fbbf24"
+                            // }
                         }
 
                         ColumnLayout {
@@ -89,10 +89,9 @@ Rectangle {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 12
-                        // Changed icons to file names
                         StatTile { iconImg: "book-fill.svg"; label: "BORROW LIMIT"; value: borrowLimit; iconCol: "#3b82f6" }
-                        StatTile { iconImg: "discount-percent-fill.svg"; label: "FINE DISCOUNT"; value: fineDiscount; iconCol: "#10b981" }
-                        StatTile { iconImg: "calendar-event-fill.svg"; label: "VALIDITY"; value: expiryDate; iconCol: "#a855f7" }
+                        StatTile { iconImg: "discount-percent-fill.svg"; label: "FINE DISCOUNT"; value: fineDiscount; iconCol: "#06b6d4" }
+                        StatTile { iconImg: "calendar-event-fill.svg"; label: "VALIDITY"; value: expiryDate; iconCol: "#f97316" }
                     }
                 }
             }
@@ -104,9 +103,9 @@ Rectangle {
                 Layout.fillWidth: true
                 spacing: 15
 
-                PlanCard { tier: "SILVER"; price: "Free"; iconBg: "#94a3b8"; planIcon: "vip-crown-2-fill.svg"; features: ["Borrow up to 3 Books", "Standard loan period (14 Days)", "No Fine Discount"] }
+                PlanCard { tier: "SILVER"; price: "Free"; iconBg: "#64748b"; planIcon: "vip-crown-2-fill.svg"; features: ["Borrow up to 3 Books", "Standard loan period (14 Days)", "No Fine Discount"] }
                 PlanCard { tier: "GOLD"; price: "$29/yr"; iconBg: "#f59e0b"; planIcon: "vip-crown-fill.svg"; features: ["Borrow up to 5 Books", "Extended loan period (21 Days)", "20% Fine Discount"] }
-                PlanCard { tier: "PLATINUM"; price: "$59/yr"; iconBg: "#a855f7"; planIcon: "vip-diamond-fill.svg"; features: ["Borrow up to 7 Books", "Maximum loan period (30 Days)", "50% Fine Discount", "Priority reservations"] }
+                PlanCard { tier: "PLATINUM"; price: "$59/yr"; iconBg: "#8b5cf6"; planIcon: "vip-diamond-fill.svg"; features: ["Borrow up to 7 Books", "Maximum loan period (30 Days)", "50% Fine Discount", "Priority reservations"] }
             }
         }
     }
@@ -120,30 +119,32 @@ Rectangle {
             anchors.fill: parent; anchors.leftMargin: 12; spacing: 10
 
             // --- STAT ICON ---
-            Item {
-                width: 20; height: 20
+            Rectangle {
+                width: 32; height: 32; color: iconCol; radius: 8; opacity: 1.0
                 Image {
-                    id: tileIcon
-                    anchors.fill: parent
-                    source: "qrc:/LMS/qml/assets/icons/" + iconImg
-                    visible: false
+                    anchors.centerIn: parent
+                    width: 18; height: 18
+                    source: "qrc:/assets/icons/" + iconImg
+                    fillMode: Image.PreserveAspectFit
                 }
-                ColorOverlay {
-                    anchors.fill: tileIcon
-                    source: tileIcon
-                    color: iconCol
-                }
+                // ColorOverlay {
+                //     anchors.fill: tileIcon
+                //     source: tileIcon
+                //     color: iconCol
+                // }
             }
 
             ColumnLayout {
+                spacing: 0
                 Text { text: label; color: "#64748b"; font.pixelSize: 9; font.bold: true }
                 Text { text: value; color: "white"; font.pixelSize: 14; font.bold: true }
             }
+            Item { Layout.fillWidth: true}
         }
     }
 
     component PlanCard : Rectangle {
-        property string tier: ""; property string price: ""; property string planIcon: ""; property string iconBg: ""; property var features: []
+        property string tier: ""; property string price: ""; property string planIcon: ""; property string iconBg: "white"; property var features: []
         width: (parent.width / 3) - 10; height: 380; color: "#1e293b"; radius: 16
         border.color: (isMembershipActive && activeTier === tier) ? "#3b82f6" : "#334155"
         border.width: (isMembershipActive && activeTier === tier) ? 2 : 1
@@ -155,18 +156,16 @@ Rectangle {
 
                 // --- PLAN ICON ---
                 Image {
-                    id: pIcon
                     anchors.centerIn: parent
                     width: 28; height: 28
-                    source: "qrc:/LMS/qml/assets/icons/" + planIcon
+                    source: "qrc:/assets/icons/" + planIcon
                     fillMode: Image.PreserveAspectFit
-                    visible: false
                 }
-                ColorOverlay {
-                    anchors.fill: pIcon
-                    source: pIcon
-                    color: "white"
-                }
+                // ColorOverlay {
+                //     anchors.fill: pIcon
+                //     source: pIcon
+                //     color: "white"
+                // }
             }
             Text { Layout.alignment: Qt.AlignHCenter; text: tier; color: iconBg; font.pixelSize: 18; font.bold: true }
             Text { Layout.alignment: Qt.AlignHCenter; text: price; color: "white"; font.pixelSize: 28; font.bold: true }
