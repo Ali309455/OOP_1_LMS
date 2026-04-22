@@ -47,9 +47,9 @@ Item {
                    if (route === "Transactions") return transactionComp
                    if (route === "Users") return usersComp
                    if (route === "Settings") return settingsComp
-                   // if (route === "Membership") return membershipComp
-                   // return islibrarian? librariandashboardComp: studentdashboardComp
-                   return librariandashboardComp
+                   if (route === "Membership") return membershipComp
+                   return islibrarian? librariandashboardComp: studentdashboardComp
+                   // return librariandashboardComp
                }
         }
 
@@ -60,7 +60,7 @@ Item {
         Component { id: transactionComp; Transactions {} }
         Component { id: booksComp; BookCatalog {isLibrarian: centralbox.islibrarian} }
         Component { id: librariandashboardComp;  LibrarianDashboard {} }
-        // Component { id: studentdashboardComp;  StudentDashboard {} }
+        Component { id: studentdashboardComp;  StudentDashboard {} }
         }
     }
 }

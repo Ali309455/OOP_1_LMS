@@ -33,29 +33,7 @@ qt_add_qml_module(appLMS
                qml/layouts/Centralbox.qml
                qml/layouts/Navbar.qml
                qml/navigation/Router.qml
-               qml/assets/icons/book-fill.svg
-               qml/assets/icons/book-line.svg
-               qml/assets/icons/book-open-fill.svg
-               qml/assets/icons/book-open-line.svg
-               qml/assets/icons/book-read-fill.svg
-               qml/assets/icons/book-read-line.svg
-               qml/assets/icons/calendar-event-fill.svg
-               qml/assets/icons/calendar-event-line.svg
-               qml/assets/icons/currency-fill.svg
-               qml/assets/icons/currency-line.svg
-               qml/assets/icons/shield-user-fill.svg
-               qml/assets/icons/shield-user-line.svg
-               qml/assets/icons/time-fill.svg
-               qml/assets/icons/time-line.svg
-               qml/assets/icons/vip-crown-2-fill.svg
-               qml/assets/icons/vip-crown-2-line.svg
-               qml/assets/icons/vip-crown-fill.svg
-               qml/assets/icons/vip-crown-line.svg
-               qml/assets/icons/vip-diamond-fill.svg
-               qml/assets/icons/vip-diamond-line.svg
-               qml/assets/icons/wallet-fill.svg
-               qml/assets/icons/wallet-line.svg
-               qml/assets/icons/discount-percent-fill.svg
+
 )
 qt_add_resources(appLMS "resources"
     PREFIX "/"
@@ -69,6 +47,16 @@ qt_add_resources(appLMS "resources"
         "assets/icons/book.png"
         "assets/icons/dashboard.png"
         "assets/icons/transaction.png"
+        "assets/icons/book-read-fill.svg"
+        "assets/icons/currency-fill.svg"
+        "assets/icons/shield-user-fill.svg"
+        "assets/icons/time-fill.svg"
+        "assets/icons/book-fill.svg"
+        "assets/icons/calendar-event-fill.svg"
+        "assets/icons/discount-percent-fill.svg"
+        "assets/icons/vip-crown-2-fill.svg"
+        "assets/icons/vip-crown-fill.svg"
+        "assets/icons/vip-diamond-fill.svg"
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

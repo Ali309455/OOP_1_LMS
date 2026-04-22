@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
 
 Rectangle {
     id: centralDashboard
@@ -34,16 +33,16 @@ Rectangle {
 
                 Repeater {
                     model: [
-                        { name: "Borrowed Books", img: "book-read-fill.svg", col: "#3b82f6" },
-                        { name: "Due Books",      img: "time-fill.svg", col: "#ef4444" },
-                        { name: "Total Fine",     img: "currency-fill.svg", col: "#f59e0b" },
-                        { name: "Membership",     img: "shield-user-fill.svg",  col: "#a855f7" }
+                        { name: "Borrowed Books", img: "qrc:/assets/icons/book-read-fill.svg", col: "#3b82f6" },
+                        { name: "Due Books",      img: "qrc:/assets/icons/time-fill.svg", col: "#f97316" },
+                        { name: "Total Fine",     img: "qrc:/assets/icons/currency-fill.svg", col: "#06b6d4" },
+                        { name: "Membership",     img: "qrc:/assets/icons/shield-user-fill.svg",  col: "#8b5cf6" }
                     ]
                     delegate: Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 140
+                        Layout.preferredHeight: 160
                         color: "#1e293b"
-                        radius: 12
+                        radius: 15
                         border.color: "#334155"
 
                         ColumnLayout {
@@ -54,30 +53,30 @@ Rectangle {
                             Rectangle {
                                 width: 42; height: 42
                                 radius: 10
-                                color: Qt.rgba(modelData.col, 0.1)
-                                border.color: modelData.col
+                                color: modelData.col
+                                border.color: Qt.rgba(modelData.col, 0.4, 1)
                                 border.width: 1
 
                                 Image {
                                     id: rawIcon
                                     anchors.centerIn: parent
-                                    width: 24; height: 24
-                                    source: "qrc:/LMS/qml/assets/icons/" + modelData.img
+                                    width: 28; height: 28
+                                    source: modelData.img
                                     fillMode: Image.PreserveAspectFit
-                                    visible: false
+
                                 }
-                                ColorOverlay {
-                                    id: overlay
-                                    anchors.fill: rawIcon
-                                    source: rawIcon
-                                    color: modelData.col
-                                    visible: false
-                                }
-                                OpacityMask {
-                                    anchors.fill: rawIcon
-                                    source: overlay
-                                    maskSource: rawIcon
-                                }
+                                // ColorOverlay {
+                                //     id: overlay
+                                //     anchors.fill: rawIcon
+                                //     source: rawIcon
+                                //     color: modelData.col
+                                //     visible: false
+                                // }
+                                // OpacityMask {
+                                //     anchors.fill: rawIcon
+                                //     source: overlay
+                                //     maskSource: rawIcon
+                                // }
                             }
 
                             Item { Layout.fillHeight: true }
@@ -162,6 +161,7 @@ Rectangle {
                         }
                     }
                     Rectangle {
+                        property int  index
                         anchors.bottom: parent.bottom
                         width: parent.width
                         height: 1
