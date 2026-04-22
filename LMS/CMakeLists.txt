@@ -21,6 +21,8 @@ qt_add_qml_module(appLMS
                qml/screens/shared/BookCatalog.qml
                qml/screens/shared/BookDetail.qml
                qml/screens/shared/Transactions.qml
+               qml/screens/shared/TransactionsAdmin.qml
+               qml/screens/shared/TransactionsStudent.qml
                qml/screens/shared/Reviews.qml
                qml/screens/shared/Profile.qml
                qml/screens/student/StudentDashboard.qml

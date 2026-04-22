@@ -1,15 +1,31 @@
 import QtQuick
 import QtQuick.Controls
+import LMS
 
 Item {
-    Rectangle {
-        anchors.fill: parent
-        color: "#ecf0f1"
+    id: root
+    anchors.fill: parent
 
-        Text {
-            anchors.centerIn: parent
-            text: "Transactions"
-            font.pixelSize: 26
+    // Temporary testing switch
+
+    property bool isLibrarian: false
+
+    Loader {
+        anchors.fill: parent
+        sourceComponent: root.isLibrarian ? adminView : studentView
+    }
+
+    Component {
+        id: adminView
+        TransactionsAdmin {
+            anchors.fill: parent
+        }
+    }
+
+    Component {
+        id: studentView
+        TransactionsStudent {
+            anchors.fill: parent
         }
     }
 }

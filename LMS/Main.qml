@@ -137,3 +137,4 @@ Window {
         onPressed: root.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
     }
 }
+
