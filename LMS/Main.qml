@@ -23,7 +23,9 @@ Window {
 
         // optional shadow effect
         border.color: "#696969"
-        property string currentRoute: "dashboard"   // default screen
+        property string currentRoute: "dashboard" // default screen
+        property bool islibrarian: false
+        property bool isLoggedIn: false
 
         ColumnLayout {
             anchors.fill: parent
@@ -87,6 +89,16 @@ Window {
                     onPressed: root.startSystemMove()
                 }
             }
+            Login{
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                visible: !container.isLoggedIn
+                onIslibrarian:  function(access) {
+                        container.islibrarian = access
+                        console.log(access)
+                        container.isLoggedIn = true
+                         }
+            }
 
 
 
@@ -94,11 +106,14 @@ Window {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                visible: container.isLoggedIn
                 Sidebar {
                     Layout.preferredWidth: 200
                     Layout.preferredHeight: 710
+                    islibrarian: container.islibrarian
                     onNavigationRequested: function(page) {
                            container.currentRoute = page
+                            if(page === "logout") container.isLoggedIn = false;
                        }
                 }
                 Centralbox{
@@ -106,6 +121,7 @@ Window {
                     anchors.leftMargin: 230
                     Layout.margins: 10
                     Layout.fillWidth: true
+                    islibrarian: container.islibrarian
                     route: container.currentRoute
                 }
             }

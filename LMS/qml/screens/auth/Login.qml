@@ -21,9 +21,9 @@ Rectangle {
         var pass  = passwordInput.text
 
         // if (email === "") { errorMsg = "Please enter your email or User ID."; return }
-        if (email ) { loginPage.islibrarian(false); return }
         if (pass  === "") { errorMsg = "Please enter your password.";          return }
         if (email === "admin@lib.com") { loginPage.islibrarian(true); return }
+        else {loginPage.islibrarian(false)}
         errorMsg = ""
         loginPage.loginRequested(email, pass)
     }

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import LMS
 
 Item {
+    id: centralbox
     width: 1000
     height: 700
     property string route: "dashboard"
@@ -52,12 +53,12 @@ Item {
                }
         }
 
-        Component { id: reviewsComp; Reviews {} }
+        Component { id: reviewsComp; Reviews {userRole: centralbox.islibrarian?"librarian":"user" }}
         // Component { id: membershipComp; Membership {} }
         Component { id: usersComp; UserManagement {} }
         Component { id: settingsComp; Profile {} }
         Component { id: transactionComp; Transactions {} }
-        Component { id: booksComp; BookCatalog {} }
+        Component { id: booksComp; BookCatalog {isLibrarian: centralbox.islibrarian} }
         Component { id: librariandashboardComp;  LibrarianDashboard {} }
         // Component { id: studentdashboardComp;  StudentDashboard {} }
         }
