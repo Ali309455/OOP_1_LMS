@@ -7,13 +7,16 @@ Rectangle {
     anchors.fill: parent
     color: "#0f172a"
 
-    ScrollView {
+    Flickable {
+        id: flick
         anchors.fill: parent
-        contentWidth: parent.width
+        contentWidth: width
+        contentHeight: contentCol.implicitHeight + 40
         clip: true
 
         ColumnLayout {
-            width: centralDashboard.width - 60
+            id: contentCol
+            width: flick.width - 40
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
             anchors.topMargin: 30
@@ -172,4 +175,65 @@ Rectangle {
             }
         }
     }
+    Rectangle {
+        id: scrollTrack
+        anchors.right: parent.right
+        anchors.rightMargin: 6
+        anchors.top: flick.top
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 8; anchors.bottomMargin: 8
+        width: 6
+        radius: 3
+        color: "#1e2535"
+        visible: flick.contentHeight > flick.height
+
+        // Thumb
+        Rectangle {
+            id: scrollThumb
+            width: parent.width
+            radius: 3
+            color: thumbMA.pressed ? "#9ca3af" : thumbMA.containsMouse ? "#6b7280" : "#374151"
+            Behavior on color { ColorAnimation { duration: 100 } }
+
+            // height and y are two-way bound to the Flickable
+            height: Math.max(32, scrollTrack.height * (flick.height / flick.contentHeight))
+            y: flick.contentY / flick.contentHeight * scrollTrack.height
+
+            MouseArea {
+                id: thumbMA
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.SizeVerCursor
+                preventStealing: true
+
+                property real pressY: 0
+                property real pressContentY: 0
+
+                onPressed: {
+                    pressY = mouseY
+                    pressContentY = reviewsFlick.contentY
+                }
+
+                onPositionChanged: {
+                    if (pressed) {
+                        var delta = mouseY - pressY
+                        var ratio = delta / scrollTrack.height
+                        var newY = pressContentY + ratio * reviewsFlick.contentHeight
+                        reviewsFlick.contentY = Math.max(0, Math.min(newY, reviewsFlick.contentHeight - reviewsFlick.height))
+                    }
+                }
+            }
+        }
+
+        // Click on track (jump to position)
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                var ratio = mouseY / scrollTrack.height
+                reviewsFlick.contentY = Math.max(0, Math.min(ratio * reviewsFlick.contentHeight, reviewsFlick.contentHeight - reviewsFlick.height))
+            }
+        }
+    }
+
+
 }

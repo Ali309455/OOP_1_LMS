@@ -14,16 +14,19 @@ Rectangle {
     property string fineDiscount: "—"
     property string expiryDate: "—"
 
-    ScrollView {
+    Flickable {
+        id: flick
         anchors.fill: parent
-        contentWidth: parent.width
+        contentWidth: width
+        contentHeight: contentCol.implicitHeight + 40
         clip: true
 
         ColumnLayout {
-            width: parent.width - 60
+            id: contentCol
+            width: flick.width - 60
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: 20
+            anchors.topMargin: 30
             spacing: 25
 
             // --- HEADER ---
@@ -106,6 +109,65 @@ Rectangle {
                 PlanCard { tier: "SILVER"; price: "Free"; iconBg: "#64748b"; planIcon: "vip-crown-2-fill.svg"; features: ["Borrow up to 3 Books", "Standard loan period (14 Days)", "No Fine Discount"] }
                 PlanCard { tier: "GOLD"; price: "$29/yr"; iconBg: "#f59e0b"; planIcon: "vip-crown-fill.svg"; features: ["Borrow up to 5 Books", "Extended loan period (21 Days)", "20% Fine Discount"] }
                 PlanCard { tier: "PLATINUM"; price: "$59/yr"; iconBg: "#8b5cf6"; planIcon: "vip-diamond-fill.svg"; features: ["Borrow up to 7 Books", "Maximum loan period (30 Days)", "50% Fine Discount", "Priority reservations"] }
+            }
+        }
+    }
+    Rectangle {
+        id: scrollTrack
+        anchors.right: parent.right
+        anchors.rightMargin: 6
+        anchors.top: flick.top
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 8; anchors.bottomMargin: 8
+        width: 6
+        radius: 3
+        color: "#1e2535"
+        visible: flick.contentHeight > flick.height
+
+        // Thumb
+        Rectangle {
+            id: scrollThumb
+            width: parent.width
+            radius: 3
+            color: thumbMA.pressed ? "#9ca3af" : thumbMA.containsMouse ? "#6b7280" : "#374151"
+            Behavior on color { ColorAnimation { duration: 100 } }
+
+            // height and y are two-way bound to the Flickable
+            height: Math.max(32, scrollTrack.height * (flick.height / flick.contentHeight))
+            y: flick.contentY / flick.contentHeight * scrollTrack.height
+
+            MouseArea {
+                id: thumbMA
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.SizeVerCursor
+                preventStealing: true
+
+                property real pressY: 0
+                property real pressContentY: 0
+
+                onPressed: {
+                    pressY = mouseY
+                    pressContentY = reviewsFlick.contentY
+                }
+
+                onPositionChanged: {
+                    if (pressed) {
+                        var delta = mouseY - pressY
+                        var ratio = delta / scrollTrack.height
+                        var newY = pressContentY + ratio * reviewsFlick.contentHeight
+                        reviewsFlick.contentY = Math.max(0, Math.min(newY, reviewsFlick.contentHeight - reviewsFlick.height))
+                    }
+                }
+            }
+        }
+
+        // Click on track (jump to position)
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                var ratio = mouseY / scrollTrack.height
+                reviewsFlick.contentY = Math.max(0, Math.min(ratio * reviewsFlick.contentHeight, reviewsFlick.contentHeight - reviewsFlick.height))
             }
         }
     }

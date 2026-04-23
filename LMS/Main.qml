@@ -54,29 +54,37 @@ Window {
                     Item { Layout.fillWidth: true }
 
                     // Minimize Button
-                    Text {
-                        text: "—"
-                        color: "#ffffff"
-                        font.pixelSize: 13
+                    Rectangle {
+                        width: 30
+                        height: 30
+                        color: "transparent"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "—"
+                            color: "white"
+                        }
 
                         MouseArea {
                             anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
                             onClicked: root.showMinimized()
                         }
                     }
 
                     // Close Button
-                    Text {
-                        text: "✕"
-                        color: "#ffffff"
-                        font.pixelSize: 20
-                        anchors.margins: 10
+                    Rectangle {
+                        width: 30
+                        height: 30
+                        color:"transparent"
 
+                        Text {
+                            anchors.centerIn: parent
+                            text: "✕"
+                            color: "white"
+                        }
 
                         MouseArea {
                             anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
                             onClicked: Qt.quit()
                         }
                     }
@@ -85,8 +93,14 @@ Window {
                 // Drag window
                 MouseArea {
                     anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
 
-                    onPressed: root.startSystemMove()
+                    // ❗ prevent stealing clicks from buttons
+                    propagateComposedEvents: true
+
+                    onPressed: {
+                            root.startSystemMove()
+                    }
                 }
             }
             Login{
