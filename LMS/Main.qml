@@ -24,7 +24,8 @@ Window {
         // optional shadow effect
         border.color: "#696969"
         property string currentRoute: "dashboard" // default screen
-        property bool islibrarian: false
+        property string authPage: "login"   // "login" or "signup"
+        property bool islibrarian:false
         property bool isLoggedIn: false
 
         ColumnLayout {
@@ -106,14 +107,34 @@ Window {
             Login{
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                visible: !container.isLoggedIn
+                visible: !container.isLoggedIn && container.authPage === "login"
                 onIslibrarian:  function(access) {
                         container.islibrarian = access
                         console.log(access)
                         container.isLoggedIn = true
                          }
+                onSignupRequested: {
+                       container.authPage = "signup"
+                   }
             }
 
+            Signup {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+
+                visible: !container.isLoggedIn && container.authPage === "signup"
+
+                // 🔥 BACK TO LOGIN
+                onBackToLogin: {
+                    container.authPage = "login"
+                }
+
+                // OPTIONAL: after signup, auto go login
+                onSignupCompleted: function(name, email, role) {
+                    console.log("User created:", name, role)
+                    container.authPage = "login"
+                }
+            }
 
 
             // ── Content Area ──

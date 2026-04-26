@@ -1,306 +1,356 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls
+
+// Transactions.qml
+// Window: 1024×800 | Sidebar: 200px | TitleBar+Navbar: ~94px
+// Available content width: ~824px — all columns sized to fit without horizontal scroll
 
 Rectangle {
-    id: root
+    id: txView
     color: "#0b1220"
-    radius: 0
 
-    property color pageBg: "#0b1220"
-    property color cardBg: "#171e2f"
-    property color borderColor: "#2a3350"
-    property color textPrimary: "#ffffff"
-    property color textSecondary: "#9aa4bf"
-    property color accent: "#6377f2"
-    property color green: "#16c47f"
-    property color red: "#ff4d5a"
-    property color yellow: "#f0b429"
+    // ── Theme tokens ───────────────────────────────────────────────────────
+    readonly property color cardBg:       "#171e2f"
+    readonly property color borderColor:  "#2a3350"
+    readonly property color textPrimary:  "#ffffff"
+    readonly property color textMuted:    "#9aa4bf"
+    readonly property color headerBg:     "#111827"
 
+    // ── Filters ────────────────────────────────────────────────────────────
+    property string searchText:   ""
+    property string statusFilter: "All"
+
+    // ── Data ──────────────────────────────────────────────────────────────
     ListModel {
-        id: transactionModel
-        ListElement { txnId: "TXN-1245"; book: "Clean Code"; isbn: "978-0132350884"; issueDate: "2026-04-01"; dueDate: "2026-04-15"; returnDate: "-"; fine: "-"; status: "active" }
-        ListElement { txnId: "TXN-1244"; book: "Design Patterns"; isbn: "978-0201633612"; issueDate: "2026-03-28"; dueDate: "2026-04-11"; returnDate: "2026-04-10"; fine: "-"; status: "returned" }
-        ListElement { txnId: "TXN-1243"; book: "Effective Java"; isbn: "978-0134665991"; issueDate: "2026-03-25"; dueDate: "-"; returnDate: "-"; fine: "$15"; status: "overdue" }
-        ListElement { txnId: "TXN-1242"; book: "The Pragmatic Programmer"; isbn: "978-0137081073"; issueDate: "2026-04-05"; dueDate: "2026-04-19"; returnDate: "-"; fine: "-"; status: "active" }
-        ListElement { txnId: "TXN-1241"; book: "Introduction to Algorithms"; isbn: "978-0262033848"; issueDate: "2026-03-20"; dueDate: "-"; returnDate: "-"; fine: "$30"; status: "overdue" }
+        id: txModel
+        ListElement { txnId: "TXN-1245"; student: "John Doe";    sId: "S001"; book: "Clean Code";                 isbn: "978-0132350884"; issueDate: "2026-04-01"; dueDate: "2026-04-15"; fine: "-";   status: "active"   }
+        ListElement { txnId: "TXN-1244"; student: "Jane Smith";  sId: "S002"; book: "Design Patterns";           isbn: "978-0201633612"; issueDate: "2026-03-28"; dueDate: "2026-04-11"; fine: "-";   status: "returned" }
+        ListElement { txnId: "TXN-1243"; student: "Bob Johnson"; sId: "S003"; book: "Effective Java";            isbn: "978-0134685991"; issueDate: "2026-03-25"; dueDate: "2026-04-08"; fine: "$15"; status: "overdue"  }
+        ListElement { txnId: "TXN-1242"; student: "John Doe";    sId: "S001"; book: "The Pragmatic Programmer";  isbn: "978-0137081073"; issueDate: "2026-04-05"; dueDate: "2026-04-19"; fine: "-";   status: "active"   }
+        ListElement { txnId: "TXN-1241"; student: "Alice Brown"; sId: "S004"; book: "Intro to Algorithms";       isbn: "978-0262033848"; issueDate: "2026-03-20"; dueDate: "2026-04-03"; fine: "$30"; status: "overdue"  }
     }
 
-    ColumnLayout {
+    // ── Row filter ─────────────────────────────────────────────────────────
+    function rowVisible(item) {
+        if (statusFilter !== "All" && item.status !== statusFilter) return false
+        if (searchText.length > 0) {
+            var s = searchText.toLowerCase()
+            if (!item.txnId.toLowerCase().includes(s) &&
+                !item.student.toLowerCase().includes(s) &&
+                !item.book.toLowerCase().includes(s)) return false
+        }
+        return true
+    }
+
+    function countByStatus(st) {
+        var c = 0
+        for (var i = 0; i < txModel.count; i++)
+            if (txModel.get(i).status === st) c++
+        return c
+    }
+
+    // ── Status helpers ─────────────────────────────────────────────────────
+    function sBg(s)     { return s==="active"?"#1c2d78": s==="returned"?"#123b32": "#4a1f2a" }
+    function sFg(s)     { return s==="active"?"#7ea2ff": s==="returned"?"#4fe0a5": "#ff6773" }
+    function sBorder(s) { return s==="active"?"#3b82f6": s==="returned"?"#22c55e": "#ef4444" }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // LAYOUT — Column fills parent, no horizontal scrolling
+    // ══════════════════════════════════════════════════════════════════════
+    Column {
         anchors.fill: parent
-        anchors.margins: 24
-        spacing: 20
+        anchors.margins: 20
+        spacing: 16
 
-        Label {
-            text: "My Transactions"
-            color: root.textPrimary
-            font.pixelSize: 28
-            font.bold: true
+        // ── Page header ────────────────────────────────────────────────────
+        Column {
+            width: parent.width
+            spacing: 4
+            Text { text: "Transactions"; color: txView.textPrimary; font.pixelSize: 24; font.bold: true }
+            Text {
+                text: "Manage book borrowing and returns (" + txModel.count + " transactions)"
+                color: txView.textMuted; font.pixelSize: 13
+            }
         }
 
-        Label {
-            text: "Track your borrowed, returned, and overdue books"
-            color: root.textSecondary
-            font.pixelSize: 14
-            Layout.topMargin: -8
-        }
+        // ── Search + filter bar ────────────────────────────────────────────
+        Row {
+            width: parent.width
+            spacing: 12
 
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            color: root.cardBg
-            radius: 18
-            border.color: root.borderColor
-            border.width: 1
+            // Search box
+            Rectangle {
+                width: parent.width - 160 - 12
+                height: 42; radius: 10
+                color: "#1b2338"
+                border.color: searchInput.activeFocus ? "#3b82f6" : txView.borderColor; border.width: 1
+                Behavior on border.color { ColorAnimation { duration: 150 } }
 
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 22
-                spacing: 18
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 16
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 44
-                        color: "#1b2338"
-                        radius: 12
-                        border.color: root.borderColor
-                        border.width: 1
-
-                        TextField {
-                            anchors.fill: parent
-                            anchors.margins: 10
-                            placeholderText: "Search by transaction ID, book title..."
-                            color: root.textPrimary
-                            placeholderTextColor: root.textSecondary
-                            background: null
-                        }
+                Row {
+                    anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 12; spacing: 8
+                    Text { text: "🔍"; font.pixelSize: 14; opacity: 0.5; anchors.verticalCenter: parent.verticalCenter }
+                    TextInput {
+                        id: searchInput
+                        width: parent.width - 36; height: parent.height
+                        color: txView.textPrimary; font.pixelSize: 13
+                        clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
+                        onTextChanged: txView.searchText = text
+                        Text { visible: !parent.text; text: "Search by ID, student, or book..."; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
                     }
+                }
+            }
 
-                    ComboBox {
-                        id: statusCombo
-                        Layout.preferredWidth: 160
-                        Layout.preferredHeight: 44
-                        model: ["All", "active", "returned", "overdue"]
-                        currentIndex: 0
+            // Status filter
+            Rectangle {
+                width: 148; height: 42; radius: 10
+                color: "#1b2338"
+                border.color: txView.borderColor; border.width: 1
 
-                        contentItem: Text {
-                            text: statusCombo.displayText
-                            color: root.textPrimary
-                            font.pixelSize: 14
-                            verticalAlignment: Text.AlignVCenter
-                            leftPadding: 12
-                            elide: Text.ElideRight
-                        }
+                Row {
+                    anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 12
+                    Text { Layout.fillWidth: true; text: txView.statusFilter === "All" ? "All Status" : txView.statusFilter; color: txView.textPrimary; font.pixelSize: 13; width: parent.width - 20; verticalAlignment: Text.AlignVCenter; height: parent.height }
+                    Text { text: "▼"; color: txView.textMuted; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                }
 
-                        background: Rectangle {
-                            color: "#1b2338"
-                            radius: 12
-                            border.color: root.borderColor
-                            border.width: 1
-                        }
+                MouseArea { anchors.fill: parent; onClicked: statusMenu.open() }
+                Menu {
+                    id: statusMenu
+                    MenuItem { text: "All";      onTriggered: txView.statusFilter = "All"      }
+                    MenuItem { text: "active";   onTriggered: txView.statusFilter = "active"   }
+                    MenuItem { text: "returned"; onTriggered: txView.statusFilter = "returned" }
+                    MenuItem { text: "overdue";  onTriggered: txView.statusFilter = "overdue"  }
+                }
+            }
+        }
 
-                        indicator: Canvas {
-                            id: canvas
-                            x: statusCombo.width - width - 12
-                            y: statusCombo.topPadding + (statusCombo.availableHeight - height) / 2
-                            width: 12
-                            height: 8
-                            contextType: "2d"
+        // ── Table card ─────────────────────────────────────────────────────
+        Rectangle {
+            width: parent.width
+            // height = available space minus header(~56) minus search(42) minus stats(90) minus spacings
+            height: parent.height - 56 - 42 - 90 - 16*4
+            color: txView.cardBg; radius: 16
+            border.color: txView.borderColor; border.width: 1
 
-                            Connections {
-                                target: statusCombo
-                                function onPressedChanged() { canvas.requestPaint() }
-                            }
+            Column {
+                anchors.fill: parent
+                spacing: 0
 
-                            onPaint: {
-                                context.reset()
-                                context.moveTo(0, 0)
-                                context.lineTo(width, 0)
-                                context.lineTo(width / 2, height)
-                                context.closePath()
-                                context.fillStyle = "#9aa4bf"
-                                context.fill()
-                            }
-                        }
+                // ── Column header row ──────────────────────────────────────
+                // Total usable width ≈ card width − 32px side margins
+                // Columns designed to sum to 100% of that space
+                Rectangle {
+                    width: parent.width; height: 46
+                    color: txView.headerBg
+                    radius: 0
 
-                        popup: Popup {
-                            y: statusCombo.height + 6
-                            width: statusCombo.width
-                            implicitHeight: contentItem.implicitHeight
-                            padding: 6
+                    // top corners only
+                    Rectangle { width: parent.width; height: parent.radius; anchors.bottom: parent.top; color: parent.color }
 
-                            background: Rectangle {
-                                color: "#1b2338"
-                                radius: 12
-                                border.color: root.borderColor
-                                border.width: 1
-                            }
+                    Row {
+                        anchors.fill: parent
+                        anchors.leftMargin: 16; anchors.rightMargin: 16
 
-                            contentItem: ListView {
-                                clip: true
-                                implicitHeight: contentHeight
-                                model: statusCombo.popup.visible ? statusCombo.delegateModel : null
-
-                                delegate: ItemDelegate {
-                                    width: statusCombo.width - 12
-                                    height: 40
-
-                                    contentItem: Text {
-                                        text: modelData
-                                        color: root.textPrimary
-                                        font.pixelSize: 14
-                                        verticalAlignment: Text.AlignVCenter
-                                    }
-
-                                    background: Rectangle {
-                                        color: hovered ? "#26304a" : "transparent"
-                                        radius: 8
-                                    }
-                                }
+                        // widths tuned to sum to ~100% of (cardWidth - 32)
+                        Repeater {
+                            model: [
+                                { label: "Txn ID",     flex: 0.13 },
+                                { label: "Student",    flex: 0.18 },
+                                { label: "Book",       flex: 0.25 },
+                                { label: "Issued",     flex: 0.12 },
+                                { label: "Due",        flex: 0.12 },
+                                { label: "Fine",       flex: 0.08 },
+                                { label: "Status",     flex: 0.12 }
+                            ]
+                            delegate: Text {
+                                width: (parent.width) * modelData.flex
+                                text: modelData.label
+                                color: "#9fb0d9"; font.pixelSize: 12; font.bold: true
+                                verticalAlignment: Text.AlignVCenter; height: 46
+                                elide: Text.ElideRight
                             }
                         }
                     }
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    color: "transparent"
+                Rectangle { width: parent.width; height: 1; color: txView.borderColor }
 
-                    Column {
+                // ── Flickable rows ─────────────────────────────────────────
+                Item {
+                    width: parent.width
+                    height: parent.height - 47
+
+                    Flickable {
+                        id: rowFlick
                         anchors.fill: parent
-                        spacing: 0
+                        anchors.rightMargin: 16
+                        contentWidth: width
+                        contentHeight: rowCol.implicitHeight
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        Column {
+                            id: rowCol
+                            width: rowFlick.width
+                            spacing: 0
+
+                            Repeater {
+                                model: txModel
+                                delegate: Column {
+                                    width: rowCol.width
+                                    spacing: 0
+                                    visible: txView.rowVisible(txModel.get(index))
+                                    height: visible ? implicitHeight : 0
+
+                                    Rectangle {
+                                        width: parent.width; height: 64
+                                        color: rowMA.containsMouse
+                                            ? (status === "overdue" ? "#341520" : "#1a2238")
+                                            : (status === "overdue" ? "#2a1520" : "transparent")
+                                        Behavior on color { ColorAnimation { duration: 100 } }
+
+                                        Row {
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 16; anchors.rightMargin: 16
+
+                                            // Txn ID
+                                            Column {
+                                                width: parent.width * 0.13
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                spacing: 0
+                                                Text { text: txnId;  color: txView.textPrimary; font.pixelSize: 13; font.bold: true; elide: Text.ElideRight; width: parent.width }
+                                            }
+
+                                            // Student
+                                            Column {
+                                                width: parent.width * 0.18
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                spacing: 2
+                                                Text { text: student; color: txView.textPrimary; font.pixelSize: 13; font.bold: true; elide: Text.ElideRight; width: parent.width }
+                                                Text { text: sId;     color: txView.textMuted;   font.pixelSize: 11; elide: Text.ElideRight; width: parent.width }
+                                            }
+
+                                            // Book
+                                            Column {
+                                                width: parent.width * 0.25
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                spacing: 2
+                                                Text { text: book; color: txView.textPrimary; font.pixelSize: 13; font.bold: true; elide: Text.ElideRight; width: parent.width - 8 }
+                                                Text { text: isbn; color: txView.textMuted;   font.pixelSize: 11; elide: Text.ElideRight; width: parent.width - 8 }
+                                            }
+
+                                            // Issued
+                                            Text {
+                                                width: parent.width * 0.12
+                                                text: issueDate; color: txView.textMuted; font.pixelSize: 12
+                                                verticalAlignment: Text.AlignVCenter; height: parent.height
+                                                elide: Text.ElideRight
+                                            }
+
+                                            // Due
+                                            Text {
+                                                width: parent.width * 0.12
+                                                text: dueDate
+                                                color: status === "overdue" ? "#ef4444" : txView.textMuted
+                                                font.pixelSize: 12; font.bold: status === "overdue"
+                                                verticalAlignment: Text.AlignVCenter; height: parent.height
+                                                elide: Text.ElideRight
+                                            }
+
+                                            // Fine
+                                            Text {
+                                                width: parent.width * 0.08
+                                                text: fine
+                                                color: fine !== "-" ? "#ef4444" : txView.textMuted
+                                                font.pixelSize: 13; font.bold: fine !== "-"
+                                                verticalAlignment: Text.AlignVCenter; height: parent.height
+                                            }
+
+                                            // Status badge
+                                            Item {
+                                                width: parent.width * 0.12; height: parent.height
+                                                Rectangle {
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    width: 78; height: 26; radius: 13
+                                                    color: txView.sBg(status)
+                                                    border.color: txView.sBorder(status); border.width: 1
+                                                    Text {
+                                                        anchors.centerIn: parent
+                                                        text: status; color: txView.sFg(status)
+                                                        font.pixelSize: 11; font.bold: true
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            id: rowMA
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            acceptedButtons: Qt.NoButton
+                                        }
+                                    }
+
+                                    // Row divider
+                                    Rectangle { width: parent.width; height: 1; color: txView.borderColor; opacity: 0.5 }
+                                }
+                            }
+
+                            // Empty state
+                            Rectangle {
+                                width: rowCol.width; height: 120; color: "transparent"
+                                visible: {
+                                    for (var i = 0; i < txModel.count; i++)
+                                        if (txView.rowVisible(txModel.get(i))) return false
+                                    return true
+                                }
+                                Column {
+                                    anchors.centerIn: parent; spacing: 10
+                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: "🔍"; font.pixelSize: 36 }
+                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: "No transactions found"; color: txView.textMuted; font.pixelSize: 14; font.bold: true }
+                                }
+                            }
+                        }
+                    }
+
+                    // Draggable scrollbar
+                    Rectangle {
+                        id: scrollTrack
+                        anchors.right: parent.right; anchors.rightMargin: 3
+                        anchors.top: parent.top; anchors.topMargin: 4
+                        anchors.bottom: parent.bottom; anchors.bottomMargin: 4
+                        width: 5; radius: 2.5
+                        color: "#1e2535"
+                        visible: rowFlick.contentHeight > rowFlick.height
 
                         Rectangle {
-                            width: parent.width
-                            height: 44
-                            color: "transparent"
+                            width: parent.width; radius: 2.5
+                            color: tMA.pressed ? "#9ca3af" : tMA.containsMouse ? "#6b7280" : "#374151"
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                            height: Math.max(32, scrollTrack.height * (rowFlick.height / rowFlick.contentHeight))
+                            y: rowFlick.contentY / rowFlick.contentHeight * scrollTrack.height
 
-                            Row {
-                                anchors.fill: parent
-                                anchors.leftMargin: 16
-                                anchors.rightMargin: 16
-                                spacing: 0
-
-                                Repeater {
-                                    model: [
-                                        { label: "Transaction ID", w: 150 },
-                                        { label: "Book", w: 340 },
-                                        { label: "Issue Date", w: 145 },
-                                        { label: "Due Date", w: 145 },
-                                        { label: "Return Date", w: 145 },
-                                        { label: "Fine", w: 90 },
-                                        { label: "Status", w: 130 }
-                                    ]
-
-                                    delegate: Label {
-                                        width: modelData.w
-                                        text: modelData.label
-                                        color: "#9fb0d9"
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                        verticalAlignment: Text.AlignVCenter
-                                        height: 44
+                            MouseArea {
+                                id: tMA; anchors.fill: parent; hoverEnabled: true
+                                cursorShape: Qt.SizeVerCursor; preventStealing: true
+                                property real pressY: 0; property real pressContentY: 0
+                                onPressed:  { pressY = mouseY; pressContentY = rowFlick.contentY }
+                                onPositionChanged: {
+                                    if (pressed) {
+                                        var newY = pressContentY + (mouseY - pressY) / scrollTrack.height * rowFlick.contentHeight
+                                        rowFlick.contentY = Math.max(0, Math.min(newY, rowFlick.contentHeight - rowFlick.height))
                                     }
                                 }
                             }
                         }
 
-                        Rectangle {
-                            width: parent.width
-                            height: 1
-                            color: root.borderColor
-                        }
-
-                        ListView {
-                            width: parent.width
-                            height: parent.height - 45
-                            model: transactionModel
-                            clip: true
-
-                            delegate: Rectangle {
-                                width: ListView.view.width
-                                height: 74
-                                color: status === "overdue" ? "#2a1d28" : "transparent"
-
-                                Row {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 16
-                                    anchors.rightMargin: 16
-                                    spacing: 0
-
-                                    Label {
-                                        width: 150
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: txnId
-                                        color: root.textPrimary
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                    }
-
-                                    Column {
-                                        width: 340
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        Label { text: book; color: root.textPrimary; font.pixelSize: 14; font.bold: true }
-                                        Label { text: isbn; color: root.textSecondary; font.pixelSize: 13 }
-                                    }
-
-                                    Label {
-                                        width: 145
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: issueDate
-                                        color: root.textPrimary
-                                        font.pixelSize: 14
-                                    }
-
-                                    Label {
-                                        width: 145
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: dueDate
-                                        color: root.textPrimary
-                                        font.pixelSize: 14
-                                    }
-
-                                    Label {
-                                        width: 145
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: returnDate
-                                        color: root.textPrimary
-                                        font.pixelSize: 14
-                                    }
-
-                                    Label {
-                                        width: 90
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: fine
-                                        color: status === "overdue" ? root.red : root.textPrimary
-                                        font.pixelSize: 14
-                                        font.bold: status === "overdue"
-                                    }
-
-                                    Rectangle {
-                                        width: 130
-                                        height: 30
-                                        radius: 15
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: status === "active" ? "#1c2d78"
-                                              : status === "returned" ? "#123b32"
-                                              : "#4a1f2a"
-
-                                        Label {
-                                            anchors.centerIn: parent
-                                            text: status === "overdue" && fine !== "-" ? "Pay Fine" : status
-                                            color: status === "active" ? "#7ea2ff"
-                                                  : status === "returned" ? "#4fe0a5"
-                                                  : "#ff6773"
-                                            font.pixelSize: 13
-                                        }
-                                    }
-                                }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                rowFlick.contentY = Math.max(0, Math.min(
+                                    mouseY / scrollTrack.height * rowFlick.contentHeight,
+                                    rowFlick.contentHeight - rowFlick.height
+                                ))
                             }
                         }
                     }
@@ -308,41 +358,37 @@ Rectangle {
             }
         }
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 16
+        // ── Summary stat cards ─────────────────────────────────────────────
+        Row {
+            width: parent.width
+            spacing: 14
 
             Repeater {
                 model: [
-                    { value: "2", label: "Total Active", color: "#ffffff" },
-                    { value: "2", label: "Overdue", color: "#ff6b7a" },
-                    { value: "1", label: "Total Returned", color: "#73f0b6" }
+                    { label: "Total Active",     value: txView.countByStatus("active"),   color: "#7ea2ff" },
+                    { label: "Overdue",          value: txView.countByStatus("overdue"),  color: "#ff6773" },
+                    { label: "Completed",        value: txView.countByStatus("returned"), color: "#4fe0a5" }
                 ]
-
                 delegate: Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 98
-                    color: root.cardBg
-                    radius: 16
-                    border.color: root.borderColor
-                    border.width: 1
+                    width: (parent.width - 28) / 3; height: 80
+                    color: txView.cardBg; radius: 14
+                    border.color: txView.borderColor; border.width: 1
 
-                    Column {
-                        anchors.fill: parent
-                        anchors.margins: 20
-                        spacing: 8
+                    Row {
+                        anchors { fill: parent; margins: 18 }
+                        spacing: 14
 
-                        Label {
+                        Text {
                             text: modelData.value
                             color: modelData.color
-                            font.pixelSize: 18
-                            font.bold: true
+                            font.pixelSize: 26; font.bold: true
+                            anchors.verticalCenter: parent.verticalCenter
                         }
 
-                        Label {
-                            text: modelData.label
-                            color: root.textSecondary
-                            font.pixelSize: 14
+                        Column {
+                            anchors.verticalCenter: parent.verticalCenter; spacing: 2
+                            Text { text: modelData.label; color: txView.textPrimary; font.pixelSize: 13 }
+                            Text { text: "transactions";  color: txView.textMuted; font.pixelSize: 11 }
                         }
                     }
                 }

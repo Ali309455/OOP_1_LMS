@@ -8,7 +8,7 @@ Item {
 
     // Temporary testing switch
 
-    property bool isLibrarian: false
+    property bool isLibrarian: true
 
     Loader {
         anchors.fill: parent

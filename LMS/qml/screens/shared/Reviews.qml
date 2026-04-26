@@ -207,6 +207,7 @@ Rectangle {
                     visible: {
                         if (reviewsView.currentTab === "pending")  return model.status === "pending"
                         if (reviewsView.currentTab === "approved") return model.status === "approved"
+                        if(reviewsView.userRole ==="user"){reviewsView.currentTab = "approved";model.status = "approved"; return model.status === "approved" }
                         return true
                     }
 

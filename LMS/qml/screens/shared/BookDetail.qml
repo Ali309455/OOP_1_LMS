@@ -1,421 +1,412 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls
 
 Rectangle {
     id: root
-    color: "#0b1220"
 
-    property string bookTitle: "Clean Code: A Handbook of Agile Software Craftsmanship"
-    property string subtitleText: "A Handbook of Agile Software Craftsmanship"
-    property string authorName: "Robert C. Martin"
-    property string contributorsText: "Michael C. Feathers, Timothy R. Ottinger"
-    property string ratingText: "4.6"
-    property string reviewsCountText: "5 reviews"
+    // ── Public API ────────────────────────────────────────────────
+    signal backRequested()
 
-    property string tag1: "Clean Code"
-    property string tag2: "Best Practices"
-    property string tag3: "Software Craftsmanship"
-    property string tag4: "Refactoring"
-    property string tag5: "Code Quality"
+    // Default book – replace by binding bookData from outside
+    property var bookData: ({
+        title:        "Clean Code: A Handbook of Agile Software Craftsmanship",
+        subtitle:     "A Handbook of Agile Software Craftsmanship",
+        author:       "Robert C. Martin",
+        contributors: "Michael C. Feathers, Timothy R. Ottinger",
+        rating:       "4.6",
+        reviewsCount: "5 reviews",
+        tags:         ["Clean Code","Best Practices","Software Craftsmanship","Refactoring","Code Quality"],
+        publisher:    "Prentice Hall",
+        year:         "2008",
+        pages:        "464",
+        edition:      "1st Edition",
+        language:     "English",
+        genre:        "Software Engineering",
+        isbn:         "978-0132350884",
+        totalCopies:  "5",
+        available:    "3",
+        borrowed:     "2",
+        totalBorrows: "127",
+        room:         "Main Hall",
+        floor:        "2nd Floor",
+        section:      "CS-A",
+        shelf:        "A-12",
+        overview:     "This book focuses on writing clean, maintainable, and efficient software. It discusses coding principles, refactoring practices, naming conventions, readability, testing habits, and long-term craftsmanship in professional software development."
+    })
 
-    property string publisherText: "Prentice Hall"
-    property string yearText: "2008"
-    property string pagesText: "464"
-    property string editionText: "1st Edition"
-    property string languageText: "English"
-    property string genreText: "Software Engineering"
+    // ── Palette ───────────────────────────────────────────────────
+    readonly property color pageBg:      "#0b1220"
+    readonly property color cardBg:      "#171e2f"
+    readonly property color softCardBg:  "#1b2338"
+    readonly property color borderColor: "#2a3350"
+    readonly property color textPrimary: "#ffffff"
+    readonly property color textSec:     "#9aa4bf"
+    readonly property color accent:      "#6377f2"
+    readonly property color green:       "#16c47f"
+    readonly property color chipBg:      "#2a3248"
 
-    property string totalCopiesText: "5"
-    property string availableCopiesText: "3"
-    property string borrowedCopiesText: "2"
-    property string totalBorrowsText: "127"
+    color: pageBg
+    clip:  true
 
-    property string roomText: "Main Hall"
-    property string floorText: "2nd Floor"
-    property string sectionText: "CS-A"
-    property string shelfText: "A-12"
-
-    property string isbnText: "978-0132350884"
-
-    property color pageBg: "#0b1220"
-    property color cardBg: "#171e2f"
-    property color softCardBg: "#1b2338"
-    property color borderColor: "#2a3350"
-    property color textPrimary: "#ffffff"
-    property color textSecondary: "#9aa4bf"
-    property color accent: "#6377f2"
-    property color green: "#16c47f"
-    property color chipBg: "#2a3248"
-
+    // ── Scrollable content ────────────────────────────────────────
     Flickable {
+        id: flick
         anchors.fill: parent
-        contentWidth: width
-        contentHeight: contentColumn.implicitHeight + 48
+        contentWidth:  width
+        contentHeight: mainCol.implicitHeight + 24
         clip: true
-        contentY: 0
+        // ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
         Column {
-            id: contentColumn
-            width: parent.width
-            spacing: 20
-            anchors.top: parent.top
-            anchors.topMargin: 12
+            id: mainCol
+            width: flick.width
+            spacing: 10
+            topPadding: 10
+            bottomPadding: 14
 
+            // ── Back button ───────────────────────────────────────
             Item {
-                width: parent.width
-                height: 44
+                width:  parent.width
+                height: 36
 
                 Row {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 24
+                    anchors.left:           parent.left
+                    anchors.leftMargin:     16
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: 10
-
+                    spacing: 8
                     Label {
-                        text: "\u2190"
-                        color: root.textSecondary
-                        font.pixelSize: 22
+                        id: backlabel
+                        text:  "Back to Catalog"
+                        color:          root.textSec
+                        font.pixelSize: 13
+                        font.bold:      true
                     }
 
-                    Label {
-                        text: "Back to Catalog"
-                        color: root.textSecondary
-                        font.pixelSize: 16
-                        font.bold: true
+                    MouseArea {
+                        anchors.fill: backlabel
+                        cursorShape:  Qt.PointingHandCursor
+                        onClicked: {
+                                root.backRequested()
+                            }
                     }
                 }
             }
 
+            // ── Two-column row (left = main info | right = side cards) ──
             Row {
-                width: parent.width - 250
+                id:             twoColRow
+                width:          parent.width - 24
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 20
+                spacing: 12
 
+                // ─ LEFT column ─────────────────────────────────────
                 Column {
-                    width: 760
-                    spacing: 28
+                    id:      leftCol
+                    width:   Math.round(twoColRow.width * 0.56)   // ~450 px at 804
+                    spacing: 12
 
+                    // Book header card
                     Rectangle {
-                        width: parent.width
-                        height: 640
-                        color: root.cardBg
-                        radius: 18
+                        width:  parent.width
+                        height: headerContent.implicitHeight + 32
+                        color:  root.cardBg
+                        radius: 14
                         border.color: root.borderColor
                         border.width: 1
 
                         Column {
-                            anchors.fill: parent
-                            anchors.margins: 24
-                            spacing: 22
+                            id:             headerContent
+                            anchors.left:   parent.left
+                            anchors.right:  parent.right
+                            anchors.top:    parent.top
+                            anchors.margins: 16
+                            spacing: 14
 
+                            // Cover + title/meta
                             Row {
-                                spacing: 24
+                                width:   parent.width
+                                spacing: 14
 
+                                // Cover placeholder
                                 Rectangle {
-                                    width: 190
-                                    height: 255
-                                    radius: 16
-                                    color: "#d9dcf8"
+                                    width:  120
+                                    height: 162
+                                    radius: 12
+                                    color:  "#d9dcf8"
 
                                     Column {
                                         anchors.centerIn: parent
-                                        spacing: 14
+                                        spacing: 8
 
                                         Label {
-                                            text: "\ud83d\udcd6"
+                                            text:           "📖"
                                             anchors.horizontalCenter: parent.horizontalCenter
-                                            font.pixelSize: 52
+                                            font.pixelSize: 36
                                         }
-
                                         Label {
-                                            text: "No Cover Image"
+                                            text:           "No Cover"
                                             anchors.horizontalCenter: parent.horizontalCenter
-                                            color: "#6f7485"
-                                            font.pixelSize: 16
+                                            color:          "#6f7485"
+                                            font.pixelSize: 11
                                         }
                                     }
                                 }
 
+                                // Title block
                                 Column {
-                                    width: 500
-                                    spacing: 12
+                                    width:   parent.width - 134
+                                    spacing: 8
 
                                     Label {
-                                        width: parent.width
-                                        text: root.bookTitle
-                                        color: root.textPrimary
-                                        wrapMode: Text.WordWrap
-                                        font.pixelSize: 22
-                                        font.bold: true
-                                    }
-
-                                    Label {
-                                        width: parent.width
-                                        text: root.subtitleText
-                                        color: root.textSecondary
-                                        wrapMode: Text.WordWrap
+                                        width:          parent.width
+                                        text:           bookData.title
+                                        color:          root.textPrimary
+                                        wrapMode:       Text.WordWrap
                                         font.pixelSize: 15
+                                        font.bold:      true
+                                        lineHeight:     1.2
                                     }
 
                                     Label {
-                                        text: root.authorName
-                                        color: root.textPrimary
-                                        font.pixelSize: 17
+                                        width:          parent.width
+                                        text:           bookData.subtitle
+                                        color:          root.textSec
+                                        wrapMode:       Text.WordWrap
+                                        font.pixelSize: 12
                                     }
 
                                     Label {
-                                        width: parent.width
-                                        text: "Contributors: " + root.contributorsText
-                                        color: root.textSecondary
-                                        wrapMode: Text.WordWrap
-                                        font.pixelSize: 14
+                                        text:           bookData.author
+                                        color:          root.textPrimary
+                                        font.pixelSize: 13
+                                        font.bold:      true
+                                    }
+
+                                    Label {
+                                        width:          parent.width
+                                        text:           "Contributors: " + bookData.contributors
+                                        color:          root.textSec
+                                        wrapMode:       Text.WordWrap
+                                        font.pixelSize: 11
                                     }
 
                                     Row {
-                                        spacing: 8
-
+                                        spacing: 6
                                         Label {
-                                            text: "\u2605\u2605\u2605\u2605\u2605"
-                                            color: "#f0b429"
-                                            font.pixelSize: 18
+                                            text:           "★★★★★"
+                                            color:          "#f0b429"
+                                            font.pixelSize: 14
                                         }
-
                                         Label {
-                                            text: root.ratingText + " (" + root.reviewsCountText + ")"
-                                            color: root.textPrimary
-                                            font.pixelSize: 16
+                                            text:           bookData.rating + " (" + bookData.reviewsCount + ")"
+                                            color:          root.textPrimary
+                                            font.pixelSize: 12
                                         }
                                     }
 
+                                    // Tags
                                     Flow {
-                                        width: parent.width
-                                        spacing: 10
+                                        width:   parent.width
+                                        spacing: 6
 
                                         Repeater {
-                                            model: [root.tag1, root.tag2, root.tag3, root.tag4, root.tag5]
+                                            model: bookData.tags
 
                                             delegate: Rectangle {
-                                                radius: 14
-                                                color: root.chipBg
-                                                height: 32
-                                                width: chipText.implicitWidth + 22
+                                                radius: 10
+                                                color:  root.chipBg
+                                                height: 24
+                                                width:  tagLbl.implicitWidth + 14
 
                                                 Label {
-                                                    id: chipText
+                                                    id:             tagLbl
                                                     anchors.centerIn: parent
-                                                    text: modelData
-                                                    color: root.textPrimary
-                                                    font.pixelSize: 13
+                                                    text:           modelData
+                                                    color:          root.textPrimary
+                                                    font.pixelSize: 10
                                                 }
                                             }
                                         }
                                     }
 
+                                    // Publisher / Year / Pages / Edition
                                     GridLayout {
-                                        width: parent.width
-                                        columns: 2
-                                        columnSpacing: 28
-                                        rowSpacing: 14
+                                        width:         parent.width
+                                        columns:       2
+                                        columnSpacing: 16
+                                        rowSpacing:    6
 
-                                        Label {
-                                            text: "Publisher: " + root.publisherText
-                                            color: root.textSecondary
-                                            font.pixelSize: 15
-                                        }
+                                        Repeater {
+                                            model: [
+                                                "Publisher", bookData.publisher,
+                                                "Year",      bookData.year,
+                                                "Pages",     bookData.pages,
+                                                "Edition",   bookData.edition
+                                            ]
 
-                                        Label {
-                                            text: "Year: " + root.yearText
-                                            color: root.textSecondary
-                                            font.pixelSize: 15
-                                        }
-
-                                        Label {
-                                            text: "Pages: " + root.pagesText
-                                            color: root.textSecondary
-                                            font.pixelSize: 15
-                                        }
-
-                                        Label {
-                                            text: "Edition: " + root.editionText
-                                            color: root.textSecondary
-                                            font.pixelSize: 15
+                                            delegate: Label {
+                                                text:           modelData
+                                                color:          (index % 2 === 0) ? root.textSec : root.textPrimary
+                                                font.pixelSize: 11
+                                                font.bold:      (index % 2 !== 0)
+                                            }
                                         }
                                     }
                                 }
                             }
 
+                            // Availability strip
                             Rectangle {
-                                width: parent.width
-                                height: 86
-                                radius: 14
-                                color: root.softCardBg
+                                width:  parent.width
+                                height: 64
+                                radius: 10
+                                color:  root.softCardBg
 
                                 Row {
-                                    anchors.fill: parent
-                                    anchors.margins: 18
-                                    spacing: 60
+                                    anchors.fill:    parent
+                                    anchors.margins: 12
+                                    spacing:         0
 
-                                    Column {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 4
-                                        Label { text: "Availability"; color: root.textSecondary; font.pixelSize: 14 }
-                                        Label {
-                                            text: root.availableCopiesText + " of " + root.totalCopiesText + " Available"
-                                            color: root.green
-                                            font.pixelSize: 16
-                                            font.bold: true
-                                        }
-                                    }
+                                    Repeater {
+                                        model: [
+                                            { label: "Available",          value: bookData.available + " of " + bookData.totalCopies, highlight: true  },
+                                            { label: "Borrowed",           value: bookData.borrowed + " copies",                      highlight: false },
+                                            { label: "Total Borrows",      value: bookData.totalBorrows + " times",                   highlight: false }
+                                        ]
 
-                                    Column {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 4
-                                        Label { text: "Currently Borrowed"; color: root.textSecondary; font.pixelSize: 14 }
-                                        Label {
-                                            text: root.borrowedCopiesText + " copies"
-                                            color: root.textPrimary
-                                            font.pixelSize: 16
-                                            font.bold: true
-                                        }
-                                    }
+                                        delegate: Column {
+                                            width:   parent.width / 3
+                                            spacing: 3
+                                            anchors.verticalCenter: parent.verticalCenter
 
-                                    Column {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 4
-                                        Label { text: "Total Borrows"; color: root.textSecondary; font.pixelSize: 14 }
-                                        Label {
-                                            text: root.totalBorrowsText + " times"
-                                            color: root.textPrimary
-                                            font.pixelSize: 16
-                                            font.bold: true
+                                            Label {
+                                                text:           modelData.label
+                                                color:          root.textSec
+                                                font.pixelSize: 10
+                                            }
+                                            Label {
+                                                text:           modelData.value
+                                                color:          modelData.highlight ? root.green : root.textPrimary
+                                                font.pixelSize: 12
+                                                font.bold:      true
+                                            }
                                         }
                                     }
                                 }
                             }
 
+                            // Overview
                             Column {
-                                width: parent.width
-                                spacing: 14
+                                width:   parent.width
+                                spacing: 8
 
                                 Row {
-                                    spacing: 24
-
+                                    spacing: 18
                                     Label {
-                                        text: "Overview"
-                                        color: root.accent
-                                        font.pixelSize: 17
-                                        font.bold: true
+                                        text:           "Overview"
+                                        color:          root.accent
+                                        font.pixelSize: 13
+                                        font.bold:      true
                                     }
-
                                     Label {
-                                        text: "Reviews (5)"
-                                        color: root.textSecondary
-                                        font.pixelSize: 17
+                                        text:           "Reviews (5)"
+                                        color:          root.textSec
+                                        font.pixelSize: 13
                                     }
                                 }
 
-                                Rectangle {
-                                    width: parent.width
-                                    height: 1
-                                    color: root.borderColor
-                                }
+                                Rectangle { width: parent.width; height: 1; color: root.borderColor }
 
-                                Rectangle {
-                                    width: parent.width
-                                    color: "transparent"
-                                    implicitHeight: overviewText.implicitHeight + 8
-
-                                    Label {
-                                        id: overviewText
-                                        width: parent.width
-                                        text: "This book focuses on writing clean, maintainable, and efficient software. It discusses coding principles, refactoring practices, naming conventions, readability, testing habits, and long-term craftsmanship in professional software development."
-                                        color: root.textSecondary
-                                        wrapMode: Text.WordWrap
-                                        font.pixelSize: 14
-                                        lineHeight: 1.3
-                                    }
+                                Label {
+                                    width:          parent.width
+                                    text:           bookData.overview
+                                    color:          root.textSec
+                                    wrapMode:       Text.WordWrap
+                                    font.pixelSize: 12
+                                    lineHeight:     1.4
                                 }
                             }
                         }
                     }
 
+                    // Review summary card
                     Rectangle {
-                        width: parent.width
-                        height: 190
-                        color: root.cardBg
-                        radius: 18
+                        width:  parent.width
+                        height: 130
+                        color:  root.cardBg
+                        radius: 14
                         border.color: root.borderColor
                         border.width: 1
 
                         Column {
-                            anchors.fill: parent
-                            anchors.margins: 22
-                            spacing: 14
+                            anchors.fill:    parent
+                            anchors.margins: 16
+                            spacing: 10
 
                             Label {
-                                text: "Review Summary"
-                                color: root.textPrimary
-                                font.pixelSize: 18
-                                font.bold: true
+                                text:           "Review Summary"
+                                color:          root.textPrimary
+                                font.pixelSize: 13
+                                font.bold:      true
                             }
 
                             Row {
-                                spacing: 40
+                                spacing: 28
 
                                 Column {
-                                    spacing: 6
+                                    spacing: 3
                                     Label {
-                                        text: root.ratingText
-                                        color: "#f0b429"
-                                        font.pixelSize: 28
-                                        font.bold: true
+                                        text:           bookData.rating
+                                        color:          "#f0b429"
+                                        font.pixelSize: 22
+                                        font.bold:      true
                                     }
                                     Label {
-                                        text: root.reviewsCountText
-                                        color: root.textSecondary
-                                        font.pixelSize: 14
+                                        text:           bookData.reviewsCount
+                                        color:          root.textSec
+                                        font.pixelSize: 11
                                     }
                                 }
 
                                 Column {
-                                    spacing: 10
+                                    spacing: 6
 
                                     Repeater {
                                         model: [
-                                            { stars: "5★", count: "3", bar: 140 },
-                                            { stars: "4★", count: "1", bar: 60 },
-                                            { stars: "3★", count: "1", bar: 40 }
+                                            { stars: "5★", count: "3", pct: 0.75 },
+                                            { stars: "4★", count: "1", pct: 0.30 },
+                                            { stars: "3★", count: "1", pct: 0.20 }
                                         ]
 
                                         delegate: Row {
-                                            spacing: 10
+                                            spacing: 8
 
                                             Label {
-                                                text: modelData.stars
-                                                color: root.textSecondary
-                                                font.pixelSize: 14
-                                                width: 30
+                                                text:           modelData.stars
+                                                color:          root.textSec
+                                                font.pixelSize: 11
+                                                width:          22
                                             }
 
                                             Rectangle {
-                                                width: 180
-                                                height: 8
-                                                radius: 4
-                                                color: root.softCardBg
+                                                width:  120
+                                                height: 6
+                                                radius: 3
+                                                color:  root.softCardBg
 
                                                 Rectangle {
-                                                    width: modelData.bar
+                                                    width:  parent.width * modelData.pct
                                                     height: parent.height
-                                                    radius: 4
-                                                    color: root.accent
+                                                    radius: 3
+                                                    color:  root.accent
                                                 }
                                             }
 
                                             Label {
-                                                text: modelData.count
-                                                color: root.textPrimary
-                                                font.pixelSize: 14
+                                                text:           modelData.count
+                                                color:          root.textPrimary
+                                                font.pixelSize: 11
                                             }
                                         }
                                     }
@@ -423,339 +414,359 @@ Rectangle {
                             }
                         }
                     }
-                }
+                }   // end leftCol
 
+                // ─ RIGHT column ────────────────────────────────────
                 Column {
-                    width: 620
-                    spacing: 30
+                    id:      rightCol
+                    width:   twoColRow.width - leftCol.width - twoColRow.spacing  // remaining
+                    spacing: 12
 
-                    Row {
-                        spacing: 20
+                    // Book Status card
+                    Rectangle {
+                        width:  parent.width
+                        height: 150
+                        color:  root.cardBg
+                        radius: 14
+                        border.color: root.borderColor
+                        border.width: 1
 
                         Column {
-                            width: 300
-                            spacing: 20
+                            anchors.fill:    parent
+                            anchors.margins: 16
+                            spacing: 10
 
-                            Rectangle {
-                                width: parent.width
-                                height: 220
-                                color: root.cardBg
-                                radius: 18
-                                border.color: root.borderColor
-                                border.width: 1
+                            Label {
+                                text:           "Book Status"
+                                color:          root.textPrimary
+                                font.pixelSize: 13
+                                font.bold:      true
+                            }
 
-                                Column {
-                                    anchors.fill: parent
-                                    anchors.margins: 22
-                                    spacing: 14
+                            Row {
+                                spacing: 8
 
-                                    Label {
-                                        text: "Book Status"
-                                        color: root.textPrimary
-                                        font.pixelSize: 18
-                                        font.bold: true
+                                Rectangle {
+                                    width:  90; height: 26; radius: 13
+                                    color:  "#123b32"
+                                    Label { anchors.centerIn: parent; text: "Available"; color: "#4fe0a5"; font.pixelSize: 11; font.bold: true }
+                                }
+
+                                Rectangle {
+                                    width:  110; height: 26; radius: 13
+                                    color:  "#1c2643"
+                                    Label { anchors.centerIn: parent; text: "Student Access"; color: "#7f97ff"; font.pixelSize: 11; font.bold: true }
+                                }
+                            }
+
+                            GridLayout {
+                                width:         parent.width
+                                columns:       2
+                                rowSpacing:    8
+                                columnSpacing: 12
+
+                                Repeater {
+                                    model: [
+                                        "Condition",    "Good",
+                                        "Reservation",  "Open",
+                                        "Borrow Limit", "2 weeks"
+                                    ]
+
+                                    delegate: Label {
+                                        text:           modelData
+                                        color:          (index % 2 === 0) ? root.textSec : root.textPrimary
+                                        font.pixelSize: 12
+                                        font.bold:      (index % 2 !== 0)
                                     }
+                                }
+                            }
+                        }
+                    }
 
-                                    Row {
-                                        spacing: 10
+                    // Quick Information card
+                    Rectangle {
+                        width:  parent.width
+                        height: 260
+                        color:  root.cardBg
+                        radius: 14
+                        border.color: root.borderColor
+                        border.width: 1
 
-                                        Rectangle {
-                                            width: 110
-                                            height: 30
-                                            radius: 15
-                                            color: "#123b32"
+                        Column {
+                            anchors.fill:    parent
+                            anchors.margins: 16
+                            spacing: 10
 
-                                            Label {
-                                                anchors.centerIn: parent
-                                                text: "Available"
-                                                color: "#4fe0a5"
-                                                font.pixelSize: 13
-                                                font.bold: true
-                                            }
-                                        }
+                            Label {
+                                text:           "Quick Information"
+                                color:          root.textPrimary
+                                font.pixelSize: 13
+                                font.bold:      true
+                            }
 
-                                        Rectangle {
-                                            width: 120
-                                            height: 30
-                                            radius: 15
-                                            color: "#1c2643"
+                            GridLayout {
+                                width:         parent.width
+                                columns:       2
+                                columnSpacing: 12
+                                rowSpacing:    14
 
-                                            Label {
-                                                anchors.centerIn: parent
-                                                text: "Student Access"
-                                                color: "#7f97ff"
-                                                font.pixelSize: 13
-                                                font.bold: true
-                                            }
-                                        }
+                                Repeater {
+                                    model: [
+                                        "Total Copies", bookData.totalCopies,
+                                        "Available",    bookData.available,
+                                        "On Loan",      bookData.borrowed,
+                                        "Publisher",    bookData.publisher,
+                                        "Edition",      bookData.edition,
+                                        "Language",     bookData.language,
+                                        "Genre",        bookData.genre,
+                                        "ISBN",         bookData.isbn
+                                    ]
+
+                                    delegate: Label {
+                                        text:           modelData
+                                        color:          (index % 2 === 0) ? root.textSec : ((index === 3) ? root.green : root.textPrimary)
+                                        font.pixelSize: 11
+                                        font.bold:      (index % 2 !== 0)
+                                        wrapMode:       Text.WrapAnywhere
+                                        Layout.fillWidth: true
                                     }
+                                }
+                            }
+                        }
+                    }
 
-                                    GridLayout {
-                                        width: parent.width
-                                        columns: 2
-                                        rowSpacing: 12
-                                        columnSpacing: 18
+                    // Library Location card
+                    Rectangle {
+                        width:  parent.width
+                        height: 220
+                        color:  root.cardBg
+                        radius: 14
+                        border.color: root.borderColor
+                        border.width: 1
 
-                                        Label { text: "Condition"; color: root.textSecondary; font.pixelSize: 14 }
-                                        Label { text: "Good"; color: root.textPrimary; font.pixelSize: 14; font.bold: true }
+                        Column {
+                            anchors.fill:    parent
+                            anchors.margins: 16
+                            spacing: 10
 
-                                        Label { text: "Reservation"; color: root.textSecondary; font.pixelSize: 14 }
-                                        Label { text: "Open"; color: root.textPrimary; font.pixelSize: 14; font.bold: true }
+                            Label {
+                                text:           "Library Location"
+                                color:          root.textPrimary
+                                font.pixelSize: 13
+                                font.bold:      true
+                            }
 
-                                        Label { text: "Borrow Limit"; color: root.textSecondary; font.pixelSize: 14 }
-                                        Label { text: "2 weeks"; color: root.textPrimary; font.pixelSize: 14; font.bold: true }
+                            // Room / Floor
+                            Row {
+                                width:   parent.width
+                                spacing: 8
+
+                                Repeater {
+                                    model: [
+                                        { label: "Room",  val: bookData.room  },
+                                        { label: "Floor", val: bookData.floor }
+                                    ]
+
+                                    delegate: Rectangle {
+                                        width:  (parent.width - 8) / 2
+                                        height: 54
+                                        radius: 10
+                                        color:  root.softCardBg
+
+                                        Column {
+                                            anchors.fill:    parent
+                                            anchors.margins: 10
+                                            spacing:         4
+                                            Label { text: modelData.label; color: root.textSec;     font.pixelSize: 10 }
+                                            Label { text: modelData.val;   color: root.textPrimary; font.pixelSize: 12; font.bold: true; elide: Text.ElideRight; width: parent.width }
+                                        }
                                     }
                                 }
                             }
 
+                            // Section / Shelf
+                            Row {
+                                width:   parent.width
+                                spacing: 8
+
+                                Repeater {
+                                    model: [
+                                        { label: "Section", val: bookData.section },
+                                        { label: "Shelf",   val: bookData.shelf   }
+                                    ]
+
+                                    delegate: Rectangle {
+                                        width:  (parent.width - 8) / 2
+                                        height: 54
+                                        radius: 10
+                                        color:  root.softCardBg
+
+                                        Column {
+                                            anchors.fill:    parent
+                                            anchors.margins: 10
+                                            spacing:         4
+                                            Label { text: modelData.label; color: root.textSec;     font.pixelSize: 10 }
+                                            Label { text: modelData.val;   color: root.textPrimary; font.pixelSize: 12; font.bold: true }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Navigate hint
                             Rectangle {
-                                width: parent.width
-                                height: 400
-                                color: root.cardBg
-                                radius: 18
-                                border.color: root.borderColor
+                                width:  parent.width
+                                height: 40
+                                radius: 10
+                                color:  "#1c2643"
+                                border.color: "#5d77ff"
                                 border.width: 1
 
-                                Column {
-                                    anchors.fill: parent
-                                    anchors.margins: 22
-                                    spacing: 14
+                                Label {
+                                    anchors.centerIn: parent
+                                    width:            parent.width - 16
+                                    text:             "Navigate → " + bookData.floor + " · " + bookData.room + " · " + bookData.section + " · " + bookData.shelf
+                                    color:            "#7f97ff"
+                                    font.pixelSize:   10
+                                    horizontalAlignment: Text.AlignHCenter
+                                    wrapMode:         Text.WordWrap
+                                }
+                            }
+                        }
+                    }
 
-                                    Label {
-                                        text: "Library Location"
-                                        color: root.textPrimary
-                                        font.pixelSize: 18
-                                        font.bold: true
-                                    }
+                    // Actions card
+                    Rectangle {
+                        width:  parent.width
+                        height: 110
+                        color:  root.cardBg
+                        radius: 14
+                        border.color: root.borderColor
+                        border.width: 1
 
-                                    Rectangle {
-                                        width: parent.width
-                                        height: 68
-                                        radius: 14
-                                        color: root.softCardBg
+                        Column {
+                            anchors.fill:    parent
+                            anchors.margins: 16
+                            spacing: 12
 
-                                        Column {
-                                            anchors.fill: parent
-                                            anchors.margins: 14
-                                            spacing: 6
-                                            Label { text: "Room"; color: root.textSecondary; font.pixelSize: 13 }
-                                            Label { text: root.roomText; color: root.textPrimary; font.pixelSize: 16; font.bold: true }
-                                        }
-                                    }
+                            Label {
+                                text:           "Actions"
+                                color:          root.textPrimary
+                                font.pixelSize: 13
+                                font.bold:      true
+                            }
 
-                                    Rectangle {
-                                        width: parent.width
-                                        height: 68
-                                        radius: 14
-                                        color: root.softCardBg
+                            Row {
+                                spacing: 8
 
-                                        Column {
-                                            anchors.fill: parent
-                                            anchors.margins: 14
-                                            spacing: 6
-                                            Label { text: "Floor"; color: root.textSecondary; font.pixelSize: 13 }
-                                            Label { text: root.floorText; color: root.textPrimary; font.pixelSize: 16; font.bold: true }
-                                        }
-                                    }
+                                Repeater {
+                                    model: ["Borrow Book", "Reserve", "Reviews"]
 
-                                    Row {
-                                        spacing: 12
-
-                                        Rectangle {
-                                            width: 133
-                                            height: 68
-                                            radius: 14
-                                            color: root.softCardBg
-
-                                            Column {
-                                                anchors.fill: parent
-                                                anchors.margins: 14
-                                                spacing: 6
-                                                Label { text: "Section"; color: root.textSecondary; font.pixelSize: 13 }
-                                                Label { text: root.sectionText; color: root.textPrimary; font.pixelSize: 16; font.bold: true }
-                                            }
-                                        }
-
-                                        Rectangle {
-                                            width: 133
-                                            height: 68
-                                            radius: 14
-                                            color: root.softCardBg
-
-                                            Column {
-                                                anchors.fill: parent
-                                                anchors.margins: 14
-                                                spacing: 6
-                                                Label { text: "Shelf"; color: root.textSecondary; font.pixelSize: 13 }
-                                                Label { text: root.shelfText; color: root.textPrimary; font.pixelSize: 16; font.bold: true }
-                                            }
-                                        }
-                                    }
-
-                                    Rectangle {
-                                        width: parent.width
-                                        height: 62
-                                        radius: 14
-                                        color: "#1c2643"
-                                        border.color: "#5d77ff"
+                                    delegate: Rectangle {
+                                        width:  (rightCol.width - 32 - 16) / 3
+                                        height: 36
+                                        radius: 10
+                                        color:  index === 0 ? root.accent : root.softCardBg
+                                        border.color: index === 0 ? "transparent" : root.borderColor
                                         border.width: 1
 
                                         Label {
                                             anchors.centerIn: parent
-                                            width: parent.width - 24
-                                            text: "Navigate to " + root.floorText + ", " + root.roomText + ", Section " + root.sectionText + ", Shelf " + root.shelfText
-                                            color: "#7f97ff"
-                                            wrapMode: Text.WordWrap
-                                            horizontalAlignment: Text.AlignHCenter
-                                            font.pixelSize: 13
+                                            text:           modelData
+                                            color:          "#ffffff"
+                                            font.pixelSize: 11
+                                            font.bold:      true
                                         }
-                                    }
-                                }
-                            }
-                        }
 
-                        Item {
-                            width: 300
-                            height: 612
-
-                            Rectangle {
-                                anchors.top: parent.top
-                                anchors.topMargin: 16
-                                width: parent.width
-                                height: 600
-                                color: root.cardBg
-                                radius: 18
-                                border.color: root.borderColor
-                                border.width: 1
-
-                                Column {
-                                    anchors.fill: parent
-                                    anchors.margins: 22
-                                    spacing: 14
-
-                                    Label {
-                                        text: "Quick Information"
-                                        color: root.textPrimary
-                                        font.pixelSize: 18
-                                        font.bold: true
-                                    }
-
-                                    GridLayout {
-                                        width: parent.width
-                                        columns: 2
-                                        columnSpacing: 28
-                                        rowSpacing: 50
-
-                                        Label { text: "Total Copies"; color: root.textSecondary; font.pixelSize: 15 }
-                                        Label { text: root.totalCopiesText; color: root.textPrimary; font.pixelSize: 15; font.bold: true }
-
-                                        Label { text: "Available"; color: root.textSecondary; font.pixelSize: 15 }
-                                        Label { text: root.availableCopiesText; color: root.green; font.pixelSize: 15; font.bold: true }
-
-                                        Label { text: "On Loan"; color: root.textSecondary; font.pixelSize: 15 }
-                                        Label { text: root.borrowedCopiesText; color: root.textPrimary; font.pixelSize: 15; font.bold: true }
-
-                                        Label { text: "Publisher"; color: root.textSecondary; font.pixelSize: 15 }
-                                        Label { text: root.publisherText; color: root.textPrimary; font.pixelSize: 15; font.bold: true }
-
-                                        Label { text: "Edition"; color: root.textSecondary; font.pixelSize: 15 }
-                                        Label { text: root.editionText; color: root.textPrimary; font.pixelSize: 15; font.bold: true }
-
-                                        Label { text: "Language"; color: root.textSecondary; font.pixelSize: 15 }
-                                        Label { text: root.languageText; color: root.textPrimary; font.pixelSize: 15; font.bold: true }
-
-                                        Label { text: "Genre"; color: root.textSecondary; font.pixelSize: 15 }
-                                        Label { text: root.genreText; color: root.textPrimary; font.pixelSize: 15; font.bold: true }
-
-                                        Label { text: "ISBN"; color: root.textSecondary; font.pixelSize: 15 }
-                                        Label {
-                                            text: root.isbnText
-                                            color: root.textPrimary
-                                            font.pixelSize: 14
-                                            font.bold: true
-                                            wrapMode: Text.WrapAnywhere
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape:  Qt.PointingHandCursor
+                                            // connect signals as needed
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    Rectangle {
-                        width: parent.width
-                        height: 190
-                        color: root.cardBg
-                        radius: 18
-                        border.color: root.borderColor
-                        border.width: 1
 
-                        Column {
-                            anchors.fill: parent
-                            anchors.margins: 22
-                            spacing: 16
+                }   // end rightCol
+            }       // end twoColRow
+        }           // end mainCol
+    }               // end Flickable
+    // ── Custom Thin Scrollbar ─────────────────────────────
+    Rectangle {
+        id: scrollTrack
+        width: 4
+        radius: 2
+        color: "#1e2535"
 
-                            Label {
-                                text: "Actions"
-                                color: root.textPrimary
-                                font.pixelSize: 18
-                                font.bold: true
-                            }
+        anchors.top: flick.top
+        anchors.bottom: flick.bottom
+        anchors.right: flick.right
+        anchors.rightMargin: 4
 
-                            Row {
-                                spacing: 16
+        visible: flick.contentHeight > flick.height
 
-                                Rectangle {
-                                    width: 180
-                                    height: 44
-                                    radius: 12
-                                    color: root.accent
+        Rectangle {
+            id: scrollThumb
+            width: parent.width
+            radius: 2
 
-                                    Label {
-                                        anchors.centerIn: parent
-                                        text: "Borrow Book"
-                                        color: "#ffffff"
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                    }
-                                }
+            color: thumbMA.pressed
+                   ? "#9ca3af"
+                   : thumbMA.containsMouse ? "#6b7280"
+                                           : "#374151"
 
-                                Rectangle {
-                                    width: 180
-                                    height: 44
-                                    radius: 12
-                                    color: root.softCardBg
-                                    border.color: root.borderColor
-                                    border.width: 1
+            Behavior on color { ColorAnimation { duration: 120 } }
 
-                                    Label {
-                                        anchors.centerIn: parent
-                                        text: "Reserve Book"
-                                        color: root.textPrimary
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                    }
-                                }
+            // dynamic height
+            height: Math.max(
+                30,
+                scrollTrack.height * (flick.height / flick.contentHeight)
+            )
 
-                                Rectangle {
-                                    width: 180
-                                    height: 44
-                                    radius: 12
-                                    color: root.softCardBg
-                                    border.color: root.borderColor
-                                    border.width: 1
+            // sync position
+            y: flick.contentY / (flick.contentHeight - flick.height)
+               * (scrollTrack.height - height)
+            // ── Drag logic ──
+            MouseArea {
+                id: thumbMA
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.SizeVerCursor
+                preventStealing: true
 
-                                    Label {
-                                        anchors.centerIn: parent
-                                        text: "Read Reviews"
-                                        color: root.textPrimary
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                    }
-                                }
-                            }
-                        }
+                property real startY
+                property real startContentY
+
+                onPressed: {
+                    startY = mouseY
+                    startContentY = flick.contentY
+                }
+
+                onPositionChanged: {
+                    if (pressed) {
+                        var delta = mouseY - startY
+
+                        var newContentY = startContentY +
+                            delta * (flick.contentHeight / scrollTrack.height)
+
+                        flick.contentY = Math.max(
+                            0,
+                            Math.min(newContentY, flick.contentHeight - flick.height)
+                        )
                     }
                 }
             }
         }
-}
+
+        // click on track to jump
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                flick.contentY =
+                    (mouseY / scrollTrack.height) *
+                    (flick.contentHeight - flick.height)
+            }
+        }
+    } // end scrollbar
 }

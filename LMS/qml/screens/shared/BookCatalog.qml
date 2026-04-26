@@ -11,7 +11,7 @@ Rectangle {
     // ── Role: controls Add Book button visibility ──────────────────────────
     property bool isLibrarian: true   // set false for student view
 
-    signal bookSelected(string isbn, string title)
+    signal bookSelected(var book)
     signal filterChanged(string filterKey, var filterValue)
 
     // ── Book data as ListModel for full reactivity ─────────────────────────
@@ -333,7 +333,7 @@ Rectangle {
                                     MouseArea {
                                         id: actionMA; anchors.fill: parent
                                         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                                        onClicked: booksView.bookSelected(model.isbn, model.title)
+                                        onClicked: booksView.bookSelected(model)
                                     }
                                 }
                             }
@@ -508,7 +508,7 @@ Rectangle {
                     }
                 }
                 // Available copies
-                ColumnLayout { spacing: 8; Layout.preferredWidth: 110
+                ColumnLayout { spacing: 8; Layout.preferredWidth: 60
                     Text { text: "Copies"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
                     Rectangle {
                         Layout.fillWidth: true; height: 40; radius: 8

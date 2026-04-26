@@ -9,6 +9,7 @@ Item {
     height: 700
     property string route: "dashboard"
     property bool islibrarian: false
+    property var selectedBook : null
     ColumnLayout{
         anchors.fill: parent
         spacing: 0
@@ -48,6 +49,7 @@ Item {
                    if (route === "Users") return usersComp
                    if (route === "Settings") return settingsComp
                    if (route === "Membership") return membershipComp
+                   if (route === "BookDetail") return bookDetailComp
                    return islibrarian? librariandashboardComp: studentdashboardComp
                    // return librariandashboardComp
                }
@@ -56,11 +58,25 @@ Item {
         Component { id: reviewsComp; Reviews {userRole: centralbox.islibrarian?"librarian":"user" }}
         Component { id: membershipComp; Membership {} }
         Component { id: usersComp; UserManagement {} }
-        Component { id: settingsComp; Profile {} }
-        Component { id: transactionComp; Transactions {} }
-        Component { id: booksComp; BookCatalog {isLibrarian: centralbox.islibrarian} }
+        Component { id: settingsComp; Profile {userRole: centralbox.islibrarian?"librarian":"user" } }
+        Component { id: transactionComp; Transactions {isLibrarian: centralbox.islibrarian} }
         Component { id: librariandashboardComp;  LibrarianDashboard {} }
         Component { id: studentdashboardComp;  StudentDashboard {} }
+        Component {
+            id: booksComp
+            BookCatalog {
+                isLibrarian: centralbox.islibrarian
+                onBookSelected: function(book) {
+                            centralbox.selectedBook = book
+                            centralbox.route = "BookDetail"
+                }
+            }
+        }
+        Component {
+            id: bookDetailComp; BookDetail {bookData: centralbox.selectedBook
+            onBackRequested: centralbox.route = "Books"
+            }
+        }
         }
     }
 }
