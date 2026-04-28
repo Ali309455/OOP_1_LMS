@@ -8,6 +8,7 @@ Item {
     width: 1000
     height: 700
     property string route: "dashboard"
+    signal routeChangeRequested(string newRoute)
     property bool islibrarian: false
     property var selectedBook : null
     ColumnLayout{
@@ -31,11 +32,6 @@ Item {
             color: "#0f172a"
             Layout.fillWidth: true
             Layout.fillHeight: true
-
-        //     Transactions {
-        //     anchors.fill: parent
-        //     }
-        // }
 
 
         Loader {
@@ -68,13 +64,13 @@ Item {
                 isLibrarian: centralbox.islibrarian
                 onBookSelected: function(book) {
                             centralbox.selectedBook = book
-                            centralbox.route = "BookDetail"
+                            centralbox.routeChangeRequested("BookDetail")
                 }
             }
         }
         Component {
             id: bookDetailComp; BookDetail {bookData: centralbox.selectedBook
-            onBackRequested: centralbox.route = "Books"
+            onBackRequested: { centralbox.routeChangeRequested("Books") }
             }
         }
         }
