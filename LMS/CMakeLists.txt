@@ -4,12 +4,20 @@ project(LMS VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS Quick  Core Sql)
 
 qt_standard_project_setup()
 
+file(GLOB BACKEND_SOURCES
+    backend/*.cpp
+    backend/*.h
+)
 qt_add_executable(appLMS
     main.cpp
+    ${BACKEND_SOURCES}
+)
+target_link_libraries(appLMS
+    PRIVATE Qt6::Core Qt6::Sql Qt6::Quick
 )
 
 qt_add_qml_module(appLMS
