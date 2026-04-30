@@ -13,8 +13,8 @@ public:
     static void init(); // create tables
 
     // CRUD functions
-    static bool addUser(QString name, QString email, QString password, QString membership, QString role);
-    static bool addBook(QString isbn, QString name, QString author, QString genre, QString section, int total, int available);
+    static bool addUser(QString id,QString name, QString email, QString password, QString membership, QString role);
+    static bool addBook(QString isbn, QString name, QString author, QString genre, QString section, QString publisher,QString edition, QString language,int publicationYear,int total, int available);
     static bool addTransaction(QString txid, int userId, QString isbn, QString status, int fine);
     static bool addReview(QString review_id, int userId, QString isbn, int rating, QString comment, QString status);
 

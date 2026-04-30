@@ -34,7 +34,7 @@ void Database::init() {
     query.exec("PRAGMA foreign_keys = ON;");
 
     query.exec("CREATE TABLE IF NOT EXISTS users ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "id TEXT PRIMARY KEY ,"
                "joining_date TEXT,"
                "name TEXT,"
                "email TEXT UNIQUE,"
@@ -48,6 +48,10 @@ void Database::init() {
                "author TEXT,"
                "genre TEXT,"
                "section TEXT,"
+               "publisher TEXT,"
+               "edition TEXT,"
+               "language TEXT,"
+               "publicationYear INTEGER,"
                "totalcopies INTEGER,"
                "availablecopies INTEGER)");
 
@@ -60,7 +64,7 @@ void Database::init() {
                "status TEXT,"
                "fine INTEGER,"
                "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,"
-               "FOREIGN KEY(isbn) REFERENCES books(isbn)  ON DELETE CASCADE");
+               "FOREIGN KEY(isbn) REFERENCES books(isbn)  ON DELETE CASCADE)");
 
     query.exec("CREATE TABLE IF NOT EXISTS reviews ("
                "reviewid TEXT PRIMARY KEY ,"
@@ -70,15 +74,16 @@ void Database::init() {
                "comment TEXT,"
                "status TEXT,"
                "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,"
-               "FOREIGN KEY(isbn) REFERENCES books(isbn) ON DELETE CASCADE");
+               "FOREIGN KEY(isbn) REFERENCES books(isbn) ON DELETE CASCADE)");
 }
 
-bool Database::addUser(QString name, QString email, QString password, QString membership, QString role) { // can be used in register and add user both
+bool Database::addUser(QString id,QString name, QString email, QString password, QString membership, QString role) { // can be used in register and add user both
     QSqlQuery query;
 
-    query.prepare("INSERT INTO users (joining_date, name, email, password, membership, role) "
-                  "VALUES (date('now'), ?, ?, ?, ?, ?)");
+    query.prepare("INSERT INTO users (id, joining_date, name, email, password, membership, role) "
+                  "VALUES ( ? , date('now'), ?, ?, ?, ?, ?)");
 
+    query.addBindValue(id);
     query.addBindValue(name);
     query.addBindValue(email);
     query.addBindValue(password);
@@ -136,19 +141,23 @@ bool Database::addReview(QString review_id, int userId, QString isbn, int rating
     return true;
 }
 
-bool Database::addBook(QString isbn, QString name, QString author, QString genre, QString section, int total, int available)
+bool Database::addBook(QString isbn,QString name,QString author,QString genre,QString section,QString publisher,QString edition,QString language,int publicationYear,int total,int available)
 {
     QSqlQuery query;
 
     query.prepare("INSERT INTO books "
-                  "(isbn, bookname, author, genre, section, totalcopies, availablecopies) "
-                  "VALUES (?, ?, ?, ?, ?, ?, ?)");
+                  "(isbn, bookname, author, genre, section, publisher, edition, language, publicationYear, totalcopies, availablecopies) "
+                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     query.addBindValue(isbn);
     query.addBindValue(name);
     query.addBindValue(author);
     query.addBindValue(genre);
     query.addBindValue(section);
+    query.addBindValue(publisher);
+    query.addBindValue(edition);
+    query.addBindValue(language);
+    query.addBindValue(publicationYear);
     query.addBindValue(total);
     query.addBindValue(available);
 
@@ -265,16 +274,25 @@ bool Database::updateUser(int id, QString name, QString email, QString password,
     return true;
 }
 
-bool Database::updateBook(QString isbn, QString name, QString author, QString genre, QString section, int total, int available)
+bool Database::updateBook(QString isbn,QString name,QString author,QString genre,QString section,QString publisher,QString edition,QString language,int publicationYear,int total,int available)
 {
     QSqlQuery query;
 
-    query.prepare("UPDATE books SET bookname=?, author=?, genre=?, section=?, totalcopies=?, availablecopies=? WHERE isbn=?");
+    query.prepare(
+        "UPDATE books SET "
+        "bookname=?, author=?, genre=?, section=?, publisher=?, edition=?, language=?, "
+        "publicationYear=?, totalcopies=?, availablecopies=? "
+        "WHERE isbn=?"
+        );
 
     query.addBindValue(name);
     query.addBindValue(author);
     query.addBindValue(genre);
     query.addBindValue(section);
+    query.addBindValue(publisher);
+    query.addBindValue(edition);
+    query.addBindValue(language);
+    query.addBindValue(publicationYear);
     query.addBindValue(total);
     query.addBindValue(available);
     query.addBindValue(isbn);
@@ -352,6 +370,7 @@ bool Database::deleteBook(QString isbn)
         return false;
     }
 
+    qDebug() << "Book deleted:" << isbn;
     return true;
 }
 
@@ -437,14 +456,14 @@ LoginResult Database::loginUser(QString email, QString password)
 // Database::init();
 
 // // =========================
-// // ✅ ADD TEST DATA
+// // ADD TEST DATA
 // // =========================
 // qDebug() << "\n=== ADD DATA ===";
 
-// Database::addUser("Ali", "ali@gmail.com", "123", "gold", "user");
-// Database::addUser("Admin", "admin@gmail.com", "admin", "premium", "librarian");
+// Database::addUser("cs-001","Ali", "ali@gmail.com", "123", "gold", "user");
+// Database::addUser("cs-002","Admin", "admin@gmail.com", "admin", "premium", "librarian");
 
-// Database::addBook("001", "Clean Code", "Robert Martin", "Programming", "CS", 10, 10);
+// Database::addBook("978-1", "C++ Basics", "Bjarne Stroustrup","Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
 
 // Database::addTransaction("TX1", 1, "001", "issued", 0);
 // Database::addReview("RV1", 1, "001", 5, "Great Book", "approved");
