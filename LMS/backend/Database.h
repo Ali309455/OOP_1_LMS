@@ -26,7 +26,7 @@ public:
 
     //update
     static bool updateUser(int id, QString name, QString email, QString password, QString membership, QString role);
-    static bool updateBook(QString isbn, QString name, QString author, QString genre, QString section, int total, int available);
+    static bool updateBook(QString isbn,QString name,QString author,QString genre,QString section,QString publisher,QString edition,QString language,int publicationYear,int total,int available);
     static bool updateTransaction(QString txid, QString status, int fine);
     static bool updateReview(QString reviewId, int rating, QString comment, QString status);
 
