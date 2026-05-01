@@ -9,12 +9,6 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
 
-        Database::connect();
-        Database::init();
-
-        // TEST
-        Database::addUser("Ali", "ali@gmail.com", "123", "gold", "user");
-
 
     QQmlApplicationEngine engine;
     QObject::connect(
