@@ -324,7 +324,130 @@ Membership* createMembership(string tier, string studentId){
     }
 }
 
+class Wallet {
+private:
+    string studentId;
+    double balance;
+    bool suspended;
 
+    const double SUSPENSION_THRESHOLD = -30.0; // The user will be suspended if the fine exceeds this amount
+public:
+    // Constructor
+    Wallet(string id, double initialDeposit) {
+        if(id.empty() || initialDeposit < 0) {
+            throw invalid_argument("Invalid wallet details provided.");
+        }
+        studentId = id;
+        balance = initialDeposit;
+        suspended = false;
+    }
+    // Getters
+    string getStudentId() const { return studentId; }
+    double getBalance() const { return balance; }
+    bool isSuspended() const { return suspended; }
+    // User's add money to wallet
+    void addAmount(double amount) {
+        if (amount < 0) {
+            throw invalid_argument("Amount to add cannot be negative.");
+        }
+        balance += amount;
+        if (balance < SUSPENSION_THRESHOLD) {
+            suspended = true;
+        } else {
+            suspended = false;
+        }
+    }
+    // Automatically deduct fine from wallet when a book is returned late
+    void deductFine(double fineAmount) {
+        if (fineAmount < 0) {
+            throw invalid_argument("Fine amount cannot be negative.");
+        }
+        balance -= fineAmount;
+        if (balance < SUSPENSION_THRESHOLD) {
+            suspended = true;
+        }
+    }
+    // Membership renewal fee deduction
+    void deductMembershipRenewalFee(double feeAmount) {
+        if (feeAmount < 0) {
+            throw invalid_argument("Fee amount cannot be negative.");
+        }
+        if(balance < feeAmount) {
+            throw runtime_error("Insufficient balance to pay the renewal fee.");
+        }
+        balance -= feeAmount;
+        if (balance < SUSPENSION_THRESHOLD) {
+            suspended = true;
+        }
+    }
+};
 
-// create your branch and based on uml and coedinate with the inddividual who is handling the class requried to make you code (like relations in uml ) and test and run your code by using main function 
+class WalletLog {
+private:    
+    struct WalletEntry {
+        string studentId;
+        double amount;
+        string type; // "fine" or "renewal"
+        time_t timestamp;
+    };
+
+    vector<Wallet> wallets; 
+    vector<WalletEntry> logs; // log of all transactions for auditing
+public:
+    void createWallet(string studentId, double initialDeposit) {
+        for (const auto& w : wallets) {
+            if (w.getStudentId() == studentId) {
+                throw runtime_error("Wallet for this student already exists.");
+            }
+        }
+        wallets.push_back(Wallet(studentId, initialDeposit));
+        logs.push_back({studentId, initialDeposit, "initial_deposit", time(0)});
+    }
+    // Get wallet by student ID
+    Wallet* getWallet(string studentId) {
+        for (auto& w : wallets) {
+            if (w.getStudentId() == studentId) {
+                return &w;
+            }
+        }
+        return nullptr; // Not found
+    }
+    bool isUserSuspended(string studentId) {
+        Wallet* w = getWallet(studentId);
+        if (w == nullptr) {
+            throw runtime_error("Wallet for this student not found.");
+        }
+        return w->isSuspended();
+    }
+    // called when a book is returned late to automatically deduct fine from wallet
+    void applyFine(string studentId, double fineAmount) {
+        Wallet* w = getWallet(studentId);
+        if (w == nullptr) {
+            throw runtime_error("Wallet for this student not found.");
+        }
+        w->deductFine(fineAmount);
+        logs.push_back({studentId, fineAmount, "fine", time(0)});
+    }
+    // called when a user renews their membership to automatically deduct renewal fee from wallet
+    void payMembershipRenewalFee(string studentId, double feeAmount) {
+        Wallet* w = getWallet(studentId);
+        if (w == nullptr) {
+            throw runtime_error("Wallet for this student not found.");
+        }
+        w->deductMembershipRenewalFee(feeAmount);
+        logs.push_back({studentId, feeAmount, "membership_renewal_fee", time(0)});
+    }
+    // User can add money to wallet
+    void addMoney(string studentId, double amount) {
+        Wallet* w = getWallet(studentId);
+        if (w == nullptr) {
+            throw runtime_error("Wallet for this student not found.");
+        }
+        w->addAmount(amount);
+        logs.push_back({studentId, amount, "add_money", time(0)});
+    }
+
+};
+
+    // create your branch and based on uml and coedinate with the inddividual who is handling the class requried to make you code (like relations in uml ) and test and run your code by using main function 
 // in your class when your code is ready just comment out your driver code(main function) and dummy data used to check the code
