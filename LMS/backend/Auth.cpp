@@ -1,107 +1,123 @@
-#include "Auth.h"
+#include <iostream>
+#include <string>
+#include <stdexcept> // Required for standard exceptions
+#include <vector>
 
-int AuthManager::totalUsers = 0;
+using namespace std;
 
-// --- Account Implementation ---
-Account::Account(string id, string pass) : userID(id), password(pass), status(AccountStatus::Active) {}
-
-bool Account::validateCredentials(string id, string pass)
-{
-    return (userID == id && password == pass);
-}
-
-// --- Person Implementation ---
-Person::Person(string n, string e, string p, string id, string pass)
-    : name(n), email(e), phone(p)
-{
-    account = make_unique<Account>(id, pass);
-}
-
-// --- Student & Librarian ---
-Student::Student(string n, string e, string p, string id, string pass, MembershipTier t)
-    : Person(n, e, p, id, pass), tier(t) {}
-
-Librarian::Librarian(string n, string e, string p, string id, string pass)
-    : Person(n, e, p, id, pass) {}
-
-// --- AuthManager (Logic) ---
-AuthManager::AuthManager()
-{
-    // Demo data for testing
-    registerUser("Admin", "admin@lib.com", "000", "admin123", "Librarian", "-");
-}
-
-bool AuthManager::registerUser(string n, string e, string p, string pass, string role, string tierStr)
-{
-    try
-    {
-        if (role == "Librarian")
-        {
-            users.push_back(make_unique<Librarian>(n, e, p, e, pass));
+// ========= ENTITY BASE CLASS =========
+class Person {
+protected:
+    string userID, name, email, password;
+public:
+    Person(const string& id, const string& nm, const string& em, const string& pwd)
+        : userID(id), name(nm), email(em), password(pwd) {
+        
+        // Validation logic
+        if (id.empty() || nm.empty() || em.empty() || pwd.empty()) {
+            throw invalid_argument("All fields (ID, Name, Email, Password) are required.");
         }
-        else
-        {
-            MembershipTier t = MembershipTier::Silver;
-            if (tierStr == "Gold")
-                t = MembershipTier::Gold;
-            else if (tierStr == "Platinum")
-                t = MembershipTier::Platinum;
-
-            users.push_back(make_unique<Student>(n, e, p, e, pass, t));
+        if (em.find('@') == string::npos) {
+            throw invalid_argument("Invalid email format.");
         }
-        totalUsers++;
-        return true;
     }
-    catch (...)
-    {
-        return false;
+    virtual ~Person() {}
+    virtual string getRole() const = 0;
+    string getUserID() const { return userID; }
+    string getName() const { return name; }
+    string getEmail() const { return email; }
+    bool authenticate(const string& tryPass) const { return password == tryPass; }
+};
+
+// ========= DERIVED ENTITY CLASSES =========
+class Student : public Person {
+    string department;
+    int borrowedCount = 0;
+    int totalfineowed = 0;
+public:
+    Student(const string& id, const string& nm, const string& em, const string& pwd)
+        : Person(id, nm, em, pwd) {}
+    
+    string getRole() const override { return "STUDENT"; }
+    int getTotalFineOwed() const { return totalfineowed; }
+    int get_BorrowedCount() const { return borrowedCount; }
+};
+
+class Librarian : public Person {
+    string employeeCode;
+public:
+    Librarian(const string& id, const string& nm, const string& em, const string& pwd, const string& code)
+        : Person(id, nm, em, pwd), employeeCode(code) {
+        if (code.empty()) throw invalid_argument("Employee code cannot be empty.");
     }
-}
+    string getRole() const override { return "LIBRARIAN"; }
+};
 
-Person *AuthManager::login(string emailOrId, string pass)
-{
-    for (auto &u : users)
-    {
-        // Checking both Email and ID (As per your UI requirements)
-        if ((u->getEmail() == emailOrId || u->getAccount()->getID() == emailOrId) &&
-            u->getAccount()->getPassword() == pass)
-        {
+// ========= SERVICE CLASS (AUTH MANAGER) =========
+class AuthManager {
+    Person* registeredUsers[100]; 
+    int userCount;
+public:
+    AuthManager() : userCount(0) {}
+    ~AuthManager() {
+        for (int i = 0; i < userCount; ++i)
+            delete registeredUsers[i];
+    }
 
-            if (u->getAccount()->getStatus() == AccountStatus::Active)
-            {
-                return u.get();
+    void registerPerson(Person* p) {
+        if (p == nullptr) throw invalid_argument("Cannot register a null user.");
+        if (userCount >= 100) {
+            delete p; // Clean up memory if we can't store it
+            throw overflow_error("System capacity reached. Cannot register more users.");
+        }
+        
+        // Check for duplicate emails
+        for (int i = 0; i < userCount; ++i) {
+            if (registeredUsers[i]->getEmail() == p->getEmail()) {
+                delete p;
+                throw runtime_error("User with this email already exists.");
             }
         }
-    }
-    return nullptr;
-}
 
-// create your branch and based on uml and coedinate with the inddividual who is handling the class requried to make you code (like relations in uml ) and test and run your code by using main function 
-// in your class when your code is ready just comment out your driver code(main function) and dummy data used to check the code
-
-// --- YE AAPKA TESTING (DRIVER) CODE HAI ---
-
-#include <iostream>
-
-int main()
-{
-    AuthManager testSystem;
-
-    // Dummy data register karna (Testing ke liye)
-    testSystem.registerUser("Hassan", "hassan@ned.edu", "03001234567", "ned123", "Student", "Gold");
-
-    // Login test karna
-    cout << "Testing Login for Hassan..." << endl;
-    Person *result = testSystem.login("hassan@ned.edu", "ned123");
-
-    if (result != nullptr)
-    {
-        cout << "SUCCESS: Login Ho Gaya! Welcome " << result->getName() << endl;
-    }
-    else
-    {
-        cout << "FAILED: Login nahi ho saka." << endl;
+        registeredUsers[userCount++] = p;
     }
 
-    return 0;
-}
+    Person* login(const string& email, const string& password) const {
+        for (int i = 0; i < userCount; ++i) {
+            if (registeredUsers[i]->getEmail() == email) {
+                if (registeredUsers[i]->authenticate(password)) {
+                    return registeredUsers[i];
+                } else {
+                    throw runtime_error("Incorrect password.");
+                }
+            }
+        }
+        throw runtime_error("User not found.");
+    }
+};
+
+// ========= Demo/Test =========
+// int main() {
+//     AuthManager auth;
+
+//     try {
+//         // Successful registrations
+//         auth.registerPerson(new Librarian("lib1", "Meena", "meena@uni.edu", "libpass", "EMP001"));
+//         auth.registerPerson(new Student("stu1", "Alex", "alex@x.com", "abc"));
+
+//         // Trigger an error: Invalid Email
+//         // auth.registerPerson(new Student("stu2", "Sandy", "bad-email", "qwe")); 
+
+//         // Login attempts
+//         Person* p = auth.login("meena@uni.edu", "libpass");
+//         cout << "Login successful: " << p->getName() << " (" << p->getRole() << ")\n";
+
+//         // Trigger an error: Wrong Password
+//         p = auth.login("alex@x.com", "wrong-pass");
+
+//     } catch (const exception& e) {
+//         cerr << "ERROR: " << e.what() << endl;
+//     }
+
+//     return 0;
+// }
