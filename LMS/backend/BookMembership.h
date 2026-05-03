@@ -24,6 +24,7 @@ public:
          int publicationYear = 0, int pages = 0, int totalCopies = 0);
 
     // Getters
+    friend std::ostream& operator<<(std::ostream& os, const Book& book);
     std::string getIsbn() const;
     std::string getTitle() const;
     std::string getAuthor() const;
@@ -48,6 +49,7 @@ private:
     std::vector<Book> books;
 
 public:
+    static int bookcount;
     bool addBook(const Book& book);
     bool removeBook(const std::string& isbn);
     const std::vector<Book>& getAllBooks() const;
@@ -144,6 +146,7 @@ private:
     std::vector<WalletEntry> logs;
 
 public:
+    static void  addWallet( Wallet& w, const std::string& sid, double initialDeposit);
     void createWallet(std::string studentId, double initialDeposit);
     void createWallet(std::string studentId, double initialDeposit, int sus);
     Wallet* getWallet(std::string studentId);

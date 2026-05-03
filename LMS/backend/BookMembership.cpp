@@ -1,6 +1,7 @@
 #include "BookMembership.h"
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -62,6 +63,10 @@ void Book::updateStatus() {
     else status = AVAILABLE;
 }
 
+std::ostream& operator<<(std::ostream& os, const Book& book) {
+    std::cout << "ID: " << book.getIsbn() << " Name: " << book.getTitle();
+    return os;
+}
 string Book::statusToString() const {
     switch (status) {
     case AVAILABLE: return "Available";
@@ -73,11 +78,14 @@ string Book::statusToString() const {
 
 // ========= CATALOG IMPLEMENTATION =========
 
+int BookCatalog::bookcount = 0;
+
 bool BookCatalog::addBook(const Book& book) {
     for (const auto& b : books) {
         if (b.getIsbn() == book.getIsbn()) throw runtime_error("ISBN already exists.");
     }
     books.push_back(book);
+    bookcount++;
     return true;
 }
 
@@ -85,6 +93,7 @@ bool BookCatalog::removeBook(const string& isbn) {
     for (auto it = books.begin(); it != books.end(); ++it) {
         if (it->getIsbn() == isbn) {
             books.erase(it);
+            bookcount--;
             return true;
         }
     }
@@ -195,6 +204,10 @@ void WalletLog::createWallet(string studentId, double initialDeposit, int sus) {
     wallets.push_back(Wallet(studentId, initialDeposit, sus));
     logs.push_back({studentId, initialDeposit, "initial_deposit", time(0)});
 }
+// void WalletLog::addWallet( Wallet& w, const string& sid, double initialDeposit){
+//     wallets.push_back(w);
+//     logs.push_back({sid, initialDeposit, "initial_deposit", time(0)});
+// }
 
 Wallet* WalletLog::getWallet(string studentId) {
     for (auto& w : wallets) {

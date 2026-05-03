@@ -76,6 +76,7 @@ public:
     std::vector<transaction> getTransactionsByStudent(std::string studentId);
     std::vector<transaction> getOverdueTransactions();
     void displayAllTransactions();
+    std::vector<transaction> getAllTransactions() const;
 };
 
 // ========= REVIEW SYSTEM =========
@@ -121,6 +122,7 @@ private:
     std::vector<Review> reviews;
 
 public:
+    static int reviewcount;
     bool hasStudentReviewedBook(std::string studentId, std::string isbn);
     bool addReview(const Review& r);
     Review* findReviewById(std::string reviewId);
@@ -131,6 +133,7 @@ public:
     std::vector<Review> getPendingReviews();
     std::vector<Review> getApprovedReviews();
     void displayAllReviews();
+    std::vector<Review> getAllReviews() const;
 };
 
 #endif

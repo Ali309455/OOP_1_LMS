@@ -108,9 +108,8 @@ bool Database::addUser(QString id,QString name, QString email, QString password,
     return true;
 }
 
-bool Database::addTransaction(QString txid, QString userId, QString isbn,QString status ,QString returnDate, int fine) {
+bool Database::addTransaction(QString txid, QString userId, QString isbn,QString returnDate,QString status , int fine) {
     QSqlQuery query;
-
     query.prepare("INSERT INTO transactions "
                   "(txid, user_id, isbn, issuedate, duedate,returnDate, status, fine) "
                   "VALUES (?, ?, ?, date('now'), date('now', '+7 days'),?, ?, ?)");
@@ -239,7 +238,8 @@ QVariantList Database::getBooks()
         book["language"] = query.value("language");
         book["publicationyear"] = query.value("publicationyear");
         book["publisher"] = query.value("publisher");
-        book["availablecopies"] = query.value("availablecopies");
+        book["avaliablecopies"] = query.value("availablecopies");
+        book["pages"] = query.value("pages");
 
         books.append(book);
     }
@@ -306,7 +306,7 @@ QVariantList Database::getWallets()
     return wallets;
 }
 
-bool Database::updateUser(int id, QString name, QString email, QString password, QString membership, QString role)
+bool Database::updateUser(QString id, QString name, QString email, QString password, QString membership, QString role)
 {
     QSqlQuery query;
 
@@ -380,7 +380,6 @@ bool Database::updateReview(QString reviewId,std::optional<int> rating ,std::opt
 {
     QSqlQuery query;
     QString queryStr = "UPDATE reviews SET ";
-
     QList<QString> updates;
     QList<QVariant> values;
 
@@ -423,7 +422,7 @@ bool Database::updateReview(QString reviewId,std::optional<int> rating ,std::opt
     return true;
 }
 
-bool Database::deleteUser(int id)
+bool Database::deleteUser(QString id)
 {
     QSqlQuery query;
 
@@ -484,6 +483,18 @@ bool Database::deleteReview(QString reviewId)
     return true;
 }
 
+int Database::getMaxIdNumber(const QString& table, const QString& column, const QString& prefix) {
+    QSqlQuery query;
+    query.prepare("SELECT MAX(CAST(SUBSTR(" + column + ", LENGTH(?) + 2) AS INTEGER)) FROM " + table);
+    query.addBindValue(prefix);
+
+    if (!query.exec() || !query.next()) {
+        qDebug() << "ID fetch error:" << query.lastError().text();
+        return 0;
+    }
+
+    return query.value(0).toInt();
+}
 LoginResult Database::loginUser(QString email, QString password)
 {
     QSqlQuery query;

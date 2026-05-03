@@ -5,7 +5,6 @@
 #include "BookMembership.h"
 #include "transactionreview.h"
 // Forward declarations if necessary
-
 class LibrarySystem {
     AuthManager authManager;
     transactionlog TransactionManager;
@@ -32,17 +31,21 @@ public:
     // ========== Authentication ===========
     bool login(const std::string& email, const std::string& password);
     void logout();
-    std::string generateId(const std::string& prefix, int count);
+    std::string generateId(const std::string& prefix, int maxIDfromDB);
     // ========== User Management ==========
-    bool registerStudent(const std::string& id, const std::string& name, const std::string& email, const std::string& pwd, int semester, const std::string& department);
-    bool registerLibrarian(const std::string& id, const std::string& name, const std::string& email, const std::string& pwd, int employeeId, const std::string& department);
-
+    bool registerStudent( const std::string& name, const std::string& email, const std::string& pwd, const std::string& membership, const std::string& role);
+    bool registerLibrarian( const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);
+    bool registerUser( const std::string& name, const std::string& email, const std::string& pwd, const std::string& membership, const std::string& role);
+    bool removeUser(const std::string& sid);
+    bool updateStudent( const std::string& id,const std::string& name, const std::string& email, const std::string& pwd, const std::string& membership, const std::string& role);
+    bool updateLibrarian( const std::string& id ,const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);
+    bool updateUser( const std::string& id, const std::string& name, const std::string& email, const std::string& pwd, const std::string& membership, const std::string& role);
     // ========== Catalog Operations ==========
-    bool addBook(const std::string& isbn, const std::string& title, const std::string& author, const std::string& genre, const std::string& section, int numCopies);
+    bool addbook(const std::string& isbn,const std::string&  title,const std::string&  author, const std::string& category,const std::string&  section, const std::string& publisher,const std::string&  edition, const std::string& language, int publicationYear, int pages,int totalCopies);
     bool removeBook(const std::string& isbn);
-
+    bool updateBook(const std::string& isbn,const std::string&  title,const std::string&  author, const std::string& category,const std::string&  section, const std::string& publisher,const std::string&  edition, const std::string& language, int publicationYear, int pages,int totalCopies);
     // ========== Transaction/Book Ops ==========
-    bool issueBook(const std::string& studentId, const std::string& isbn);    // Called by librarian
+    bool issueBook(const std::string& isbn, const std::string& studentID);    // Called by librarian
     bool returnBook(const std::string& txnID);   // Called by librarian
 
     // ========== Membership Ops =========
@@ -53,9 +56,10 @@ public:
     bool approveReview(const std::string& reviewId);
 
     // ========== Utility ==========
-    void listAllBooks();
-    void listAllStudents();
-    void listAllLibrarians();
-
+    std::vector<Book> getAllBooks() const;
+    std::vector<Person*> getAllUsers() const;
+    std::vector<transaction> getAllTransactions() const;
+    std::vector<Review> getAllReviews() const;
+    void displayAllData() const ;
 
 };

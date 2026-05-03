@@ -96,7 +96,7 @@ void transaction::display() const {
 
 // ========= transactionlog Implementation =========
 int transactionlog::transactioncount = 0;
-void transactionlog::addTransaction(const transaction& t) { transactions.push_back(t); }
+void transactionlog::addTransaction(const transaction& t) { transactions.push_back(t);transactioncount++; }
 
 
 
@@ -147,6 +147,9 @@ void transactionlog::displayAllTransactions() {
     if (transactions.empty()) { cout << "No transactions found." << endl; return; }
     for (const auto& t : transactions) t.display();
 }
+std::vector<transaction> transactionlog::getAllTransactions() const {
+    return transactions;
+}
 
 // ========= Review Implementation =========
 
@@ -176,11 +179,12 @@ void Review::display() const {
 }
 
 // ========= Reviewlog Implementation =========
-
+int Reviewlog::reviewcount = 0;
 bool Reviewlog::addReview(const Review& r) {
     for (const auto& existing : reviews) {
         if (existing.getStudentId() == r.getStudentId() && existing.getIsbn() == r.getIsbn()) return false;
     }
+    reviewcount++;
     reviews.push_back(r);
     return true;
 }
@@ -195,4 +199,8 @@ bool Reviewlog::approveReview(string reviewId) {
 void Reviewlog::displayAllReviews() {
     if (reviews.empty()) { cout << "No reviews found." << endl; return; }
     for (const auto& r : reviews) r.display();
+}
+
+std::vector<Review> Reviewlog::getAllReviews() const {
+    return reviews;
 }

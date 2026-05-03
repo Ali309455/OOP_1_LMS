@@ -16,30 +16,56 @@ Person::Person(const std::string& id, const std::string& nm, const std::string& 
 }
 
 Person::~Person() {}
-
+std::ostream& operator<<(std::ostream& os, const Person& person) {
+    std::cout << "ID: " << person.getEmail() << " Name: " << person.getName();
+    return os;
+}
 std::string Person::getUserID() const { return userID; }
 std::string Person::getName() const { return name; }
 std::string Person::getEmail() const { return email; }
+std::string Person::getPassword() const{return password;}
 
 bool Person::authenticate(const std::string& tryPass) const {
     return password == tryPass;
 }
 
 // ========= STUDENT IMPLEMENTATION =========
+Student::Student(const std::string& id,const std::string& nm,const std::string& em,const std::string& pwd,const std::string& tier): Person(id, nm, em, pwd),
+    borrowedCount(0),
+    totalfineowed(0),
+    membership(nullptr),
+    wallet(nullptr)
+{
+    // Create membership
+    membership = createMembership(tier, id);
 
-Student::Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd)
-    : Person(id, nm, em, pwd), borrowedCount(0), totalfineowed(0) {}
+    // Create wallet (assuming WalletLog is global or accessible)
+    // wallet = new Wallet(id, 0.0);   // local object for this student
+    // WalletLog::addWallet(wallet, id,0);
+    // Also log it (optional, depending on your design)
 
-std::string Student::getRole() const {
-    return "STUDENT";
 }
-
+void Student::setmembership(Membership* m) {
+    // delete old membership to avoid memory leak
+    delete membership;
+    // assign new one
+    membership = m;
+}
+std::string Student::getRole() const {
+    return ROLE_STUDENT;
+}
+std::string Student::getMembershipTier() const {
+    return membership ? membership->getTierName() : "silver";
+}
 int Student::getTotalFineOwed() const {
     return totalfineowed;
 }
 
 int Student::get_BorrowedCount() const {
     return borrowedCount;
+}
+Student::~Student() {
+    delete membership;
 }
 
 // ========= LIBRARIAN IMPLEMENTATION =========
@@ -52,7 +78,7 @@ Librarian::Librarian(const std::string& id, const std::string& nm, const std::st
 }
 
 std::string Librarian::getRole() const {
-    return "LIBRARIAN";
+    return ROLE_LIBRARIAN;
 }
 
 // ========= AUTHMANAGER IMPLEMENTATION =========
@@ -108,7 +134,14 @@ AuthManager::~AuthManager() {
         delete user; // Prevents memory leaks
     }
 }
-
+Person* AuthManager::findById(const std::string id) {
+    for (auto* user : registeredUsers) {
+        if (user->getUserID() == id) {
+            return user;
+        }
+    }
+    return nullptr;
+}
 void AuthManager::registerPerson(Person* p) {
     if (!p) {
         throw std::invalid_argument("Null user.");
@@ -127,6 +160,26 @@ void AuthManager::registerPerson(Person* p) {
 
 int AuthManager::getuserCount(){return userCount;}
 
+bool AuthManager::updateUser(const std::string& id,const std::string& name,const std::string& email,const std::string& password)
+{
+    Person* user = findById(id);
+
+    if (!user) {
+        return false;
+    }
+
+    if (!name.empty())
+        user->setName(name);
+
+    if (!email.empty())
+        user->setEmail(email);
+
+    if (!password.empty())
+        user->setPassword(password);
+
+    return true;
+}
+
 Person* AuthManager::login(const std::string& email, const std::string& password) const {
     for (auto user : registeredUsers) {
         if (user->getEmail() == email) {
@@ -138,3 +191,23 @@ Person* AuthManager::login(const std::string& email, const std::string& password
     }
     throw std::runtime_error("User not found.");
 };
+
+bool AuthManager::upgrademembership(const std::string& tier,const std::string& id){
+    Person* p = findById(id);
+
+    if (!p) return false;
+
+    Student* s = dynamic_cast<Student*>(p);
+
+    if (!s) {
+        // Not a student (maybe librarian)
+        return false;
+    }
+
+    s->setmembership(createMembership(tier, id));
+
+    return true;
+}
+std::vector<Person*> AuthManager::getAllUsers() const {
+    return registeredUsers;
+}
