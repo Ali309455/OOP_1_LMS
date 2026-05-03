@@ -53,14 +53,16 @@ void Database::init() {
                "language TEXT,"
                "publicationYear INTEGER,"
                "totalcopies INTEGER,"
+               "pages INTEGER,"
                "availablecopies INTEGER)");
 
     query.exec("CREATE TABLE IF NOT EXISTS transactions ("
                "txid TEXT PRIMARY KEY,"
-               "user_id INTEGER,"
+               "user_id TEXT,"
                "isbn TEXT,"
                "issuedate TEXT,"
                "duedate TEXT,"
+               "returnDate TEXT,"
                "status TEXT,"
                "fine INTEGER,"
                "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,"
@@ -68,13 +70,21 @@ void Database::init() {
 
     query.exec("CREATE TABLE IF NOT EXISTS reviews ("
                "reviewid TEXT PRIMARY KEY ,"
-               "user_id INTEGER,"
+               "user_id TEXT,"
                "isbn TEXT,"
                "rating INTEGER,"
                "comment TEXT,"
                "status TEXT,"
+               "review_date TEXT,"
                "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,"
                "FOREIGN KEY(isbn) REFERENCES books(isbn) ON DELETE CASCADE)");
+
+
+    query.exec("CREATE TABLE IF NOT EXISTS wallets ("
+               "user_id TEXT PRIMARY KEY ,"
+               "balance INTEGER,"
+               "status INTEGER,"
+               "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
 }
 
 bool Database::addUser(QString id,QString name, QString email, QString password, QString membership, QString role) { // can be used in register and add user both
@@ -98,16 +108,17 @@ bool Database::addUser(QString id,QString name, QString email, QString password,
     return true;
 }
 
-bool Database::addTransaction(QString txid, int userId, QString isbn,QString status, int fine) {
+bool Database::addTransaction(QString txid, QString userId, QString isbn,QString status ,QString returnDate, int fine) {
     QSqlQuery query;
 
     query.prepare("INSERT INTO transactions "
-                  "(txid, user_id, isbn, issuedate, duedate, status, fine) "
-                  "VALUES (?, ?, ?, date('now'), date('now', '+7 days'), ?, ?)");
+                  "(txid, user_id, isbn, issuedate, duedate,returnDate, status, fine) "
+                  "VALUES (?, ?, ?, date('now'), date('now', '+7 days'),?, ?, ?)");
 
     query.addBindValue(txid);
     query.addBindValue(userId);
     query.addBindValue(isbn);
+    query.addBindValue(returnDate);
     query.addBindValue(status);
     query.addBindValue(fine);
 
@@ -119,11 +130,11 @@ bool Database::addTransaction(QString txid, int userId, QString isbn,QString sta
     return true;
 }
 
-bool Database::addReview(QString review_id, int userId, QString isbn, int rating, QString comment, QString status){
+bool Database::addReview(QString review_id, QString userId, QString isbn, int rating, QString comment, QString status){
     QSqlQuery query;
     query.prepare("INSERT INTO reviews "
-                  "(reviewid, user_id, isbn, rating, comment, status) "
-                  "VALUES ( ?, ?, ?, ?, ?, ?)");
+                  "(reviewid, user_id, isbn, rating, comment,review_date, status) "
+                  "VALUES ( ?, ?, ?, ?, ?,date('now'), ?)");
 
     query.addBindValue(review_id);
     query.addBindValue(userId);
@@ -141,17 +152,18 @@ bool Database::addReview(QString review_id, int userId, QString isbn, int rating
     return true;
 }
 
-bool Database::addBook(QString isbn,QString name,QString author,QString genre,QString section,QString publisher,QString edition,QString language,int publicationYear,int total,int available)
+bool Database::addBook(QString isbn, QString name, QString author,int pages, QString genre, QString section, QString publisher,QString edition, QString language,int publicationYear,int total, int available)
 {
     QSqlQuery query;
 
     query.prepare("INSERT INTO books "
-                  "(isbn, bookname, author, genre, section, publisher, edition, language, publicationYear, totalcopies, availablecopies) "
-                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                  "(isbn, bookname, author, pages , genre, section, publisher, edition, language, publicationYear, totalcopies, availablecopies) "
+                  "VALUES (?, ?, ?, ?, ?, ?, ? , ?, ?, ?, ?, ?)");
 
     query.addBindValue(isbn);
     query.addBindValue(name);
     query.addBindValue(author);
+    query.addBindValue(pages);
     query.addBindValue(genre);
     query.addBindValue(section);
     query.addBindValue(publisher);
@@ -169,6 +181,25 @@ bool Database::addBook(QString isbn,QString name,QString author,QString genre,QS
     return true;
 }
 
+bool Database::addWallet(QString user_id,int balance,int status)
+{
+    QSqlQuery query;
+
+    query.prepare("INSERT INTO wallets"
+                  "( user_id, balance, status) "
+                  "VALUES (?, ?, ?)");
+
+    query.addBindValue(user_id);
+    query.addBindValue(balance);
+    query.addBindValue(status);
+
+    if (!query.exec()) {
+        qDebug() << "Add Book Error:" << query.lastError().text();
+        return false;
+    }
+
+    return true;
+};
 
 QVariantList Database::getUsers()
 {
@@ -181,6 +212,7 @@ QVariantList Database::getUsers()
         user["joining_date"] = query.value("joining_date");
         user["name"] = query.value("name");
         user["email"] = query.value("email");
+        user["password"] = query.value("password");
         user["membership"] = query.value("membership");
         user["role"] = query.value("role");
 
@@ -203,6 +235,10 @@ QVariantList Database::getBooks()
         book["genre"] = query.value("genre");
         book["section"] = query.value("section");
         book["totalcopies"] = query.value("totalcopies");
+        book["edition"] = query.value("edition");
+        book["language"] = query.value("language");
+        book["publicationyear"] = query.value("publicationyear");
+        book["publisher"] = query.value("publisher");
         book["availablecopies"] = query.value("availablecopies");
 
         books.append(book);
@@ -223,6 +259,7 @@ QVariantList Database::getTransactions()
         tx["isbn"] = query.value("isbn");
         tx["issuedate"] = query.value("issuedate");
         tx["duedate"] = query.value("duedate");
+        tx["returnDate"] = query.value("returnDate");
         tx["status"] = query.value("status");
         tx["fine"] = query.value("fine");
 
@@ -245,13 +282,29 @@ QVariantList Database::getReviews()
         review["rating"] = query.value("rating");
         review["comment"] = query.value("comment");
         review["status"] = query.value("status");
-
+        review["review_date"] = query.value("review_date");
         reviews.append(review);
     }
 
     return reviews;
 }
 
+QVariantList Database::getWallets()
+{
+    QVariantList wallets;
+    QSqlQuery query("SELECT * FROM wallets");
+
+    while (query.next()) {
+        QVariantMap wallet;
+        wallet["user_id"] = query.value("user_id");
+        wallet["balance"] = query.value("balance");
+        wallet["status"] = query.value("status");
+
+        wallets.append(wallet);
+    }
+
+    return wallets;
+}
 
 bool Database::updateUser(int id, QString name, QString email, QString password, QString membership, QString role)
 {
@@ -323,15 +376,43 @@ bool Database::updateTransaction(QString txid, QString status, int fine)
     return true;
 }
 
-bool Database::updateReview(QString reviewId, int rating, QString comment, QString status)
+bool Database::updateReview(QString reviewId,std::optional<int> rating ,std::optional<QString> comment,std::optional<QString> status )
 {
     QSqlQuery query;
+    QString queryStr = "UPDATE reviews SET ";
 
-    query.prepare("UPDATE reviews SET rating=?, comment=?, status=? WHERE reviewid=?");
+    QList<QString> updates;
+    QList<QVariant> values;
 
-    query.addBindValue(rating);
-    query.addBindValue(comment);
-    query.addBindValue(status);
+    if (rating.has_value()) {
+        updates.append("rating=?");
+        values.append(rating.value());
+    }
+
+    if (comment.has_value()) {
+        updates.append("comment=?");
+        values.append(comment.value());
+    }
+
+    if (status.has_value()) {
+        updates.append("status=?");
+        values.append(status.value());
+    }
+
+    // ❌ Nothing to update
+    if (updates.isEmpty()) {
+        qDebug() << "No fields provided to update";
+        return false;
+    }
+
+    queryStr += updates.join(", ");
+    queryStr += " WHERE reviewid=?";
+
+    query.prepare(queryStr);
+
+    for (const auto& val : values)
+        query.addBindValue(val);
+
     query.addBindValue(reviewId);
 
     if (!query.exec()) {
@@ -341,7 +422,6 @@ bool Database::updateReview(QString reviewId, int rating, QString comment, QStri
 
     return true;
 }
-
 
 bool Database::deleteUser(int id)
 {

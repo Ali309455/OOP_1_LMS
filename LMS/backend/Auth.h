@@ -1,107 +1,70 @@
 #ifndef AUTH_H
 #define AUTH_H
 
-#include <iostream>
 #include <string>
-#include <vector>
-#include <memory>
-#include <stdexcept>
+#include<vector>
 
-using namespace std;
-
-// UML Section: Enums for State Management
-enum class AccountStatus
-{
-  Active,
-  Frozen,
-  Closed,
-  Blacklisted,
-  Pending
-};
-enum class MembershipTier
-{
-  Silver,
-  Gold,
-  Platinum,
-  None
-};
-
-// Composition: Account details separated from Person
-class Account
-{
-private:
-  string userID;
-  string password;
-  AccountStatus status;
-  string lastLogin; // Professional touch
-public:
-  Account(string id, string pass);
-
-  // Getters & Setters
-  string getID() const { return userID; }
-  string getPassword() const { return password; }
-  AccountStatus getStatus() const { return status; }
-  void setStatus(AccountStatus s) { status = s; }
-  bool validateCredentials(string id, string pass);
-};
-
-// Base Class: Person (Abstract-like)
-class Person
-{
+// ========= ENTITY BASE CLASS =========
+class Person {
 protected:
-  string name;
-  string email;
-  string phone;
-  unique_ptr<Account> account; // Modern C++ (Smart Pointers)
-public:
-  Person(string n, string e, string p, string id, string pass);
-  virtual ~Person() = default;
+    std::string userID;
+    std::string name;
+    std::string email;
+    std::string password;
 
-  // UML Methods
-  string getName() const { return name; }
-  string getEmail() const { return email; }
-  Account *getAccount() const { return account.get(); }
-  virtual void displayRole() = 0; // Pure virtual for professional structure
+public:
+    Person(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd);
+    virtual ~Person();
+
+    // Pure virtual function
+    virtual std::string getRole() const = 0;
+
+    // Getters and Logic
+    std::string getUserID() const;
+    std::string getName() const;
+    std::string getEmail() const;
+    bool authenticate(const std::string& tryPass) const;
 };
 
-// Derived: Student (With Membership Logic)
-class Student : public Person
-{
+// ========= DERIVED ENTITY CLASSES =========
+
+class Student : public Person {
 private:
-  MembershipTier tier;
-  static const int MAX_BOOKS = 5;
+    std::string department;
+    int borrowedCount;
+    int totalfineowed;
 
 public:
-  Student(string n, string e, string p, string id, string pass, MembershipTier t);
-  void displayRole() override { cout << "Role: Student (" << (int)tier << ")" << endl; }
-  MembershipTier getTier() const { return tier; }
+    Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd);
+    
+    std::string getRole() const override;
+    int getTotalFineOwed() const;
+    int get_BorrowedCount() const;
 };
 
-// Derived: Librarian
-class Librarian : public Person
-{
-public:
-  Librarian(string n, string e, string p, string id, string pass);
-  void displayRole() override { cout << "Role: Librarian" << endl; }
-};
-
-// Manager: AuthManager (The Bridge)
-class AuthManager
-{
+class Librarian : public Person {
 private:
-  static int totalUsers;
-  vector<unique_ptr<Person>> users;
+    std::string employeeCode;
 
 public:
-  AuthManager();
-
-  // Signup Logic matching your QML
-  bool registerUser(string n, string e, string p, string pass, string role, string tier);
-
-  // Login Logic matching your QML Email/ID field
-  Person *login(string emailOrId, string pass);
-
-  static int getTotalUsersCount() { return totalUsers; }
+    Librarian(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd, const std::string& code);
+    
+    std::string getRole() const override;
 };
 
-#endif
+// ========= SERVICE CLASS (AUTH MANAGER) =========
+
+class AuthManager {
+private:
+    static int userCount ;
+    std::vector<Person*> registeredUsers;
+
+public:
+    AuthManager() = default;
+    ~AuthManager(); // Destructor to clean up heap memory
+    int getuserCount();
+    void registerPerson(Person* p);
+    Person* login(const std::string& email, const std::string& password) const;
+};
+
+#endif // LIBRARY_SYSTEM_H
