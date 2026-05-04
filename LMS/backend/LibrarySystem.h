@@ -33,13 +33,13 @@ public:
     void logout();
     std::string generateId(const std::string& prefix, int maxIDfromDB);
     // ========== User Management ==========
-    bool registerStudent( const std::string& name, const std::string& email, const std::string& pwd, const std::string& membership, const std::string& role);
+    bool registerStudent( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
     bool registerLibrarian( const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);
-    bool registerUser( const std::string& name, const std::string& email, const std::string& pwd, const std::string& membership, const std::string& role);
+    bool registerUser( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
     bool removeUser(const std::string& sid);
-    bool updateStudent( const std::string& id,const std::string& name, const std::string& email, const std::string& pwd, const std::string& membership, const std::string& role);
+    bool updateStudent( const std::string& id,const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
     bool updateLibrarian( const std::string& id ,const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);
-    bool updateUser( const std::string& id, const std::string& name, const std::string& email, const std::string& pwd, const std::string& membership, const std::string& role);
+    bool updateUser( const std::string& id, const std::string& name, const std::string& email, const std::string& pwd,  const std::string& membership, const std::string& role,const std::string& status ="");
     // ========== Catalog Operations ==========
     bool addbook(const std::string& isbn,const std::string&  title,const std::string&  author, const std::string& category,const std::string&  section, const std::string& publisher,const std::string&  edition, const std::string& language, int publicationYear, int pages,int totalCopies);
     bool removeBook(const std::string& isbn);

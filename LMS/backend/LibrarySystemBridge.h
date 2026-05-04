@@ -18,7 +18,7 @@ public:
     Q_INVOKABLE void logout();
 
     // -------------------- User Management --------------------
-    Q_INVOKABLE bool registerStudent(const QString& name, const QString& email, const QString& pwd, const QString& membership, const QString& role);
+    Q_INVOKABLE bool registerStudent(const QString& name, const QString& email, const QString& pwd,const QString& status, const QString& membership, const QString& role);
     Q_INVOKABLE bool registerLibrarian(const QString& name, const QString& email, const QString& pwd, const QString& role);
     Q_INVOKABLE bool removeUser(const QString& id);
 

@@ -1,31 +1,59 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-
+import LMS
 // Users.qml
 Rectangle {
     id: usersView
     anchors.fill: parent
     color: "#0f1117"
-
+    property var usersList: lms.getUsers();
     // ── User data model ────────────────────────────────────────────────────
     ListModel {
         id: usersModel
 
-        ListElement { userId: "S001"; name: "John Doe";    email: "john@example.com";  role: "Student";   membership: "Gold";     status: "active"   }
-        ListElement { userId: "S002"; name: "Jane Smith";  email: "jane@example.com";  role: "Student";   membership: "Platinum"; status: "active"   }
-        ListElement { userId: "S003"; name: "Bob Johnson"; email: "bob@example.com";   role: "Student";   membership: "Gold";     status: "active"   }
-        ListElement { userId: "S004"; name: "Alice Brown"; email: "alice@example.com"; role: "Student";   membership: "Silver";   status: "active"   }
-        ListElement { userId: "L001"; name: "Admin User";  email: "admin@lib.com";     role: "Librarian"; membership: "-";        status: "active"   }
+        ListElement { userId: "S001"; name: "John Doe";    email: "john@example.com";  role: "STUDENT";   membership: "Gold";     status: "active"   }
+        ListElement { userId: "S002"; name: "Jane Smith";  email: "jane@example.com";  role: "STUDENT";   membership: "Platinum"; status: "active"   }
+        ListElement { userId: "S003"; name: "Bob Johnson"; email: "bob@example.com";   role: "STUDETN";   membership: "Gold";     status: "active"   }
+        ListElement { userId: "S004"; name: "Alice Brown"; email: "alice@example.com"; role: "STUDENT";   membership: "Silver";   status: "active"   }
+        ListElement { userId: "L001"; name: "Admin User";  email: "admin@lib.com";     role: "LIBRARIAN"; membership: "-";        status: "active"   }
     }
 
+    Component.onCompleted: {
+        syncUsersModel()
+    }
+
+    function syncUsersModel() {
+        // usersModel.clear();
+
+        console.log("--- Starting Sync. Total items in UsersList: " + usersList.length + " ---");
+
+        for (var i = 0; i < usersList.length; i++) {
+            var item = usersList[i];
+
+            // 1. Check if the item itself exists
+            if (item === undefined) {
+                console.error("Error: Item at index " + i + " is undefined.");
+                continue;
+            }
+
+            // 2. Stringify the object to see its full structure in the console
+            // This helps if the object is valid but the console just says [object Object]
+            console.log("Index " + i + ": " + JSON.stringify(item));
+
+            // 3. Append to model
+            usersModel.append(item);
+        }
+
+        console.log("--- Sync Complete. Model count: " + usersModel.count + " ---");
+    }
     // ── Counters (computed from model) ─────────────────────────────────────
     function totalUsers()    { return usersModel.count }
     function totalStudents() {
-        var c = 0; for (var i = 0; i < usersModel.count; i++) if (usersModel.get(i).role === "Student") c++; return c
+        var c = 0; for (var i = 0; i < usersModel.count; i++) if (usersModel.get(i).role === "STUDENT") c++; return c
     }
     function totalLibrarians() {
-        var c = 0; for (var i = 0; i < usersModel.count; i++) if (usersModel.get(i).role === "Librarian") c++; return c
+        var c = 0; for (var i = 0; i < usersModel.count; i++) if (usersModel.get(i).role === "LIBRARIAN") c++; return c
     }
     function activeThisMonth() {
         var c = 0; for (var i = 0; i < usersModel.count; i++) if (usersModel.get(i).status === "active") c++; return c

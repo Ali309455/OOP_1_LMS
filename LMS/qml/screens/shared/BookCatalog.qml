@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-
+import LMS
 // BookCatalog.qml  —  Dark theme
 Rectangle {
     id: booksView
@@ -15,23 +15,52 @@ Rectangle {
     signal filterChanged(string filterKey, var filterValue)
 
     // ── Book data as ListModel for full reactivity ─────────────────────────
+    property var bookList: lms.getBooks();
     ListModel {
         id: booksModel
-        ListElement { isbn: "978-83323"; title: "Clean Code";                 author: "Robert C. Martin";   genre: "Programming"; section: "CS-A";  available: 5 }
-        ListElement { isbn: "90984";     title: "Design Patterns";            author: "Gang of Four";        genre: "Programming"; section: "CS-A";  available: 3 }
-        ListElement { isbn: "978-20112"; title: "Effective Java";             author: "Joshua Bloch";        genre: "Programming"; section: "CS-B";  available: 8 }
-        ListElement { isbn: "39812";     title: "Head First Design Patterns"; author: "Freeman & Freeman";   genre: "Programming"; section: "CS-B";  available: 2 }
-        ListElement { isbn: "978-83379"; title: "The Pragmatic Programmer";   author: "Hunt & Thomas";       genre: "Programming"; section: "CS-A";  available: 6 }
-        ListElement { isbn: "82628";     title: "Introduction to Algorithms"; author: "CLRS";                genre: "Algorithms";  section: "CS-C";  available: 4 }
-        ListElement { isbn: "33848";     title: "Cracking the Coding Interview"; author: "McDowell";         genre: "Programming"; section: "CS-B";  available: 7 }
-        ListElement { isbn: "978-89911"; title: "You Don't Know JS";          author: "Kyle Simpson";        genre: "Programming"; section: "CS-B";  available: 3 }
-        ListElement { isbn: "85955";     title: "Web Development with Django";author: "Douglas Hellmann";    genre: "Web";         section: "WEB-A"; available: 5 }
-        ListElement { isbn: "978-12345"; title: "Eloquent JavaScript";        author: "Marijn Haverbeke";    genre: "Web";         section: "WEB-B"; available: 2 }
-        ListElement { isbn: "67890";     title: "Python Crash Course";        author: "Eric Matthes";        genre: "Programming"; section: "CS-A";  available: 9 }
-        ListElement { isbn: "54321";     title: "The C Programming Language"; author: "Kernighan & Ritchie"; genre: "Programming"; section: "CS-C";  available: 1 }
-        ListElement { isbn: "978-11111"; title: "Modern JavaScript";          author: "Larry Ullman";        genre: "Web";         section: "WEB-A"; available: 4 }
-        ListElement { isbn: "22222";     title: "Advanced C Programming";     author: "Richard Reese";       genre: "Programming"; section: "CS-C";  available: 0 }
-        ListElement { isbn: "978-33333"; title: "Data Structures Simplified"; author: "Mark Allen Weiss";    genre: "Algorithms";  section: "CS-B";  available: 6 }
+        // ListElement { isbn: "978-83323"; title: "Clean Code";                 author: "Robert C. Martin";   genre: "Programming"; section: "CS-A";  available: 5 }
+        // ListElement { isbn: "90984";     title: "Design Patterns";            author: "Gang of Four";        genre: "Programming"; section: "CS-A";  available: 3 }
+        // ListElement { isbn: "978-20112"; title: "Effective Java";             author: "Joshua Bloch";        genre: "Programming"; section: "CS-B";  available: 8 }
+        // ListElement { isbn: "39812";     title: "Head First Design Patterns"; author: "Freeman & Freeman";   genre: "Programming"; section: "CS-B";  available: 2 }
+        // ListElement { isbn: "978-83379"; title: "The Pragmatic Programmer";   author: "Hunt & Thomas";       genre: "Programming"; section: "CS-A";  available: 6 }
+        // ListElement { isbn: "82628";     title: "Introduction to Algorithms"; author: "CLRS";                genre: "Algorithms";  section: "CS-C";  available: 4 }
+        // ListElement { isbn: "33848";     title: "Cracking the Coding Interview"; author: "McDowell";         genre: "Programming"; section: "CS-B";  available: 7 }
+        // ListElement { isbn: "978-89911"; title: "You Don't Know JS";          author: "Kyle Simpson";        genre: "Programming"; section: "CS-B";  available: 3 }
+        // ListElement { isbn: "85955";     title: "Web Development with Django";author: "Douglas Hellmann";    genre: "Web";         section: "WEB-A"; available: 5 }
+        // ListElement { isbn: "978-12345"; title: "Eloquent JavaScript";        author: "Marijn Haverbeke";    genre: "Web";         section: "WEB-B"; available: 2 }
+        // ListElement { isbn: "67890";     title: "Python Crash Course";        author: "Eric Matthes";        genre: "Programming"; section: "CS-A";  available: 9 }
+        // ListElement { isbn: "54321";     title: "The C Programming Language"; author: "Kernighan & Ritchie"; genre: "Programming"; section: "CS-C";  available: 1 }
+        // ListElement { isbn: "978-11111"; title: "Modern JavaScript";          author: "Larry Ullman";        genre: "Web";         section: "WEB-A"; available: 4 }
+        // ListElement { isbn: "22222";     title: "Advanced C Programming";     author: "Richard Reese";       genre: "Programming"; section: "CS-C";  available: 0 }
+        // ListElement { isbn: "978-33333"; title: "Data Structures Simplified"; author: "Mark Allen Weiss";    genre: "Algorithms";  section: "CS-B";  available: 6 }
+    }
+    Component.onCompleted: {
+        syncBooksModel()
+    }
+
+    function syncBooksModel() {
+        booksModel.clear();
+
+        console.log("--- Starting Sync. Total items in bookList: " + bookList.length + " ---");
+
+        for (var i = 0; i < bookList.length; i++) {
+            var item = bookList[i];
+
+            // 1. Check if the item itself exists
+            if (item === undefined) {
+                console.error("Error: Item at index " + i + " is undefined.");
+                continue;
+            }
+
+            // 2. Stringify the object to see its full structure in the console
+            // This helps if the object is valid but the console just says [object Object]
+            console.log("Index " + i + ": " + JSON.stringify(item));
+
+            // 3. Append to model
+            booksModel.append(item);
+        }
+
+        console.log("--- Sync Complete. Model count: " + booksModel.count + " ---");
     }
 
     // ── Available color helper ─────────────────────────────────────────────
@@ -313,8 +342,8 @@ Rectangle {
                                     Rectangle {
                                         anchors.centerIn: parent
                                         width: 48; height: 26; radius: 13
-                                        color: booksView.availColor(model.available) + "22"
-                                        Text { anchors.centerIn: parent; text: model.available; font.pixelSize: 12; font.bold: true; color: booksView.availColor(model.available) }
+                                        color: booksView.availColor(model.availableCopies) + "22"
+                                        Text { anchors.centerIn: parent; text: model.availableCopies; font.pixelSize: 12; font.bold: true; color: booksView.availColor(model.availableCopies) }
                                     }
                                 }
 

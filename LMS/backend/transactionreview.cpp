@@ -172,6 +172,10 @@ bool Review::isPending() const { return status == "pending"; }
 string Review::getStudentId()const {return studentId;}
 string Review::getIsbn()const {return isbn;}
 string Review::getReviewId()const {return reviewId;}
+string Review::getReviewDate()const {return reviewDate;}
+string Review::getComment()const {return comment;}
+string Review::getStatus()const {return status;}
+int Review::getRating()const {return rating;}
 
 void Review::display() const {
     cout << "Review ID: " << reviewId << "\nRating: " << rating << "/5\nComment: " << comment

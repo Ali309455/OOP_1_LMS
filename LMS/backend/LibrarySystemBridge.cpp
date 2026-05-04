@@ -16,9 +16,9 @@ void LibrarySystemBridge::logout()
     m_system.logout();
 }
 
-bool LibrarySystemBridge::registerStudent(const QString &name, const QString &email, const QString &pwd, const QString &membership, const QString &role)
+bool LibrarySystemBridge::registerStudent(const QString &name, const QString &email, const QString &pwd,const QString &status ,const QString &membership, const QString &role)
 {
-    return m_system.registerStudent(name.toStdString(), email.toStdString(), pwd.toStdString(), membership.toStdString(), role.toStdString());
+    return m_system.registerStudent(name.toStdString(), email.toStdString(), pwd.toStdString(), status.toStdString(), membership.toStdString(), role.toStdString());
 }
 bool LibrarySystemBridge::registerLibrarian(const QString &name, const QString &email, const QString &pwd, const QString &role)
 {
@@ -73,9 +73,14 @@ QVariantList LibrarySystemBridge::getBooks()
         map["isbn"] = QString::fromStdString(book.getIsbn());
         map["title"] = QString::fromStdString(book.getTitle());
         map["author"] = QString::fromStdString(book.getAuthor());
-        map["category"] = QString::fromStdString(book.getCategory());
+        map["genre"] = QString::fromStdString(book.getCategory());
         map["section"] = QString::fromStdString(book.getSection());
         map["totalCopies"] = book.getTotalCopies();
+        map["publisher"] = QString::fromStdString(book.getPublisher());
+        map["edition"] = QString::fromStdString(book.getEdition());
+        map["year"] = (book.getPublicationYear());
+        map["pages"] = (book.getPages());
+        map["language"] = QString::fromStdString(book.getLanguage());
         map["availableCopies"] = book.getAvailableCopies();
         list.append(map);
     }
@@ -88,7 +93,7 @@ QVariantList LibrarySystemBridge::getUsers()
     for (const auto *person : m_system.getAllUsers())
     {
         QVariantMap map;
-        map["userID"] = QString::fromStdString(person->getUserID());
+        map["userId"] = QString::fromStdString(person->getUserID());
         map["name"] = QString::fromStdString(person->getName());
         map["email"] = QString::fromStdString(person->getEmail());
         map["role"] = QString::fromStdString(person->getRole());

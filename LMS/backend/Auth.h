@@ -40,15 +40,18 @@ private:
     std::string department;
     int borrowedCount;
     int totalfineowed;
+    std::string status;
     Membership* membership;
     Wallet* wallet;
 
 public:
-    Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd,const std::string& tier);
+    Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd,const std::string& status,const std::string& tier);
     ~Student();
     void setmembership(Membership* m);
     std::string getMembershipTier() const;
     std::string getRole() const override;
+    std::string getStatus() const;
+    void setStatus(const std::string& s);
     int getTotalFineOwed() const;
     int get_BorrowedCount() const;
     void setmembership(Membership& m );
@@ -79,8 +82,8 @@ public:
     std::vector<Person*> getAllUsers() const;
     void registerPerson(Person* p);
     bool upgrademembership(const std::string& tier, const std::string& id);
-    bool updateUser(const std::string& id,const std::string& name, const std::string& email, const std::string& password);
     Person* login(const std::string& email, const std::string& password) const;
+    bool updateUser(const std::string& id,const std::string& name, const std::string& email, const std::string& password, const std::string& status="");
 };
 
 #endif // LIBRARY_SYSTEM_H

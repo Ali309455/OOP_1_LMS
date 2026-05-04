@@ -30,7 +30,7 @@ bool Person::authenticate(const std::string& tryPass) const {
 }
 
 // ========= STUDENT IMPLEMENTATION =========
-Student::Student(const std::string& id,const std::string& nm,const std::string& em,const std::string& pwd,const std::string& tier): Person(id, nm, em, pwd),
+Student::Student(const std::string& id,const std::string& nm,const std::string& em,const std::string& pwd,const std::string& status, const std::string& tier): Person(id, nm, em, pwd),
     borrowedCount(0),
     totalfineowed(0),
     membership(nullptr),
@@ -38,7 +38,7 @@ Student::Student(const std::string& id,const std::string& nm,const std::string& 
 {
     // Create membership
     membership = createMembership(tier, id);
-
+    this->status = status;
     // Create wallet (assuming WalletLog is global or accessible)
     // wallet = new Wallet(id, 0.0);   // local object for this student
     // WalletLog::addWallet(wallet, id,0);
@@ -54,6 +54,14 @@ void Student::setmembership(Membership* m) {
 std::string Student::getRole() const {
     return ROLE_STUDENT;
 }
+std::string Student::getStatus() const {
+    return status;
+}
+
+void Student::setStatus( const std::string& s){
+    status = s;
+}
+
 std::string Student::getMembershipTier() const {
     return membership ? membership->getTierName() : "silver";
 }
@@ -160,7 +168,7 @@ void AuthManager::registerPerson(Person* p) {
 
 int AuthManager::getuserCount(){return userCount;}
 
-bool AuthManager::updateUser(const std::string& id,const std::string& name,const std::string& email,const std::string& password)
+bool AuthManager::updateUser(const std::string& id,const std::string& name,const std::string& email,const std::string& password, const std::string& status)
 {
     Person* user = findById(id);
 
@@ -176,7 +184,8 @@ bool AuthManager::updateUser(const std::string& id,const std::string& name,const
 
     if (!password.empty())
         user->setPassword(password);
-
+    Student* student = dynamic_cast<Student*>(user);
+    if(student ) student->setStatus(status);
     return true;
 }
 

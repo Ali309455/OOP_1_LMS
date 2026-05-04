@@ -2,6 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <QFontDatabase>
 #include "backend/LibrarySystem.h"
+#include "backend/LibrarySystemBridge.h"
+#include <QQmlContext>
 
 
 
@@ -24,6 +26,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    LibrarySystemBridge lmsBridge;
+    engine.rootContext()->setContextProperty("lms", &lmsBridge);
     Database::init();
 
     // // =========================
@@ -31,19 +35,20 @@ int main(int argc, char *argv[])
     // // =========================
 
     // qDebug() << "\n=== ADD DATA ===";
-    // Database::addUser("cs-001","Ali", "ali@gmail.com", "123", "gold", "STUDENT");
+    // Database::addUser("LIB-1","Admin", "admin@lib.com", "admin", "", "LIBRARIAN","");
     // Database::addUser("cs-002","Admin", "admin@gmail.com", "admin", "premium", "librarian");
 
     // Database::addBook("978-2", "C++ advanced", "Bjarne Stroustrup",420,"Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
     LibrarySystem sys;
     sys.initializeSystem();
-    // qDebug()<< sys.login("ali@gmail.com","123");
-    sys.login("ali@gmail.com","123");
+    qDebug()<< sys.login("admin@lib.com","admin");
+    // sys.login("ali@gmail.com","123");
+    sys.registerUser("Ali","ali@gmail,com","123","active","gold","STUDENT");
     // sys.updateUser("LIB-5","ali", "ai@gmail.com", "mai", "gold", "LIBRARIAN");
     // sys.upgradeStudentMembership("cs-001","silver");
     // qDebug() << sys.removeUser("cs-001");
 
-    // sys.addbook("278-2", "AI essentails", "Bjarne ","SI", "CS", "Pearson", "2st","English", 2022,520, 10);
+    sys.addbook("278-2", "AI essentails", "Bjarne ","SI", "CS", "Pearson", "2st","English", 2022,520, 10);
     // sys.removeBook("278-2");
     // sys.submitReview("SU-1","978-2",4,"good for fe students");
     // sys.approveReview("RV2");

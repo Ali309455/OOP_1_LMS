@@ -26,7 +26,7 @@ Window {
         property string currentRoute: "dashboard" // default screen
         property string authPage: "login"   // "login" or "signup"
         property bool islibrarian:true
-        property bool isLoggedIn: false
+        property bool isLoggedIn: true
 
         ColumnLayout {
             anchors.fill: parent

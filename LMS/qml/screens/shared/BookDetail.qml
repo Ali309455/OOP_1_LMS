@@ -25,7 +25,7 @@ Rectangle {
         genre:        "Software Engineering",
         isbn:         "978-0132350884",
         totalCopies:  "5",
-        available:    "3",
+        availableCopies:    "3",
         borrowed:     "2",
         totalBorrows: "127",
         room:         "Main Hall",
@@ -270,7 +270,7 @@ Rectangle {
 
                                     Repeater {
                                         model: [
-                                            { label: "Available",          value: bookData.available + " of " + bookData.totalCopies, highlight: true  },
+                                            { label: "Available",          value: bookData.availableCopies + " of " + bookData.totalCopies, highlight: true  },
                                             { label: "Borrowed",           value: bookData.borrowed + " copies",                      highlight: false },
                                             { label: "Total Borrows",      value: bookData.totalBorrows + " times",                   highlight: false }
                                         ]

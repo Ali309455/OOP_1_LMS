@@ -33,6 +33,7 @@ void LibrarySystem::loadUsersIntoSystem()
             std::string name = map["name"].toString().toStdString();
             std::string email = map["email"].toString().toStdString();
             std::string password = map["password"].toString().toStdString();
+            std::string status = map["status"].toString().toStdString();
             std::string role = map["role"].toString().toStdString();
             std::string membership = map["membership"].toString().toStdString();
 
@@ -48,7 +49,7 @@ void LibrarySystem::loadUsersIntoSystem()
                 if (membership.empty()) {
                     throw std::invalid_argument("Membership field is empty for student: " + name);
                 }
-                person = new Student(id, name, email, password, membership);
+                person = new Student(id, name, email, password,status, membership);
             }
             else if (role == ROLE_LIBRARIAN) {
                 person = new Librarian(id, name, email, password, "cs211");
@@ -380,16 +381,16 @@ bool LibrarySystem::submitReview(const string& studentID ,const string& isbn, in
 }
 
 // -------------------> User <---------------------------
-bool LibrarySystem::registerStudent( const string& name, const string& email, const string& pwd, const string& membership, const string& role){
+bool LibrarySystem::registerStudent( const string& name, const string& email, const string& pwd,const string& status, const string& membership, const string& role){
 
     Person* person = nullptr;
     string id = generateId("SU",Database::getMaxIdNumber("users", "id", "SU"));
-        person = new Student(id, name, email, pwd,membership);
+        person = new Student(id, name, email, pwd,status ,membership);
 
     if (person) {
         authManager.registerPerson(person);
     }
-    return Database::addUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString(membership),QString::fromStdString(role));
+    return Database::addUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString(membership),QString::fromStdString(role),QString::fromStdString(status));
 }
 bool LibrarySystem::registerLibrarian( const string& name, const string& email, const string& pwd, const string& role){
 
@@ -400,9 +401,9 @@ bool LibrarySystem::registerLibrarian( const string& name, const string& email, 
     if (person) {
         authManager.registerPerson(person);
     }
-    return Database::addUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString("none"),QString::fromStdString(role));
+    return Database::addUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString(""),QString::fromStdString("none"),QString::fromStdString(role));
 }
-bool LibrarySystem::registerUser(const string& name,const string& email,const string& pwd,const string& membership,const string& role)
+bool LibrarySystem::registerUser(const string& name,const string& email,const string& pwd,const string& status,const string& membership,const string& role)
 {
     // Only librarian can register users
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
@@ -416,7 +417,7 @@ bool LibrarySystem::registerUser(const string& name,const string& email,const st
 
     // Decide based on role
     if (role == ROLE_STUDENT) {
-        return registerStudent(name, email, pwd, membership, role);
+        return registerStudent(name, email, pwd, status,membership, role);
     }
     else if (role == ROLE_LIBRARIAN) {
         return registerLibrarian(name, email, pwd, role);
@@ -433,9 +434,9 @@ bool LibrarySystem::removeUser(const string& id){
     return Database::deleteUser(QString::fromStdString(id));
 };
 
-bool LibrarySystem::updateStudent(const string& id, const string& name, const string& email, const string& pwd, const string& membership, const string& role){
-    authManager.updateUser( id, name,  email, pwd);
-    return Database::updateUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString(membership),QString::fromStdString(role));
+bool LibrarySystem::updateStudent(const string& id, const string& name, const string& email, const string& pwd,const string& status ,const string& membership, const string& role){
+    authManager.updateUser( id, name,  email, pwd, status);
+    return Database::updateUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString(status),QString::fromStdString(membership),QString::fromStdString(role));
 }
 bool LibrarySystem::updateLibrarian( const string& id, const string& name, const string& email, const string& pwd, const string& role){
 
@@ -444,7 +445,7 @@ bool LibrarySystem::updateLibrarian( const string& id, const string& name, const
 
     return Database::updateUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString("none"),QString::fromStdString(role));
 }
-bool LibrarySystem::updateUser(const string& id, const string& name,const string& email,const string& pwd,const string& membership,const string& role)
+bool LibrarySystem::updateUser(const string& id, const string& name,const string& email,const string& pwd, const string& membership,const string& role,const string& status)
 {
     // Only librarian can register users
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
@@ -458,7 +459,7 @@ bool LibrarySystem::updateUser(const string& id, const string& name,const string
 
     // Decide based on role
     if (role == "STUDENT" || role == "user") {
-        return updateStudent(id,name, email, pwd, membership, role);
+        return updateStudent(id,name, email, pwd, membership, role, status);
     }
     else if (role == ROLE_LIBRARIAN) {
         return updateLibrarian(id,name, email, pwd, role);
