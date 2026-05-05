@@ -18,6 +18,7 @@ LibrarySystem::LibrarySystem()
     // initializeSystem();
 }
 string LibrarySystem::generateId(const std::string& prefix, int maxIdFromDB) {
+    // return prefix + "-" + std::to_string(maxIdFromDB + 1);
     return prefix + "-" + std::to_string(maxIdFromDB + 1);
 }
 void LibrarySystem::loadUsersIntoSystem()
@@ -140,6 +141,7 @@ void LibrarySystem::loadTransactionsIntoSystem()
             // Extract values
             std::string transactionId = map["txid"].toString().toStdString();
             std::string studentId     = map["user_id"].toString().toStdString();
+            std::string username      = map["username"].toString().toStdString();
             std::string isbn          = map["isbn"].toString().toStdString();
             std::string issueDate     = map["issuedate"].toString().toStdString();
             std::string dueDate       = map["duedate"].toString().toStdString();
@@ -150,20 +152,20 @@ void LibrarySystem::loadTransactionsIntoSystem()
             // so we usually don't throw an error for that specific field.
 
             // 1. Check for crucial empty fields
-            if (transactionId.empty() || studentId.empty() || isbn.empty() ||
+            if (transactionId.empty() || studentId.empty() ||username.empty()|| isbn.empty() ||
                 issueDate.empty() || dueDate.empty() || status.empty()) {
                 throw std::invalid_argument("Transaction " + transactionId + " is missing required data.");
             }
 
             int fine = map["fine"].toInt();
-
+            qDebug()<< username;
             // 2. Validate numeric logic (fine shouldn't be negative)
             if (fine < 0) {
                 throw std::runtime_error("Invalid fine amount for Transaction ID: " + transactionId);
             }
 
             // 3. Create object
-            transaction tr(transactionId, studentId, isbn,
+            transaction tr(transactionId, studentId, username, isbn,
                            issueDate, dueDate, returnDate,
                            status, fine);
 
@@ -194,7 +196,9 @@ void LibrarySystem::loadReviewsIntoSystem()
             // Extract values
             std::string reviewId   = map["reviewid"].toString().toStdString();
             std::string studentId  = map["user_id"].toString().toStdString();
+            std::string username   = map["username"].toString().toStdString();
             std::string isbn       = map["isbn"].toString().toStdString();
+            std::string bookname   = map["bookname"].toString().toStdString();
             std::string comment    = map["comment"].toString().toStdString();
             std::string status     = map["status"].toString().toStdString();
             std::string reviewDate = map["review_date"].toString().toStdString();
@@ -213,7 +217,7 @@ void LibrarySystem::loadReviewsIntoSystem()
             }
 
             // 3. Create object
-            Review review(reviewId, studentId, isbn,
+            Review review(reviewId, studentId, username, isbn, bookname,
                           rating, comment, status, reviewDate);
 
             // 4. Add to manager
@@ -311,9 +315,12 @@ bool LibrarySystem::issueBook(const string& isbn, const string& sid) {
     qDebug() << b<< b->getAvailableCopies();
     if (!b || b->getAvailableCopies() == 0) return false;
     qDebug() <<transactionlog::transactioncount;
+    Person* p = authManager.findById(sid);
+    if (!p) return false;
+    string username = p->getName();
     string txid =  generateId("TX", Database::getMaxIdNumber("transactions", "txid", "TX"));
     bool dbresponse = Database::addTransaction(QString::fromStdString(txid),QString::fromStdString(sid),QString::fromStdString(isbn),"",QString::fromStdString("active"),0);
-    return(dbresponse && TransactionManager.issueBook(txid,sid,isbn,getDate().toStdString(),getDate(7).toStdString()));
+    return(dbresponse && TransactionManager.issueBook(txid,sid,username,isbn,getDate().toStdString(),getDate(7).toStdString()));
 }
 
 bool LibrarySystem::returnBook(const string& txnID) {
@@ -325,7 +332,7 @@ bool LibrarySystem::returnBook(const string& txnID) {
         return false;
 
     // ✅ Step 1: get current return date
-    string returnDate = getDate(9).toStdString();
+    string returnDate = getDate().toStdString();
 
     // ✅ Step 2: get student
     Person* p = authManager.findById(t->getStudentId());
@@ -387,22 +394,59 @@ bool LibrarySystem::removeBook(const string& isbn){
 
 
 bool LibrarySystem::approveReview(const string& reviewID) {
-    if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
+
+    qDebug() << "Approve called. User:"
+             << (currentUser ? QString::fromStdString(currentUser->getRole()) : "NULL");
+
+    if (!currentUser)
         return false;
+
+    string role = currentUser->getRole();
+
+    if (role != ROLE_LIBRARIAN && role != "LIBRARIAN" && role != "librarian")
+        return false;
+
     ReviewManager.approveReview(reviewID);
-    return Database::updateReview(QString::fromStdString(reviewID),std::nullopt, std::nullopt, QString::fromStdString("approved"));  // delegate to service
+
+    return Database::updateReview(
+        QString::fromStdString(reviewID),
+        std::nullopt,
+        std::nullopt,
+        QString::fromStdString("approved")
+        );
 }
 
+bool LibrarySystem::deleteReview(const string& reviewID){
+    if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
+        return false;
+    ReviewManager.deleteReview(reviewID);
+    return Database::deleteReview(QString::fromStdString(reviewID));
+
+}
 bool LibrarySystem::submitReview(const string& studentID ,const string& isbn, int rating, const string& comment) {
-    if (!currentUser || currentUser->getRole() != ROLE_STUDENT)
+    if (!currentUser){
+        return false;
+    }
+
+    string role = currentUser->getRole();
+qDebug()<<role;
+    if (role != ROLE_STUDENT )
         return false;
     // qDebug()<<"id "<<Database::getMaxIdNumber("reviews", "reviewid", "RV")
+    qDebug()<<"here";
     string rid = generateId("RV",Database::getMaxIdNumber("reviews", "reviewid", "RV"));
     string sid = currentUser->getUserID();
-    Review r(rid, sid, isbn, rating, comment,"pending", getDate().toStdString());
-    qDebug() <<Reviewlog::reviewcount;
-    Database::addReview(QString::fromStdString(rid),QString::fromStdString(sid), QString::fromStdString(isbn), rating, QString::fromStdString(comment),QString::fromStdString("pending"));
-    return ReviewManager.addReview(r);
+    string uname = currentUser->getName();
+    Book* b = BooksManager.findByIsbn(isbn);
+    string bname = (b ? b->getTitle() : "");
+    Review r(rid, sid, uname, isbn, bname, rating, comment,"pending", getDate().toStdString());
+    r.display();
+
+    if(ReviewManager.addReview(r)) return  Database::addReview(QString::fromStdString(rid),QString::fromStdString(sid), QString::fromStdString(uname), QString::fromStdString(isbn), QString::fromStdString(bname), rating, QString::fromStdString(comment),QString::fromStdString("pending"));
+    else{
+
+        return false;
+    }
 }
 
 // -------------------> User <---------------------------

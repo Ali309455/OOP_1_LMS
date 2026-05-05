@@ -59,6 +59,7 @@ public:
     // ========== Review System ==========
     bool submitReview(const std::string& studentId, const std::string& isbn, int rating, const std::string& comment);
     bool approveReview(const std::string& reviewId);
+    bool deleteReview(const std::string& reviewID);
 
     // ========== Utility ==========
     std::vector<Book> getAllBooks() const;
