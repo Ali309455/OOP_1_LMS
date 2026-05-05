@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import LMS
 
 // LoginPage.qml — Full 1024x800 screen
 Rectangle {
@@ -11,7 +12,7 @@ Rectangle {
 
     signal loginRequested(string email, string password)
     signal signupRequested()
-
+    signal userLoggedIn(var userDetails)
     // ── Validation / feedback ──────────────────────────────────────────────
     property string errorMsg: ""
     signal islibrarian(bool a)
@@ -20,12 +21,25 @@ Rectangle {
         var email = emailInput.text.trim()
         var pass  = passwordInput.text
 
-        // if (email === "") { errorMsg = "Please enter your email or User ID."; return }
-        if (pass  === "") { errorMsg = "Please enter your password.";          return }
-        if (email === "admin@lib.com") { loginPage.islibrarian(true); return }
-        else {loginPage.islibrarian(false)}
+        if (pass  === "") { errorMsg = "Please enter your password."; return }
+
         errorMsg = ""
-        loginPage.loginRequested(email, pass)
+
+        // Call bridge function directly, assuming 'lms' is accessible from QML
+        var result = lms.login(email, pass)
+        if (result.success) {
+            // Successful login: store or propagate user info as needed
+            // For demo, print user info
+            loginPage.userLoggedIn(result);
+            if(result.role === "LIBRARIAN")islibrarian(true);
+            if(result.role === "STUDENT")islibrarian(false);
+            console.log("Login success!", JSON.stringify(result))
+            // Example: store user info in a singleton, navigate, emit signal, etc.
+            // e.g. appGlobals.currentUser = result;
+            // parent.gotoDashboard(result);
+        } else {
+            errorMsg = result.message || "Login failed"
+        }
     }
 
     // ── Centered form column ───────────────────────────────────────────────

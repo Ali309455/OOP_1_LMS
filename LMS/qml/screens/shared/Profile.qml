@@ -1,11 +1,13 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-
+import LMS
 // ProfileSettings.qml
 Rectangle {
     id: profileView
     color: "#0f1117"
+    // Add at the top:
+    property var currentUser: null
 
     // ── Role ───────────────────────────────────────────────────────────────
     property string userRole: "user"   // "librarian" or "user"
@@ -14,7 +16,7 @@ Rectangle {
     property string fullName:  "John Doe"
     property string userEmail: "user@example.com"
     property string role:      userRole === "librarian" ? "Librarian" : "Student"
-
+    property string storedPassword: ""
     // ── Stats ──────────────────────────────────────────────────────────────
     property int booksBorrowed:  47
     property int reviewsWritten: 12
@@ -25,7 +27,19 @@ Rectangle {
     property bool   profileSuccess: false
     property string passwordMsg:    ""
     property bool   passwordSuccess: false
-
+    Component.onCompleted: {
+        if (currentUser) {
+            profileView.fullName   = currentUser.name
+            profileView.userEmail  = currentUser.email
+            profileView.role       = currentUser.role === "LIBRARIAN" ? "Librarian" : "Student"
+            profileView.userRole   = currentUser.role === "LIBRARIAN" ? "librarian" : "user"
+            profileView.storedPassword = currentUser.password
+            // If you have these stats:
+            // profileView.booksBorrowed  = currentUser.booksBorrowed
+            // profileView.reviewsWritten = currentUser.reviewsWritten
+            // profileView.memberSince    = currentUser.memberSince
+        }
+    }
     Timer { id: profileFeedbackTimer;  interval: 3000; onTriggered: profileMsg  = "" }
     Timer { id: passwordFeedbackTimer; interval: 3000; onTriggered: passwordMsg = "" }
 
@@ -47,15 +61,33 @@ Rectangle {
         var e = emailInput.text.trim()
         if (n === "")          { profileMsg = "Full name cannot be empty.";          profileSuccess = false; return }
         if (!isValidEmail(e))  { profileMsg = "Please enter a valid email address."; profileSuccess = false; return }
-        profileView.fullName  = n
-        profileView.userEmail = e
-        profileMsg = "Profile updated successfully."
-        profileSuccess = true
-        profileFeedbackTimer.restart()
+
+        // Call your backend updateUser (assuming currentUser keeps their id, membership, role, status)
+        var ok = lms.updateUser(
+            currentUser.userId, // id
+            n,                  // name
+            e,                  // email
+            "",                 // keep password (empty means no change)
+            currentUser.membership || "-", // or something like "Silver" or "N/A"
+            currentUser.role,   // role ("STUDENT" or "LIBRARIAN")
+            currentUser.status  // status ("active" etc)
+        );
+
+        if (ok) {
+            profileMsg = "Profile updated successfully."
+            profileSuccess = true
+            fullName = n
+            userEmail = e
+            profileFeedbackTimer.restart()
+        } else {
+            profileMsg = "Profile update failed."
+            profileSuccess = false
+            profileFeedbackTimer.restart()
+        }
     }
 
     // ── Change password ────────────────────────────────────────────────────
-    property string storedPassword: "password123"
+
 
     function changePassword() {
         var cur  = currentPwInput.text
@@ -66,11 +98,29 @@ Rectangle {
         if (nw.length < 8)         { passwordMsg = "New password must be at least 8 characters.";  passwordSuccess = false; return }
         if (nw === cur)            { passwordMsg = "New password must differ from current.";        passwordSuccess = false; return }
         if (nw !== conf)           { passwordMsg = "Passwords do not match.";                       passwordSuccess = false; return }
-        storedPassword = nw
-        currentPwInput.text = ""; newPwInput.text = ""; confirmPwInput.text = ""
-        passwordMsg = "Password updated successfully."
-        passwordSuccess = true
-        passwordFeedbackTimer.restart()
+        var ok = lms.updateUser(
+            currentUser.userId, // id
+            currentUser.name,                  // name
+            currentUser.email,                  // email
+            nw,                 // keep password (empty means no change)
+            currentUser.membership || "-", // or something like "Silver" or "N/A"
+            currentUser.role,   // role ("STUDENT" or "LIBRARIAN")
+            currentUser.status  // status ("active" etc)
+        );
+
+        if (ok) {
+            storedPassword = nw
+            currentPwInput.text = ""; newPwInput.text = ""; confirmPwInput.text = ""
+            passwordMsg = "Password updated successfully."
+            passwordSuccess = true
+            passwordFeedbackTimer.restart()
+        } else {
+            currentPwInput.text = ""; newPwInput.text = ""; confirmPwInput.text = ""
+            passwordMsg = "Failed changing password."
+            passwordSuccess = false
+            passwordFeedbackTimer.restart()
+        }
+
     }
 
     // ══════════════════════════════════════════════════════════════════════

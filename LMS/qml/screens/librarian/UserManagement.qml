@@ -12,11 +12,11 @@ Rectangle {
     ListModel {
         id: usersModel
 
-        ListElement { userId: "S001"; name: "John Doe";    email: "john@example.com";  role: "STUDENT";   membership: "Gold";     status: "active"   }
-        ListElement { userId: "S002"; name: "Jane Smith";  email: "jane@example.com";  role: "STUDENT";   membership: "Platinum"; status: "active"   }
-        ListElement { userId: "S003"; name: "Bob Johnson"; email: "bob@example.com";   role: "STUDETN";   membership: "Gold";     status: "active"   }
-        ListElement { userId: "S004"; name: "Alice Brown"; email: "alice@example.com"; role: "STUDENT";   membership: "Silver";   status: "active"   }
-        ListElement { userId: "L001"; name: "Admin User";  email: "admin@lib.com";     role: "LIBRARIAN"; membership: "-";        status: "active"   }
+        // ListElement { userId: "S001"; name: "John Doe";    email: "john@example.com";  role: "STUDENT";   membership: "Gold";     status: "active"   }
+        // ListElement { userId: "S002"; name: "Jane Smith";  email: "jane@example.com";  role: "STUDENT";   membership: "Platinum"; status: "active"   }
+        // ListElement { userId: "S003"; name: "Bob Johnson"; email: "bob@example.com";   role: "STUDETN";   membership: "Gold";     status: "active"   }
+        // ListElement { userId: "S004"; name: "Alice Brown"; email: "alice@example.com"; role: "STUDENT";   membership: "Silver";   status: "active"   }
+        // ListElement { userId: "L001"; name: "Admin User";  email: "admin@lib.com";     role: "LIBRARIAN"; membership: "-";        status: "active"   }
     }
 
     Component.onCompleted: {
@@ -99,6 +99,7 @@ Rectangle {
     property string editName: ""
     property string editEmail: ""
     property string editRole: ""
+    property string editPassword: ""
     property string editMembership: ""
     property string editStatus: ""
 
@@ -135,17 +136,19 @@ Rectangle {
             formMembership,
             formRole
         )
-        console.log(result);
+        console.log(result.success);
         if (result) {
 
             usersModel.append({
-                        userId: generateId(formRole),
+                        userId: result.userId,
                         name: formName,
                         email: formEmail,
                         role: formRole,
                         membership: formRole === "Librarian" ? "-" : formMembership,
                         status: formStatus
                     });
+
+
             // Optionally reload your users model from backend
             // usersModel = lms.getUsers()   // Replace or refresh with a call to your bridge
             // syncUsersModel() ;
@@ -154,31 +157,36 @@ Rectangle {
             statsRefresh.restart()
         } else {
             // Show error message to user
-            console.log("Failed to register user")
+            console.log(result.message);
             // Optionally, display error (e.g. a dialog or toast)
         }
     }
 
     // ── Save edit ──────────────────────────────────────────────────────────
     function saveEdit() {
+        // lms.login("admin@lib.com","admin");
         if (editingIndex < 0 || !editName || !editEmail) return
         let user = usersModel.get(editingIndex);
         let userRole = user.role;
-        if(lms.updateUser(
-                    editName,
-                    editEmail,
-                    editPassword,
-                    editStatus,
-                    editMembership,
-                    role
-                )){
+        console.log(user.userId,editName, editEmail, editPassword,editMembership,editRole,editStatus);
+        let ok = lms.updateUser(
+            user.userId,
+            editName,
+            editEmail,
+            editPassword,
+            editMembership,
+            editRole,
+            editStatus
+        )
+
+        console.log("Update result:", ok)
         usersModel.setProperty(editingIndex, "name", editName)
         usersModel.setProperty(editingIndex, "email", editEmail)
         usersModel.setProperty(editingIndex, "role", editRole)
         usersModel.setProperty(editingIndex, "membership", editRole === "LIBRARIAN" ? "-" : editMembership)
         usersModel.setProperty(editingIndex, "status", editStatus)
         showEditDialog = false
-        }
+
 
         statsRefresh.restart()
     }
@@ -383,8 +391,8 @@ Rectangle {
                     Menu {
                         id: roleMenu
                         MenuItem { text: "All Roles";  onTriggered: usersView.filterRole = text }
-                        MenuItem { text: "Student";    onTriggered: usersView.filterRole = text }
-                        MenuItem { text: "Librarian";  onTriggered: usersView.filterRole = text }
+                        MenuItem { text: "STUDENT";    onTriggered: usersView.filterRole = text }
+                        MenuItem { text: "LIBRARIAN";  onTriggered: usersView.filterRole = text }
                     }
                 }
 
@@ -992,7 +1000,76 @@ Rectangle {
                     }
                 }
             }
+            ColumnLayout {
+                spacing: 8
+                Layout.fillWidth: true
 
+                Text {
+                    text: "New Password"
+                    color: "#e5e7eb"
+                    font.pixelSize: 12
+                    font.bold: true
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 40
+                    radius: 8
+                    color: "#0f1117"
+                    border.color: editPassInput.activeFocus ? "#3b82f6" : "#2d3748"
+                    border.width: 1
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
+
+                        TextInput {
+                            id: editPassInput
+                            Layout.fillWidth: true
+                            color: "#e5e7eb"
+                            font.pixelSize: 13
+                            clip: true
+                            selectByMouse: true
+                            verticalAlignment: TextInput.AlignVCenter
+                            echoMode: TextInput.Password
+
+                            text: usersView.editPassword
+                            onTextChanged: usersView.editPassword = text
+                        }
+
+                        // 👁 toggle visibility
+                        Rectangle {
+                            width: 24; height: 24
+                            radius: 4
+                            color: "transparent"
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: editPassInput.echoMode === TextInput.Password ? "👁" : "🙈"
+                                font.pixelSize: 12
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    editPassInput.echoMode =
+                                        editPassInput.echoMode === TextInput.Password
+                                        ? TextInput.Normal
+                                        : TextInput.Password
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    text: "Leave blank to keep current password"
+                    color: "#6b7280"
+                    font.pixelSize: 11
+                }
+            }
             RowLayout { spacing: 14; Layout.fillWidth: true
                 ColumnLayout { spacing: 8; Layout.fillWidth: true
                     Text { text: "Role"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
@@ -1006,8 +1083,8 @@ Rectangle {
                         MouseArea { anchors.fill: parent; onClicked: editRoleMenu.open() }
                         Menu {
                             id: editRoleMenu
-                            MenuItem { text: "Student";   onTriggered: { usersView.editRole = text } }
-                            MenuItem { text: "Librarian"; onTriggered: { usersView.editRole = text; usersView.editMembership = "-" } }
+                            MenuItem { text: "STUDENT";   onTriggered: { usersView.editRole = text } }
+                            MenuItem { text: "LIBRARIAN"; onTriggered: { usersView.editRole = text; usersView.editMembership = "-" } }
                         }
                     }
                 }

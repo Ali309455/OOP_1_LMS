@@ -34,7 +34,7 @@ public:
     void loadReviewsIntoSystem();
     void loadWalletsIntoSystem();
     // ========== Authentication ===========
-    bool login(const std::string& email, const std::string& password);
+    QVariantMap login(const std::string& email, const std::string& password);
     void logout();
     std::string generateId(const std::string& prefix, int maxIDfromDB);
     // ========== User Management ==========

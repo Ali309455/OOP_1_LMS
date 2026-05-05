@@ -26,7 +26,8 @@ Window {
         property string currentRoute: "dashboard" // default screen
         property string authPage: "login"   // "login" or "signup"
         property bool islibrarian:true
-        property bool isLoggedIn: true
+        property bool isLoggedIn: false
+        property var currentUser;
         ColumnLayout {
             anchors.fill: parent
             spacing: 0
@@ -115,6 +116,10 @@ Window {
                 onSignupRequested: {
                        container.authPage = "signup"
                    }
+                onUserLoggedIn: function(userdetails){
+                    container.currentUser = userdetails;
+                    console.log(container.currentUser.name);
+                }
             }
 
             Signup {
@@ -156,6 +161,7 @@ Window {
                     Layout.margins: 10
                     Layout.fillWidth: true
                     islibrarian: container.islibrarian
+                    currentUser: container.currentUser
                     route: container.currentRoute
                     onRouteChangeRequested: function(newRoute) {
                                             container.currentRoute = newRoute

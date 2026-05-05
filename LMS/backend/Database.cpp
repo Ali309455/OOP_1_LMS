@@ -216,7 +216,7 @@ QVariantList Database::getUsers()
         user["password"] = query.value("password");
         user["membership"] = query.value("membership");
         user["role"] = query.value("role");
-
+        user["status"] = query.value("status");
         users.append(user);
     }
 
@@ -312,13 +312,13 @@ bool Database::updateUser(QString id, QString name, QString email, QString passw
 {
     QSqlQuery query;
 
-    query.prepare("UPDATE users SET name=?, email=?, password=?, membership=?,status=?, role=?,  WHERE id=?");
+    query.prepare("UPDATE users SET name=?, email=?, password=?, membership=?, status=?, role=? WHERE id=?");
 
     query.addBindValue(name);
     query.addBindValue(email);
     query.addBindValue(password);
-    query.addBindValue(status);
     query.addBindValue(membership);
+    query.addBindValue(status);
     query.addBindValue(role);
     query.addBindValue(id);
 

@@ -11,6 +11,7 @@ Item {
     signal routeChangeRequested(string newRoute)
     property bool islibrarian: false
     property var selectedBook : null
+    property var currentUser: null
     ColumnLayout{
         anchors.fill: parent
         spacing: 0
@@ -54,7 +55,7 @@ Item {
         Component { id: reviewsComp; Reviews {userRole: centralbox.islibrarian?"librarian":"user" }}
         Component { id: membershipComp; Membership {} }
         Component { id: usersComp; UserManagement {} }
-        Component { id: settingsComp; Profile {userRole: centralbox.islibrarian?"librarian":"user" } }
+        Component { id: settingsComp; Profile { currentUser: centralbox.currentUser} }
         Component { id: transactionComp; Transactions {isLibrarian: centralbox.islibrarian} }
         Component { id: librariandashboardComp;  LibrarianDashboard {} }
         Component { id: studentdashboardComp;  StudentDashboard {} }

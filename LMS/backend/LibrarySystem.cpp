@@ -15,7 +15,7 @@ QString getDate(int addDays = 0)
 
 LibrarySystem::LibrarySystem()
 {
-    initializeSystem();
+    // initializeSystem();
 }
 string LibrarySystem::generateId(const std::string& prefix, int maxIdFromDB) {
     return prefix + "-" + std::to_string(maxIdFromDB + 1);
@@ -45,7 +45,7 @@ void LibrarySystem::loadUsersIntoSystem()
 
             Person* person = nullptr;
 
-            if (role == "user" || role == "STUDENT") {
+            if ( role == ROLE_STUDENT) {
                 if (membership.empty()) {
                     throw std::invalid_argument("Membership field is empty for student: " + name);
                 }
@@ -111,7 +111,7 @@ void LibrarySystem::loadBooksIntoSystem()
                       // qDebug()<< publicationYear<<","<<pages<<","<<totalCopies<<","<<avaliableCopies;
                       throw std::runtime_error("Numeric fields must contain valid positive values.");
                   }
-                  qDebug() <<avaliableCopies;
+                  // qDebug() <<avaliableCopies;
                   // Create Book object
                   Book book(isbn, title, author, category, section,
                             publisher, edition, language,
@@ -260,17 +260,42 @@ void LibrarySystem::initializeSystem(){
 
 // -------------------> Auht <---------------------------
 
-bool LibrarySystem::login(const std::string& email, const std::string& password) {
+#include <QVariantMap>
 
+QVariantMap LibrarySystem::login(const std::string& email, const std::string& password) {
+    QVariantMap result;
     try {
         currentUser = authManager.login(email, password);
-        std::cout << "[Login] Welcome, " << (currentUser ? currentUser->getName() : "Unknown") << "\n";
-        return currentUser != nullptr;
+        if (!currentUser) {
+            result["success"] = false;
+            result["message"] = "Invalid email or password";
+            return result;
+        }
+
+        // Common fields for all
+        result["success"]    = true;
+        result["userId"]     = QString::fromStdString(currentUser->getUserID());
+        result["name"]       = QString::fromStdString(currentUser->getName());
+        result["email"]      = QString::fromStdString(currentUser->getEmail());
+        result["role"]       = QString::fromStdString(currentUser->getRole());
+        result["password"]       = QString::fromStdString(currentUser->getPassword());
+        // Dynamic fields for students
+        const Student* student = dynamic_cast<const Student*>(currentUser);
+        if (student) {
+            result["membership"] = QString::fromStdString(student->getMembershipTier());
+            result["status"] = QString::fromStdString(student->getStatus());
+        } else {
+            // For librarians, status/membership might be "N/A" or something meaningful
+            result["membership"] = "N/A";
+            result["status"] = "N/A";
+        }
+
+        return result;
 
     } catch (const std::exception& ex) {
-        std::cout << "[Login Failed] " << ex.what() << "\n";
-        currentUser = nullptr;
-        return false;
+        result["success"] = false;
+        result["message"] = ex.what();
+        return result;
     }
 }
 
@@ -447,16 +472,79 @@ RegistrationResult LibrarySystem::registerLibrarian(const string& name, const st
 
     return result;
 }
+RegistrationResult LibrarySystem::registerUser(const string& name, const string& email, const string& pwd, const string& status, const string& membership, const string& role)
+{
+    // 1. Authorization Check
+    // Ensure only an authorized librarian can perform registration
+    if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN) {
+        return { false, "", "Unauthorized: Only librarians can register new users." };
+    }
 
+    // 2. Basic Validation
+    if (name.empty() || email.empty() || pwd.empty() || role.empty()) {
+        return { false, "", "Registration failed: Missing required fields." };
+    }
+
+    // 3. Routing based on Role
+    // This calls your specific logic for Student or Librarian
+    if (role == ROLE_STUDENT) {
+        return registerStudent(name, email, pwd, status, membership, role);
+    }
+    else if (role == ROLE_LIBRARIAN) {
+        return registerLibrarian(name, email, pwd, role);
+    }
+    else {
+        // Handle unexpected roles
+        return { false, "", "Registration failed: Unknown role '" + role + "'." };
+    }
+}
 bool LibrarySystem::removeUser(const string& id){
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
     return Database::deleteUser(QString::fromStdString(id));
 };
 
-bool LibrarySystem::updateStudent(const string& id, const string& name, const string& email, const string& pwd,const string& status ,const string& membership, const string& role){
-    authManager.updateUser( id, name,  email, pwd, status);
-    return Database::updateUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString(status),QString::fromStdString(membership),QString::fromStdString(role));
+bool LibrarySystem::updateStudent(
+    const string& id,
+    const string& name,
+    const string& email,
+    const string& pwd,
+    const string& status,
+    const string& membership,
+    const string& role)
+{
+    Person* p = authManager.findById(id);
+    if (!p){ return false;}
+
+    // 🟢 CASE 2: Student
+        Student* s = dynamic_cast<Student*>(p);
+        if (!s){ return false;}
+
+        string currentMembership = s->getMembershipTier();
+        string finalMembership = currentMembership;
+
+        // ✅ Only upgrade if different
+        if (membership != currentMembership) {
+            authManager.upgrademembership(membership, id);
+            finalMembership = membership;
+        }
+
+        // ✅ Update basic details
+        authManager.updateUser(id, name, email, pwd, status);
+
+        return Database::updateUser(
+            QString::fromStdString(id),
+            QString::fromStdString(name),
+            QString::fromStdString(email),
+            QString::fromStdString(pwd),
+            QString::fromStdString(finalMembership),
+            QString::fromStdString(role),
+            QString::fromStdString(status)
+            );
+
+
+    // ❌ Unknown role
+    return false;
 }
 bool LibrarySystem::updateLibrarian( const string& id, const string& name, const string& email, const string& pwd, const string& role){
 
@@ -465,24 +553,31 @@ bool LibrarySystem::updateLibrarian( const string& id, const string& name, const
 
     return Database::updateUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString("none"),QString::fromStdString(role));
 }
-bool LibrarySystem::updateUser(const string& id, const string& name,const string& email,const string& pwd, const string& membership,const string& role,const string& status)
+bool LibrarySystem::updateUser( const string& id, const string& name, const string& email, const string& pwd,  const string& membership, const string& role,const string& status)
 {
-    // Only librarian can register users
-    if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
-        return false;
 
     // Basic validation
-    if (name.empty() || email.empty() || pwd.empty() || role.empty()) {
+    if (id.empty() ||name.empty() || email.empty()  || role.empty()) {
         qDebug() << "Invalid input for user registration";
         return false;
     }
+    string password = pwd;
+    qDebug()<<password;
+    if (password.empty()){
+        Person* p = authManager.findById(id);
+        if(p){
+            password = p->getPassword();
+        }
+        else{qDebug() << "password fetching failed";}
+    }
+
 
     // Decide based on role
-    if (role == "STUDENT" || role == "user") {
-        return updateStudent(id,name, email, pwd, membership, role, status);
+    if (role == ROLE_STUDENT ) {
+        return updateStudent(id,name, email, password,  status , membership, role);
     }
     else if (role == ROLE_LIBRARIAN) {
-        return updateLibrarian(id,name, email, pwd, role);
+        return updateLibrarian(id,name, email, password, role);
     }
     else {
         qDebug() << "Unknown user:" << QString::fromStdString(role);

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     sys.initializeSystem();
     qDebug()<< sys.login("admin@lib.com","admin");
     // sys.login("ali@gmail.com","123");
-    // sys.registerUser("dkj","dkj@gmail,com","123","active","gold","STUDENT");
+    qDebug()<< sys.updateUser("SU-6","dkj2","dkj@gmail,com","123","Gold","STUDENT","active");
     // sys.removeUser("SU-2");
     // sys.updateUser("LIB-5","ali", "ai@gmail.com", "mai", "gold", "LIBRARIAN");
     // sys.upgradeStudentMembership("cs-001","silver");
@@ -55,12 +55,13 @@ int main(int argc, char *argv[])
     // sys.approveReview("RV2");
      // qDebug() << sys.issueBook("978-2","SU-1");
     // qDebug() << sys.returnBook("TX-2");
-    sys.displayAllData();
+    // sys.displayAllData();
 
 
     // Database::addTransaction("TX1", "cs-001", "978-1", "issued","2/05/26", 0);
     // Database::addReview("RV2", "cs-001", "978-2", 5, "Great Book", "pending");
     // Database::addWallet( "cs-001", 100, 0);
+    // qDebug()<<Database::updateUser("SU-6","dkj2","dkj@gmail.com","sadws","Silver","STUDENT","active");
     if (fontId != -1) {
         QStringList families = QFontDatabase::applicationFontFamilies(fontId);
         if (!families.isEmpty()) {

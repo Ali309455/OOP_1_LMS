@@ -14,14 +14,14 @@ public:
     explicit LibrarySystemBridge(QObject *parent = nullptr);
 
     // -------------------- Authentication ---------------------
-    Q_INVOKABLE bool login(const QString& email, const QString& password);
+    Q_INVOKABLE QVariantMap login(const QString& email, const QString& password);
     Q_INVOKABLE void logout();
 
     // -------------------- User Management --------------------
     Q_INVOKABLE RegistrationResult registerStudent(const QString& name, const QString& email, const QString& pwd,const QString& status, const QString& membership, const QString& role);
     Q_INVOKABLE RegistrationResult registerLibrarian(const QString& name, const QString& email, const QString& pwd, const QString& role);
-    Q_INVOKABLE RegistrationResult registerUser(const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role);
-    Q_INVOKABLE bool updateUser(const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role);
+    Q_INVOKABLE QVariantMap registerUser(const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role);
+    Q_INVOKABLE bool updateUser(const QString& id,const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role);
     Q_INVOKABLE bool removeUser(const QString& id);
 
     // -------------------- Book Management --------------------

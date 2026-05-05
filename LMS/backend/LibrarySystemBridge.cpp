@@ -7,7 +7,7 @@ LibrarySystemBridge::LibrarySystemBridge(QObject *parent)
     m_system.initializeSystem();
 }
 
-bool LibrarySystemBridge::login(const QString &email, const QString &password)
+QVariantMap LibrarySystemBridge::login(const QString& email, const QString& password)
 {
     return m_system.login(email.toStdString(), password.toStdString());
 }
@@ -24,29 +24,28 @@ RegistrationResult LibrarySystemBridge::registerLibrarian(const QString &name, c
 {
     return m_system.registerLibrarian(name.toStdString(), email.toStdString(), pwd.toStdString(), role.toStdString());
 }
-RegistrationResult LibrarySystemBridge::registerUser(const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role)
+QVariantMap LibrarySystemBridge::registerUser(const QString& name, const QString& email, const QString& pwd,  const QString& status, const QString& membership, const QString& role)
 {
-    // Bridge the QStrings to std::string for your core C++ controller:
-    qDebug() << name << email<< pwd<< status<<membership<<role;
-    return m_system.registerUser(
-        name.toStdString(),
-        email.toStdString(),
-        pwd.toStdString(),
-        status.toStdString(),
-        membership.toStdString(),
-        role.toStdString()
-        );
-    // return m_system.registerUser("dkj","dkj@gmail,com","123","active","gold","STUDENT");
+    auto result = m_system.registerUser(name.toStdString(), email.toStdString(),
+                                        pwd.toStdString(), status.toStdString(),
+                                        membership.toStdString(), role.toStdString());
 
+    QVariantMap map;
+    map["success"] = result.success;
+    map["userId"] = QString::fromStdString(result.userId);
+    map["message"] = QString::fromStdString(result.message);
+
+    return map;
 }
 
 bool LibrarySystemBridge::removeUser(const QString &id){
     return m_system.removeUser(id.toStdString());
 }
 
-bool LibrarySystemBridge::updateUser(const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role){
+bool LibrarySystemBridge::updateUser(const QString& id,const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role){
     // if(m_system.upgradeStudentMembership(s))
     return m_system.updateUser(
+        id.toStdString(),
         name.toStdString(),
         email.toStdString(),
         pwd.toStdString(),
