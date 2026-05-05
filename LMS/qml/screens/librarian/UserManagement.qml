@@ -24,7 +24,7 @@ Rectangle {
     }
 
     function syncUsersModel() {
-        // usersModel.clear();
+        usersModel.clear();
 
         console.log("--- Starting Sync. Total items in UsersList: " + usersList.length + " ---");
 
@@ -90,9 +90,10 @@ Rectangle {
     // ── Add form state ─────────────────────────────────────────────────────
     property string formName: ""
     property string formEmail: ""
-    property string formRole: "Student"
+    property string formRole: "STUDENT"
     property string formMembership: "Silver"
     property string formStatus: "active"
+    property string formPassword: ""
 
     // ── Edit form state ────────────────────────────────────────────────────
     property string editName: ""
@@ -123,43 +124,89 @@ Rectangle {
 
     // ── Add user ───────────────────────────────────────────────────────────
     function addUser() {
-        if (!formName || !formEmail) return
-        usersModel.append({
-            userId: generateId(formRole),
-            name: formName,
-            email: formEmail,
-            role: formRole,
-            membership: formRole === "Librarian" ? "-" : formMembership,
-            status: formStatus
-        })
-        resetForm()
-        showAddDialog = false
-        statsRefresh.restart()
+        if (!formName || !formEmail || !formPassword || !formRole) return
+
+        lms.login("admin@lib.com","admin");
+        let result = lms.registerUser(
+            formName,
+            formEmail,
+            formPassword,
+            formStatus,
+            formMembership,
+            formRole
+        )
+        console.log(result);
+        if (result) {
+
+            usersModel.append({
+                        userId: generateId(formRole),
+                        name: formName,
+                        email: formEmail,
+                        role: formRole,
+                        membership: formRole === "Librarian" ? "-" : formMembership,
+                        status: formStatus
+                    });
+            // Optionally reload your users model from backend
+            // usersModel = lms.getUsers()   // Replace or refresh with a call to your bridge
+            // syncUsersModel() ;
+            resetForm()
+            showAddDialog = false
+            statsRefresh.restart()
+        } else {
+            // Show error message to user
+            console.log("Failed to register user")
+            // Optionally, display error (e.g. a dialog or toast)
+        }
     }
 
     // ── Save edit ──────────────────────────────────────────────────────────
     function saveEdit() {
         if (editingIndex < 0 || !editName || !editEmail) return
+        let user = usersModel.get(editingIndex);
+        let userRole = user.role;
+        if(lms.updateUser(
+                    editName,
+                    editEmail,
+                    editPassword,
+                    editStatus,
+                    editMembership,
+                    role
+                )){
         usersModel.setProperty(editingIndex, "name", editName)
         usersModel.setProperty(editingIndex, "email", editEmail)
         usersModel.setProperty(editingIndex, "role", editRole)
-        usersModel.setProperty(editingIndex, "membership", editRole === "Librarian" ? "-" : editMembership)
+        usersModel.setProperty(editingIndex, "membership", editRole === "LIBRARIAN" ? "-" : editMembership)
         usersModel.setProperty(editingIndex, "status", editStatus)
         showEditDialog = false
+        }
+
         statsRefresh.restart()
     }
 
     // ── Delete user ────────────────────────────────────────────────────────
     function deleteUser() {
-        if (deletingIndex < 0) return
-        usersModel.remove(deletingIndex, 1)
+        if (deletingIndex < 0 || deletingIndex >= usersModel.count)
+            return
+
+        var user = usersModel.get(deletingIndex)
+        var userId = user.userId   // ✅ get ID BEFORE removing
+
+        console.log("Deleting ID:", userId)
+        lms.login("admin@lib.com","admin");
+        if (lms.removeUser(userId)) {
+            usersModel.remove(deletingIndex, 1)
+        } else {
+            console.log("Failed to delete from DB")
+        }
+
         showDeleteDialog = false
         statsRefresh.restart()
     }
 
     function resetForm() {
-        formName = ""; formEmail = ""; formRole = "Student"
+        formName = ""; formEmail = ""; formRole = "STUDENT"
         formMembership = "Silver"; formStatus = "active"
+        formPassword = "";
     }
 
     function openEdit(idx) {
@@ -575,7 +622,7 @@ Rectangle {
                                             anchors.fill: parent
                                             hoverEnabled: true
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: { usersView.deletingIndex = index; usersView.showDeleteDialog = true }
+                                            onClicked: { usersView.deletingIndex = index; usersView.showDeleteDialog = true ; }
                                         }
                                     }
                                 }
@@ -779,7 +826,23 @@ Rectangle {
                     }
                 }
             }
-
+            ColumnLayout {
+                spacing: 8; Layout.fillWidth: true
+                Text { text: "Password"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+                Rectangle {
+                    Layout.fillWidth: true; height: 40; radius: 8
+                    color: "#0f1117"; border.color: addPassInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
+                    TextInput {
+                        id: addPassInput
+                        anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                        color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true
+                        verticalAlignment: TextInput.AlignVCenter
+                        echoMode: TextInput.Password
+                        onTextChanged: usersView.formPassword = text
+                        Text { visible: !parent.text; text: "Enter password"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                    }
+                }
+            }
             // Role + Membership row
             RowLayout { spacing: 14; Layout.fillWidth: true
                 ColumnLayout { spacing: 8; Layout.fillWidth: true
@@ -794,8 +857,8 @@ Rectangle {
                         MouseArea { anchors.fill: parent; onClicked: addRoleMenu.open() }
                         Menu {
                             id: addRoleMenu
-                            MenuItem { text: "Student";   onTriggered: { usersView.formRole = text; if (text === "Librarian") usersView.formMembership = "-" } }
-                            MenuItem { text: "Librarian"; onTriggered: { usersView.formRole = text; usersView.formMembership = "-" } }
+                            MenuItem { text: "STUDENT";   onTriggered: { usersView.formRole = text; if (text === "LIBRARIAN") usersView.formMembership = "-" } }
+                            MenuItem { text: "LIBRARIAN"; onTriggered: { usersView.formRole = text; usersView.formMembership = "-" } }
                         }
                     }
                 }
@@ -804,18 +867,18 @@ Rectangle {
                     Text { text: "Membership"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
                     Rectangle {
                         Layout.fillWidth: true; height: 40; radius: 8
-                        enabled: usersView.formRole === "Student"
-                        opacity: usersView.formRole === "Student" ? 1.0 : 0.4
+                        enabled: usersView.formRole === "STUDENT"
+                        opacity: usersView.formRole === "LIBRARIAN" ? 1.0 : 0.4
                         color: "#0f1117"; border.color: "#2d3748"; border.width: 1
                         RowLayout { anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                            Text { Layout.fillWidth: true; text: usersView.formRole === "Librarian" ? "-" : usersView.formMembership; color: "#e5e7eb"; font.pixelSize: 13 }
+                            Text { Layout.fillWidth: true; text: usersView.formRole === "LIBRARIAN" ? "-" : usersView.formMembership; color: "#e5e7eb"; font.pixelSize: 13 }
                             Text { text: "▼"; color: "#9ca3af"; font.pixelSize: 9 }
                         }
-                        MouseArea { anchors.fill: parent; onClicked: if (usersView.formRole === "Student") addMshipMenu.open() }
+                        MouseArea { anchors.fill: parent; onClicked: if (usersView.formRole === "STUDENT") addMshipMenu.open() }
                         Menu {
                             id: addMshipMenu
-                            MenuItem { text: "Silver";   onTriggered: usersView.formMembership = text }
-                            MenuItem { text: "Gold";     onTriggered: usersView.formMembership = text }
+                            MenuItem { text: "silver";   onTriggered: usersView.formMembership = text }
+                            MenuItem { text: "gold";     onTriggered: usersView.formMembership = text }
                             MenuItem { text: "Platinum"; onTriggered: usersView.formMembership = text }
                         }
                     }
@@ -849,7 +912,8 @@ Rectangle {
                 }
                 Rectangle {
                     Layout.fillWidth: true; height: 40; radius: 6
-                    color: (usersView.formName && usersView.formEmail) ? "#3b82f6" : "#374151"
+                    color: (usersView.formName && usersView.formEmail && usersView.formPassword) ? "#3b82f6" : "#374151"
+                    enabled: usersView.formName && usersView.formEmail && usersView.formPassword
                     Behavior on color { ColorAnimation { duration: 150 } }
                     Text { anchors.centerIn: parent; text: "Add User"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
                     MouseArea {

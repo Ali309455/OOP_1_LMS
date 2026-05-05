@@ -15,7 +15,7 @@ QString getDate(int addDays = 0)
 
 LibrarySystem::LibrarySystem()
 {
-
+    initializeSystem();
 }
 string LibrarySystem::generateId(const std::string& prefix, int maxIdFromDB) {
     return prefix + "-" + std::to_string(maxIdFromDB + 1);
@@ -381,51 +381,71 @@ bool LibrarySystem::submitReview(const string& studentID ,const string& isbn, in
 }
 
 // -------------------> User <---------------------------
-bool LibrarySystem::registerStudent( const string& name, const string& email, const string& pwd,const string& status, const string& membership, const string& role){
+RegistrationResult LibrarySystem::registerStudent(const string& name, const string& email, const string& pwd, const string& status, const string& membership, const string& role) {
 
-    Person* person = nullptr;
-    string id = generateId("SU",Database::getMaxIdNumber("users", "id", "SU"));
-        person = new Student(id, name, email, pwd,status ,membership);
+    RegistrationResult result;
+    result.success = false;
+    result.userId = "";
+    result.message = "";
 
-    if (person) {
-        authManager.registerPerson(person);
+    // 1. Generate the ID
+    string id = generateId("SU", Database::getMaxIdNumber("users", "id", "SU"));
+
+    // 2. Create the Student object (Heap allocation)
+    Student* student = new Student(id, name, email, pwd, status, membership);
+
+    // 3. Attempt to save to Database
+    // We assign the boolean return value to our struct's success member
+    result.success = Database::addUser(
+        QString::fromStdString(id),
+        QString::fromStdString(name),
+        QString::fromStdString(email),
+        QString::fromStdString(pwd),
+        QString::fromStdString(membership),
+        QString::fromStdString(role),
+        QString::fromStdString(status)
+        );
+
+    // 4. Handle logic based on the boolean result
+    if (result.success) {
+        // Success: Track in memory and provide ID to the result
+        authManager.registerPerson(student);
+        result.userId = id;
+        result.message = "Student registered successfully.";
+    } else {
+        // Failure: Cleanup the memory to prevent leaks
+        delete student;
+        result.message = "Database insertion failed.";
     }
-    return Database::addUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString(membership),QString::fromStdString(role),QString::fromStdString(status));
+
+    return result;
 }
-bool LibrarySystem::registerLibrarian( const string& name, const string& email, const string& pwd, const string& role){
+RegistrationResult LibrarySystem::registerLibrarian(const string& name, const string& email, const string& pwd, const string& role) {
+    RegistrationResult result = { false, "", "" };
 
-    Person* person = nullptr;
-    string id = generateId("LIB",Database::getMaxIdNumber("users", "id", "LIB"));
-    person = new Librarian(id, name, email, pwd, "none");
+    string id = generateId("LIB", Database::getMaxIdNumber("users", "id", "LIB"));
+    Librarian* librarian = new Librarian(id, name, email, pwd, "none");
 
-    if (person) {
-        authManager.registerPerson(person);
-    }
-    return Database::addUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString(""),QString::fromStdString("none"),QString::fromStdString(role));
-}
-bool LibrarySystem::registerUser(const string& name,const string& email,const string& pwd,const string& status,const string& membership,const string& role)
-{
-    // Only librarian can register users
-    if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
-        return false;
+    result.success = Database::addUser(
+        QString::fromStdString(id),
+        QString::fromStdString(name),
+        QString::fromStdString(email),
+        QString::fromStdString(pwd),
+        "",
+        QString::fromStdString(role),
+        ""
+        );
 
-    // Basic validation
-    if (name.empty() || email.empty() || pwd.empty() || role.empty()) {
-        qDebug() << "Invalid input for user registration";
-        return false;
+    if (result.success) {
+        authManager.registerPerson(librarian);
+        result.userId = id;
+        result.message = "Librarian registered successfully.";
+    } else {
+        delete librarian;
+        result.message = "Failed to save Librarian to database.";
     }
 
-    // Decide based on role
-    if (role == ROLE_STUDENT) {
-        return registerStudent(name, email, pwd, status,membership, role);
-    }
-    else if (role == ROLE_LIBRARIAN) {
-        return registerLibrarian(name, email, pwd, role);
-    }
-    else {
-        qDebug() << "Unknown role:" << QString::fromStdString(role);
-        return false;
-    }
+    return result;
 }
 
 bool LibrarySystem::removeUser(const string& id){

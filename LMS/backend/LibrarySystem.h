@@ -5,6 +5,11 @@
 #include "BookMembership.h"
 #include "transactionreview.h"
 // Forward declarations if necessary
+struct RegistrationResult {
+    bool success;
+    std::string userId;
+    std::string message; // Optional: To explain why it failed
+};
 class LibrarySystem {
     AuthManager authManager;
     transactionlog TransactionManager;
@@ -33,9 +38,9 @@ public:
     void logout();
     std::string generateId(const std::string& prefix, int maxIDfromDB);
     // ========== User Management ==========
-    bool registerStudent( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
-    bool registerLibrarian( const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);
-    bool registerUser( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
+    RegistrationResult registerStudent( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
+    RegistrationResult registerLibrarian( const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);
+    RegistrationResult registerUser( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
     bool removeUser(const std::string& sid);
     bool updateStudent( const std::string& id,const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
     bool updateLibrarian( const std::string& id ,const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);

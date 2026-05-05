@@ -43,12 +43,13 @@ int main(int argc, char *argv[])
     sys.initializeSystem();
     qDebug()<< sys.login("admin@lib.com","admin");
     // sys.login("ali@gmail.com","123");
-    sys.registerUser("Ali","ali@gmail,com","123","active","gold","STUDENT");
+    // sys.registerUser("dkj","dkj@gmail,com","123","active","gold","STUDENT");
+    // sys.removeUser("SU-2");
     // sys.updateUser("LIB-5","ali", "ai@gmail.com", "mai", "gold", "LIBRARIAN");
     // sys.upgradeStudentMembership("cs-001","silver");
     // qDebug() << sys.removeUser("cs-001");
 
-    sys.addbook("278-2", "AI essentails", "Bjarne ","SI", "CS", "Pearson", "2st","English", 2022,520, 10);
+    // sys.addbook("278-2", "AI essentails", "Bjarne ","SI", "CS", "Pearson", "2st","English", 2022,520, 10);
     // sys.removeBook("278-2");
     // sys.submitReview("SU-1","978-2",4,"good for fe students");
     // sys.approveReview("RV2");

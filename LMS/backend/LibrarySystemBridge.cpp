@@ -16,19 +16,46 @@ void LibrarySystemBridge::logout()
     m_system.logout();
 }
 
-bool LibrarySystemBridge::registerStudent(const QString &name, const QString &email, const QString &pwd,const QString &status ,const QString &membership, const QString &role)
+RegistrationResult LibrarySystemBridge::registerStudent(const QString &name, const QString &email, const QString &pwd,const QString &status ,const QString &membership, const QString &role)
 {
     return m_system.registerStudent(name.toStdString(), email.toStdString(), pwd.toStdString(), status.toStdString(), membership.toStdString(), role.toStdString());
 }
-bool LibrarySystemBridge::registerLibrarian(const QString &name, const QString &email, const QString &pwd, const QString &role)
+RegistrationResult LibrarySystemBridge::registerLibrarian(const QString &name, const QString &email, const QString &pwd, const QString &role)
 {
     return m_system.registerLibrarian(name.toStdString(), email.toStdString(), pwd.toStdString(), role.toStdString());
 }
-bool LibrarySystemBridge::removeUser(const QString &id)
+RegistrationResult LibrarySystemBridge::registerUser(const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role)
 {
+    // Bridge the QStrings to std::string for your core C++ controller:
+    qDebug() << name << email<< pwd<< status<<membership<<role;
+    return m_system.registerUser(
+        name.toStdString(),
+        email.toStdString(),
+        pwd.toStdString(),
+        status.toStdString(),
+        membership.toStdString(),
+        role.toStdString()
+        );
+    // return m_system.registerUser("dkj","dkj@gmail,com","123","active","gold","STUDENT");
+
+}
+
+bool LibrarySystemBridge::removeUser(const QString &id){
     return m_system.removeUser(id.toStdString());
 }
 
+bool LibrarySystemBridge::updateUser(const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role){
+    // if(m_system.upgradeStudentMembership(s))
+    return m_system.updateUser(
+        name.toStdString(),
+        email.toStdString(),
+        pwd.toStdString(),
+        status.toStdString(),
+        membership.toStdString(),
+        role.toStdString()
+        );
+// }
+}
 bool LibrarySystemBridge::addBook(const QString &isbn, const QString &title, const QString &author, const QString &category, const QString &section, const QString &publisher, const QString &edition, const QString &language, int publicationYear, int pages, int totalCopies)
 {
     return m_system.addbook(isbn.toStdString(), title.toStdString(), author.toStdString(), category.toStdString(), section.toStdString(), publisher.toStdString(), edition.toStdString(), language.toStdString(), publicationYear, pages, totalCopies);
@@ -92,11 +119,31 @@ QVariantList LibrarySystemBridge::getUsers()
     QVariantList list;
     for (const auto *person : m_system.getAllUsers())
     {
+        if (!person) continue;
+
         QVariantMap map;
+        // Common Person fields
         map["userId"] = QString::fromStdString(person->getUserID());
         map["name"] = QString::fromStdString(person->getName());
         map["email"] = QString::fromStdString(person->getEmail());
         map["role"] = QString::fromStdString(person->getRole());
+
+        // Try to cast to Student
+        const Student* student = dynamic_cast<const Student*>(person);
+
+        if (student) {
+            // Student-specific fields
+            map["status"] = QString::fromStdString(student->getStatus());
+
+            // Assuming membership has a method like getType() or getName()
+                map["membership"] = QString::fromStdString(student->getMembershipTier());
+
+        } else {
+            // Fallback for non-students (Librarians, etc.)
+            map["status"] = "N/A";
+            map["membership"] = "N/A";
+        }
+
         list.append(map);
     }
     return list;

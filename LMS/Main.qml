@@ -27,7 +27,6 @@ Window {
         property string authPage: "login"   // "login" or "signup"
         property bool islibrarian:true
         property bool isLoggedIn: true
-
         ColumnLayout {
             anchors.fill: parent
             spacing: 0
