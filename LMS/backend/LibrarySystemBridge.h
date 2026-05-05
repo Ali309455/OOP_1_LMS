@@ -11,7 +11,7 @@ class LibrarySystemBridge : public QObject {
     // Optionally, add Q_PROPERTY for reactive property binding (like login state)
 
 public:
-    explicit LibrarySystemBridge(QObject *parent = nullptr);
+    explicit LibrarySystemBridge(LibrarySystem* system, QObject *parent = nullptr);
 
     // -------------------- Authentication ---------------------
     Q_INVOKABLE bool login(const QString& email, const QString& password);
@@ -33,6 +33,7 @@ public:
     // -------------------- Reviews --------------------
     Q_INVOKABLE bool submitReview(const QString& isbn, int rating, const QString& comment);
     Q_INVOKABLE bool approveReview(const QString& reviewId);
+    Q_INVOKABLE bool deleteReview(const QString &reviewId);
 
     // -------------------- Data Fetching (QML ListModel support) --------------------
     Q_INVOKABLE QVariantList getBooks();

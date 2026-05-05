@@ -25,7 +25,7 @@ Window {
         border.color: "#696969"
         property string currentRoute: "dashboard" // default screen
         property string authPage: "login"   // "login" or "signup"
-        property bool islibrarian:true
+        property bool islibrarian: true
         property bool isLoggedIn: true
 
         ColumnLayout {

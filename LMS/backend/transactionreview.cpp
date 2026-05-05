@@ -42,10 +42,11 @@ double FineCalculator::calculateFinalFine(const string& dueDate, const string& r
 
 transaction::transaction() : transactionId(""), studentId(""), isbn(""), issueDate(""), dueDate(""), returnDate(""), status("active"), fine(0.0) {}
 
-transaction::transaction(string transactionId, string studentId, string isbn, string issueDate, string dueDate, string returnDate, string status, double fine) {
+transaction::transaction(string transactionId, string studentId, string username, string isbn, string issueDate, string dueDate, string returnDate, string status, double fine) {
     this->transactionId = transactionId;
     this->studentId = studentId;
     this->isbn = isbn;
+    this->username= username;
     this->issueDate = issueDate;
     this->dueDate = dueDate;
     this->returnDate = returnDate;
@@ -56,6 +57,7 @@ transaction::transaction(string transactionId, string studentId, string isbn, st
 void transaction::setTransactionId(string transactionId) { this->transactionId = transactionId; }
 void transaction::setStudentId(string studentId) { this->studentId = studentId; }
 void transaction::setIsbn(string isbn) { this->isbn = isbn; }
+void transaction::setUsername(string username) {this->username = username;}
 void transaction::setIssueDate(string issueDate) { this->issueDate = issueDate; }
 void transaction::setDueDate(string dueDate) { this->dueDate = dueDate; }
 void transaction::setReturnDate(string returnDate) { this->returnDate = returnDate; }
@@ -65,6 +67,7 @@ void transaction::setFine(double fine) { this->fine = fine; }
 string transaction::getTransactionId() const { return transactionId; }
 string transaction::getStudentId() const { return studentId; }
 string transaction::getIsbn() const { return isbn; }
+string transaction::getUsername() const { return username; }
 string transaction::getIssueDate() const { return issueDate; }
 string transaction::getDueDate() const { return dueDate; }
 string transaction::getReturnDate() const { return returnDate; }
@@ -124,9 +127,9 @@ bool transactionlog::hasActiveTransaction(string studentId, string isbn) {
     return false;
 }
 
-bool transactionlog::issueBook(string transactionId, string studentId, string isbn, string issueDate, string dueDate) {
+bool transactionlog::issueBook(string transactionId, string studentId, string username, string isbn, string issueDate, string dueDate) {
     if (hasActiveTransaction(studentId, isbn)) return false;
-    transactions.emplace_back(transactionId, studentId, isbn, issueDate, dueDate, "", "active", 0.0);
+    transactions.emplace_back(transactionId, studentId, username, isbn, issueDate, dueDate, "", "active", 0.0);
     transactioncount++;
     return true;
 }
@@ -153,12 +156,14 @@ std::vector<transaction> transactionlog::getAllTransactions() const {
 
 // ========= Review Implementation =========
 
-Review::Review() : reviewId(""), studentId(""), isbn(""), rating(0), comment(""), status("pending"), reviewDate("") {}
+Review::Review() : reviewId(""), studentId(""), username(""), isbn(""), bookname(""), rating(0), comment(""), status("pending"), reviewDate("") {}
 
-Review::Review(string reviewId, string studentId, string isbn, int rating, string comment, string status, string reviewDate) {
+Review::Review(string reviewId, string studentId, string username, string isbn, string bookname, int rating, string comment, string status, string reviewDate) {
     this->reviewId = reviewId;
     this->studentId = studentId;
+    this->username = username;
     this->isbn = isbn;
+    this->bookname = bookname;
     this->rating = rating;
     this->comment = comment;
     this->status = status;
@@ -170,7 +175,9 @@ void Review::approve() { status = "approved"; }
 bool Review::isApproved() const { return status == "approved"; }
 bool Review::isPending() const { return status == "pending"; }
 string Review::getStudentId()const {return studentId;}
+string Review::getUsername()const {return username;}
 string Review::getIsbn()const {return isbn;}
+string Review::getBookname()const {return bookname;}
 string Review::getReviewId()const {return reviewId;}
 string Review::getReviewDate()const {return reviewDate;}
 string Review::getComment()const {return comment;}
@@ -196,6 +203,17 @@ bool Reviewlog::addReview(const Review& r) {
 bool Reviewlog::approveReview(string reviewId) {
     for (auto& r : reviews) {
         if (r.getReviewId() == reviewId) { r.approve(); return true; }
+    }
+    return false;
+}
+
+bool Reviewlog::deleteReview(std::string reviewId) {
+    for (auto it = reviews.begin(); it != reviews.end(); ++it) {
+        if (it->getReviewId() == reviewId) {
+            reviews.erase(it);
+            reviewcount--;
+            return true;
+        }
     }
     return false;
 }

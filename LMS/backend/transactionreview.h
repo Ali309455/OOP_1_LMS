@@ -18,6 +18,7 @@ class transaction {
 private:
     std::string transactionId;
     std::string studentId;
+    std::string username;
     std::string isbn;
     std::string issueDate;
     std::string dueDate;
@@ -27,13 +28,14 @@ private:
 
 public:
     transaction();
-    transaction(std::string transactionId, std::string studentId, std::string isbn,
+    transaction(std::string transactionId, std::string studentId, std::string username, std::string isbn,
                 std::string issueDate, std::string dueDate, std::string returnDate,
                 std::string status, double fine);
 
     // Setters
     void setTransactionId(std::string transactionId);
     void setStudentId(std::string studentId);
+    void setUsername(std::string username);
     void setIsbn(std::string isbn);
     void setIssueDate(std::string issueDate);
     void setDueDate(std::string dueDate);
@@ -44,6 +46,7 @@ public:
     // Getters
     std::string getTransactionId() const;
     std::string getStudentId() const;
+    std::string getUsername() const;
     std::string getIsbn() const;
     std::string getIssueDate() const;
     std::string getDueDate() const;
@@ -70,7 +73,7 @@ public:
     bool removeTransaction(std::string transactionId);
     transaction* findTransactionById(std::string transactionId);
     bool hasActiveTransaction(std::string studentId, std::string isbn);
-    bool issueBook(std::string transactionId, std::string studentId, std::string isbn, std::string issueDate, std::string dueDate);
+    bool issueBook(std::string transactionId, std::string studentId, std::string username, std::string isbn, std::string issueDate, std::string dueDate);
     bool returnBook(std::string transactionId, std::string returnDate, std::string membershipType);
     void updateAllOverdue(std::string todayDate);
     std::vector<transaction> getTransactionsByStudent(std::string studentId);
@@ -84,7 +87,9 @@ class Review {
 private:
     std::string reviewId;
     std::string studentId;
+    std::string username;
     std::string isbn;
+    std::string bookname;
     int rating;
     std::string comment;
     std::string status;
@@ -92,12 +97,14 @@ private:
 
 public:
     Review();
-    Review(std::string reviewId, std::string studentId, std::string isbn,
-           int rating, std::string comment, std::string status, std::string reviewDate);
+    Review(std::string reviewId, std::string studentId, std::string username, std::string isbn,
+           std::string bookname, int rating, std::string comment, std::string status, std::string reviewDate);
 
     void setReviewId(std::string reviewId);
     void setStudentId(std::string studentId);
+    void setUsername(std::string username);
     void setIsbn(std::string isbn);
+    void setBookname(std::string bookname);
     void setRating(int rating);
     void setComment(std::string comment);
     void setStatus(std::string status);
@@ -105,7 +112,9 @@ public:
 
     std::string getReviewId() const;
     std::string getStudentId() const;
+    std::string getUsername() const;
     std::string getIsbn() const;
+    std::string getBookname() const;
     int getRating() const;
     std::string getComment() const;
     std::string getStatus() const;
@@ -127,7 +136,7 @@ public:
     bool addReview(const Review& r);
     Review* findReviewById(std::string reviewId);
     bool approveReview(std::string reviewId);
-    bool rejectReview(std::string reviewId);
+    bool deleteReview(std::string reviewId);
     std::vector<Review> getReviewsByBook(std::string isbn);
     std::vector<Review> getReviewsByStudent(std::string studentId);
     std::vector<Review> getPendingReviews();

@@ -72,7 +72,9 @@ void Database::init() {
     query.exec("CREATE TABLE IF NOT EXISTS reviews ("
                "reviewid TEXT PRIMARY KEY ,"
                "user_id TEXT,"
+               "username TEXT,"
                "isbn TEXT,"
+               "bookname TEXT,"
                "rating INTEGER,"
                "comment TEXT,"
                "status TEXT,"
@@ -131,15 +133,17 @@ bool Database::addTransaction(QString txid, QString userId, QString isbn,QString
     return true;
 }
 
-bool Database::addReview(QString review_id, QString userId, QString isbn, int rating, QString comment, QString status){
+bool Database::addReview(QString review_id, QString userId, QString username, QString isbn, QString bookname, int rating, QString comment, QString status){
     QSqlQuery query;
     query.prepare("INSERT INTO reviews "
-                  "(reviewid, user_id, isbn, rating, comment,review_date, status) "
-                  "VALUES ( ?, ?, ?, ?, ?,date('now'), ?)");
+                  "(reviewid, user_id, username, isbn, bookname, rating, comment,review_date, status) "
+                  "VALUES ( ?, ?, ?, ?, ?, ?, ?,date('now'), ?)");
 
     query.addBindValue(review_id);
     query.addBindValue(userId);
+    query.addBindValue(username);
     query.addBindValue(isbn);
+    query.addBindValue(bookname);
     query.addBindValue(rating);
     query.addBindValue(comment);
     query.addBindValue(status);
@@ -252,12 +256,18 @@ QVariantList Database::getBooks()
 QVariantList Database::getTransactions()
 {
     QVariantList transactions;
-    QSqlQuery query("SELECT * FROM transactions");
+
+    QSqlQuery query(
+        "SELECT transactions.*, users.name AS username "
+        "FROM transactions "
+        "INNER JOIN users ON transactions.user_id = users.id"
+        );
 
     while (query.next()) {
         QVariantMap tx;
         tx["txid"] = query.value("txid");
         tx["user_id"] = query.value("user_id");
+        tx["username"] = query.value("username");
         tx["isbn"] = query.value("isbn");
         tx["issuedate"] = query.value("issuedate");
         tx["duedate"] = query.value("duedate");
@@ -274,13 +284,20 @@ QVariantList Database::getTransactions()
 QVariantList Database::getReviews()
 {
     QVariantList reviews;
-    QSqlQuery query("SELECT * FROM reviews");
+    QSqlQuery query(
+        "SELECT reviews.*, users.name AS username, books.bookname AS bookname "
+        "FROM reviews "
+        "INNER JOIN users ON reviews.user_id = users.id "
+        "INNER JOIN books ON reviews.isbn = books.isbn"
+        );
 
     while (query.next()) {
         QVariantMap review;
         review["reviewid"] = query.value("reviewid");
         review["user_id"] = query.value("user_id");
+        review["username"] = query.value("username");
         review["isbn"] = query.value("isbn");
+        review["bookname"] = query.value("bookname");
         review["rating"] = query.value("rating");
         review["comment"] = query.value("comment");
         review["status"] = query.value("status");
@@ -312,13 +329,13 @@ bool Database::updateUser(QString id, QString name, QString email, QString passw
 {
     QSqlQuery query;
 
-    query.prepare("UPDATE users SET name=?, email=?, password=?, membership=?,status=?, role=?,  WHERE id=?");
+    query.prepare("UPDATE users SET name=?, email=?, password=?, membership=?, status=?, role=?  WHERE id=?");
 
     query.addBindValue(name);
     query.addBindValue(email);
     query.addBindValue(password);
-    query.addBindValue(status);
     query.addBindValue(membership);
+    query.addBindValue(status);
     query.addBindValue(role);
     query.addBindValue(id);
 

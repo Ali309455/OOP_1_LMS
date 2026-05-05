@@ -1,11 +1,9 @@
 #include "LibrarySystemBridge.h"
 #include <QVariantMap>
 
-LibrarySystemBridge::LibrarySystemBridge(QObject *parent)
-    : QObject(parent), m_system()
-{
-    m_system.initializeSystem();
-}
+LibrarySystemBridge::LibrarySystemBridge(LibrarySystem* system, QObject *parent)
+    : QObject(parent), m_system(*system)
+{}
 
 bool LibrarySystemBridge::login(const QString &email, const QString &password)
 {
@@ -57,9 +55,14 @@ bool LibrarySystemBridge::submitReview(const QString &isbn, int rating, const QS
 
 bool LibrarySystemBridge::approveReview(const QString &reviewId)
 {
+    qDebug()<< "frontend approve clicked: "<<reviewId;
     return m_system.approveReview(reviewId.toStdString());
 }
 
+bool LibrarySystemBridge::deleteReview(const QString &reviewId)
+{
+    return m_system.deleteReview(reviewId.toStdString());
+}
 // ------------------ Data for QML ListModels ------------------
 
 // Each QVariantMap returned here models a "row" in a QML ListView
@@ -108,14 +111,19 @@ QVariantList LibrarySystemBridge::getTransactions()
     for (const auto &tx : m_system.getAllTransactions())
     {
         QVariantMap map;
-        map["transactionId"] = QString::fromStdString(tx.getTransactionId());
-        map["studentId"] = QString::fromStdString(tx.getStudentId());
+        map["txnId"] = QString::fromStdString(tx.getTransactionId());
+        map["sId"] = QString::fromStdString(tx.getStudentId());
+        map["student"] = QString::fromStdString(tx.getUsername());
         map["isbn"] = QString::fromStdString(tx.getIsbn());
         map["issueDate"] = QString::fromStdString(tx.getIssueDate());
         map["dueDate"] = QString::fromStdString(tx.getDueDate());
-        map["returnDate"] = QString::fromStdString(tx.getReturnDate());
+        map["returnDate"] = tx.getReturnDate().empty()
+            ? "--"
+            : QString::fromStdString(tx.getReturnDate());
         map["status"] = QString::fromStdString(tx.getStatus());
-        map["fine"] = tx.getFine();
+        map["fine"] = (tx.getFine() == 0.0)
+            ? "--"
+            : "$" + QString::number(tx.getFine());
         list.append(map);
     }
     return list;
@@ -129,11 +137,14 @@ QVariantList LibrarySystemBridge::getReviews()
         QVariantMap map;
         map["reviewId"] = QString::fromStdString(rev.getReviewId());
         map["studentId"] = QString::fromStdString(rev.getStudentId());
+        map["author"] = QString::fromStdString(rev.getUsername());
         map["isbn"] = QString::fromStdString(rev.getIsbn());
-        map["comment"] = QString::fromStdString(rev.getComment());
+        map["book"] = QString::fromStdString(rev.getBookname());
+        map["text"] = QString::fromStdString(rev.getComment());
         map["status"] = QString::fromStdString(rev.getStatus());
         map["rating"] = rev.getRating();
-        map["reviewDate"] = QString::fromStdString(rev.getReviewDate());
+        map["date"] = QString::fromStdString(rev.getReviewDate());
+        qDebug()<<"here";
         list.append(map);
     }
     return list;

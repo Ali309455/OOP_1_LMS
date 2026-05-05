@@ -7,6 +7,8 @@ Rectangle {
     id: reviewsView
     color: "#0f1117"
 
+    property var rData: [];
+
     signal reviewSubmitted(string bookTitle, int rating, string comment)
 
     property string userRole: "librarian"
@@ -19,11 +21,26 @@ Rectangle {
     ]
 
     ListModel {
-        id: reviewsModel
+        id: reviewsModel/*
         ListElement { book: "Clean Code";             rating: 5; author: "John Doe";    date: "2026-04-10"; text: "Excellent book for learning clean coding practices. Highly recommended!"; status: "approved" }
         ListElement { book: "Design Patterns";        rating: 4; author: "Jane Smith";  date: "2026-04-11"; text: "Great reference book, but can be dense at times.";                       status: "pending"  }
         ListElement { book: "Effective Java";         rating: 5; author: "Bob Johnson"; date: "2026-04-08"; text: "Must-read for Java developers. Clear and concise.";                       status: "approved" }
-        ListElement { book: "The Pragmatic Programmer"; rating: 4; author: "Alice Brown"; date: "2026-04-12"; text: "Good insights into software development practices.";                   status: "pending"  }
+        ListElement { book: "The Pragmatic Programmer"; rating: 4; author: "Alice Brown"; date: "2026-04-12"; text: "Good insights into software development practices.";                   status: "pending"  }*/
+    }
+
+    Component.onCompleted: {
+        if (lms !== null && lms !== undefined) {
+            console.log("Calling getReviews...");
+            rData = lms.getReviews();
+        } else {
+            console.log("ERROR: lms is NULL");
+        }
+
+        reviewsModel.clear()
+
+        for (let i = 0; i < rData.length; i++) {
+            reviewsModel.append(rData[i])
+        }
     }
 
     property string currentTab: "all"
@@ -59,8 +76,28 @@ Rectangle {
         }
     }
 
-    function approveReview(idx) { if (idx >= 0 && idx < reviewsModel.count) reviewsModel.setProperty(idx, "status", "approved") }
-    function rejectReview(idx)  { if (idx >= 0 && idx < reviewsModel.count) reviewsModel.remove(idx, 1) }
+    function approveReview(idx) {
+        if (idx >= 0 && idx < reviewsModel.count) {
+            let review = reviewsModel.get(idx)
+
+            if (lms && lms.approveReview(review.reviewId)) {
+                reviewsModel.setProperty(idx, "status", "approved")
+            } else {
+                console.log("Approve failed")
+            }
+        }
+    }
+    function rejectReview(idx) {
+        if (idx >= 0 && idx < reviewsModel.count) {
+            let review = reviewsModel.get(idx)
+
+            if (lms && lms.deleteReview(review.reviewId)) {
+                reviewsModel.remove(idx, 1)
+            } else {
+                console.log("Delete failed")
+            }
+        }
+    }
 
     // ── Page header ────────────────────────────────────────────────────────
     Rectangle {
@@ -82,7 +119,7 @@ Rectangle {
         }
 
         Rectangle {
-            visible: reviewsView.userRole === "user"
+            visible: reviewsView.userRole === "student"
             anchors.right: parent.right; anchors.rightMargin: 28
             anchors.verticalCenter: parent.verticalCenter
             width: 148; height: 40; radius: 8
@@ -205,9 +242,15 @@ Rectangle {
                     clip: true
 
                     visible: {
-                        if (reviewsView.currentTab === "pending")  return model.status === "pending"
-                        if (reviewsView.currentTab === "approved") return model.status === "approved"
-                        if(reviewsView.userRole ==="user"){reviewsView.currentTab = "approved";model.status = "approved"; return model.status === "approved" }
+                        if (reviewsView.currentTab === "pending")
+                            return model.status === "pending"
+
+                        if (reviewsView.currentTab === "approved")
+                            return model.status === "approved"
+
+                        if (reviewsView.userRole === "student")
+                            return model.status === "approved"
+
                         return true
                     }
 

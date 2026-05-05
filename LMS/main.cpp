@@ -26,7 +26,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    LibrarySystemBridge lmsBridge;
+    LibrarySystem sys;
+    sys.initializeSystem();
+    LibrarySystemBridge lmsBridge(&sys);
     engine.rootContext()->setContextProperty("lms", &lmsBridge);
     Database::init();
 
@@ -39,20 +41,23 @@ int main(int argc, char *argv[])
     // Database::addUser("cs-002","Admin", "admin@gmail.com", "admin", "premium", "librarian");
 
     // Database::addBook("978-2", "C++ advanced", "Bjarne Stroustrup",420,"Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
-    LibrarySystem sys;
-    sys.initializeSystem();
+
     qDebug()<< sys.login("admin@lib.com","admin");
-    // sys.login("ali@gmail.com","123");
-    sys.registerUser("Ali","ali@gmail,com","123","active","gold","STUDENT");
+    // sys.login("admin@lib.com","admin");
+    // sys.registerUser("Aw","aw@gmail.com","123","active","gold","STUDENT");
     // sys.updateUser("LIB-5","ali", "ai@gmail.com", "mai", "gold", "LIBRARIAN");
     // sys.upgradeStudentMembership("cs-001","silver");
     // qDebug() << sys.removeUser("cs-001");
-
-    sys.addbook("278-2", "AI essentails", "Bjarne ","SI", "CS", "Pearson", "2st","English", 2022,520, 10);
+    // sys.issueBook("278-2","SU-0");
+    // sys.returnBook("TX-1");
+    // sys.addbook("278-2", "AI essentails", "Bjarne ","SI", "CS", "Pearson", "2st","English", 2022,520, 10);
     // sys.removeBook("278-2");
-    // sys.submitReview("SU-1","978-2",4,"good for fe students");
-    // sys.approveReview("RV2");
-     // qDebug() << sys.issueBook("978-2","SU-1");
+    bool ok = sys.submitReview("SU-1","278-2",4,"good for fe students");
+    qDebug()<<"Review status: "<<ok;
+    // bool ok2 = sys.submitReview("SU-0","278-2",3,"good for fe students");
+    // qDebug()<<"Review status: "<<ok2;
+    // sys.approveReview("RV-1");
+    // qDebug() << sys.issueBook("978-2","SU-1");
     // qDebug() << sys.returnBook("TX-2");
     sys.displayAllData();
 

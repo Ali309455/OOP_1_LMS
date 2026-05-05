@@ -51,7 +51,7 @@ Item {
                }
         }
 
-        Component { id: reviewsComp; Reviews {userRole: centralbox.islibrarian?"librarian":"user" }}
+        Component { id: reviewsComp; Reviews {userRole: centralbox.islibrarian?"librarian":"student" }}
         Component { id: membershipComp; Membership {} }
         Component { id: usersComp; UserManagement {} }
         Component { id: settingsComp; Profile {userRole: centralbox.islibrarian?"librarian":"user" } }
