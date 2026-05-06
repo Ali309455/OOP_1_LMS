@@ -38,7 +38,7 @@ qt_add_qml_module(appLMS
                qml/screens/librarian/LibrarianDashboard.qml
                qml/screens/librarian/Reports.qml
                qml/screens/librarian/UserManagement.qml
-               qml/components/Button.qml
+               qml/components/AppButton.qml
                qml/layouts/Sidebar.qml
                qml/layouts/Centralbox.qml
                qml/layouts/Navbar.qml

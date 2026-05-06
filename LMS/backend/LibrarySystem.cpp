@@ -637,6 +637,55 @@ bool LibrarySystem::upgradeStudentMembership(const string& studentId, const stri
     return Database::updateUser(QString::fromStdString(studentId),QString::fromStdString(p->getName()),QString::fromStdString(p->getEmail()),QString::fromStdString(p->getPassword()),QString::fromStdString(newTier),QString::fromStdString(p->getRole()));;
 }
 
+QVariantMap LibrarySystem::getCurrentMembershipDetails() {
+    QVariantMap map;
+
+    if (!currentUser) return map;
+
+    Student* s = dynamic_cast<Student*>(currentUser);
+    if (!s) return map;
+
+    string tier = s->getMembershipTier();
+
+    Membership* m = createMembership(tier, s->getUserID());
+
+    map["tier"] = QString::fromStdString(tier);
+    map["borrowLimit"] = m->getBorrowedLimit();
+    map["fineDiscount"] = QString::number(m->getFineDiscount() * 100) + "%";
+
+    // expiry from DB (IMPORTANT)
+    QVariantList users = Database::getUsers();
+    for (auto u : users) {
+        QVariantMap um = u.toMap();
+        if (um["id"].toString().toStdString() == s->getUserID()) {
+            map["expiry"] = um["expiry_date"].toString();
+            break;
+        }
+    }
+
+    map["active"] = true;
+
+    delete m;
+    return map;
+}
+
+bool LibrarySystem::renewMembership(const string& studentId) {
+    Person* p = authManager.findById(studentId);
+    if (!p) return false;
+
+    string tier = p->getRole() == ROLE_STUDENT ?
+                      dynamic_cast<Student*>(p)->getMembershipTier() : "";
+
+    return Database::updateUser(
+        QString::fromStdString(studentId),
+        QString::fromStdString(p->getName()),
+        QString::fromStdString(p->getEmail()),
+        QString::fromStdString(p->getPassword()),
+        QString::fromStdString(tier),
+        QString::fromStdString(p->getRole())
+        );
+}
+
 vector<Book> LibrarySystem::getAllBooks() const {
     // BookCatalog: getAllBooks() returns a const vector<Book>&
     return BooksManager.getAllBooks();

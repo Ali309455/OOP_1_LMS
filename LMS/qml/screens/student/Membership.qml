@@ -13,6 +13,19 @@ Rectangle {
     property string borrowLimit: "—"
     property string fineDiscount: "—"
     property string expiryDate: "—"
+    property string userID: ""
+
+    Component.onCompleted: {
+        var data = lms.getMembership()
+
+        if (data.tier !== undefined) {
+            isMembershipActive = true
+            activeTier = data.tier.toUpperCase()
+            borrowLimit = data.borrowLimit
+            fineDiscount = data.fineDiscount
+            expiryDate = data.expiry
+        }
+    }
 
     Flickable {
         id: flick
@@ -82,7 +95,13 @@ Rectangle {
                         }
                         Item { Layout.fillWidth: true }
                         Button {
-                            text: "Upgrade"
+                            text: isMembershipActive ? "Renew" : "Upgrade"
+
+                            onClicked: {
+                                if (isMembershipActive) {
+                                    lms.renewMembership(userId)
+                                }
+                            }
                             background: Rectangle { implicitWidth: 100; implicitHeight: 38; color: "#3b82f6"; radius: 8 }
                             contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
                         }
@@ -244,7 +263,29 @@ Rectangle {
             }
             Item { Layout.fillHeight: true }
             Button {
-                Layout.fillWidth: true; text: "Select Plan"
+                Layout.fillWidth: true; text: {
+                    if (!membershipRoot.isMembershipActive) return "Select Plan"
+                    if (membershipRoot.activeTier === tier) return "Current Plan"
+
+                    if (tier === "SILVER" && membershipRoot.activeTier !== "SILVER") return "Downgrade"
+                    if (tier === "PLATINUM" && membershipRoot.activeTier !== "PLATINUM") return "Upgrade"
+                    if (tier === "GOLD") {
+                        if (membershipRoot.activeTier === "PLATINUM") return "Downgrade"
+                        if (membershipRoot.activeTier === "SILVER") return "Upgrade"
+                    }
+                }
+                onClicked: {
+                    if (tier === membershipRoot.activeTier) return
+
+                    lms.upgradeMembership(membershipRoot.userId, tier)
+
+                    // refresh UI
+                    var data = lms.getMembership()
+                    membershipRoot.activeTier = data.tier.toUpperCase()
+                    membershipRoot.borrowLimit = data.borrowLimit
+                    membershipRoot.fineDiscount = data.fineDiscount
+                    membershipRoot.expiryDate = data.expiry
+                }
                 background: Rectangle { implicitHeight: 40; color: "#3b82f6"; radius: 8 }
                 contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
             }

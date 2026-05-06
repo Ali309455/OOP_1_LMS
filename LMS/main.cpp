@@ -38,7 +38,8 @@ int main(int argc, char *argv[])
 
     // qDebug() << "\n=== ADD DATA ===";
 
-    // Database::addBook("978-2", "C++ advanced", "Bjarne Stroustrup",420,"Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
+    Database::addBook("978-2", "C++ advanced", "Bjarne Stroustrup",420,"Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
+    Database::addUser("s-13", "aw", "aw@gmail.com", "2113", "Gold", "Student", "Active");
 
     qDebug()<< sys.login("ali@gmail.com","123");
     // sys.login("ali@gmail.com","123");
