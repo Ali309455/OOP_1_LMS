@@ -24,12 +24,13 @@ private:
     std::string dueDate;
     std::string returnDate;
     std::string status;
+    std::string bookName;
     double fine;
 
 public:
     transaction();
     transaction(std::string transactionId, std::string studentId, std::string username, std::string isbn,
-                std::string issueDate, std::string dueDate, std::string returnDate,
+                std::string issueDate, std::string dueDate, std::string returnDate,std::string bookName,
                 std::string status, double fine);
 
     // Setters
@@ -51,6 +52,7 @@ public:
     std::string getIssueDate() const;
     std::string getDueDate() const;
     std::string getReturnDate() const;
+    std::string getbookName() const ;
     std::string getStatus() const;
     double getFine() const;
 
@@ -73,7 +75,7 @@ public:
     bool removeTransaction(std::string transactionId);
     transaction* findTransactionById(std::string transactionId);
     bool hasActiveTransaction(std::string studentId, std::string isbn);
-    bool issueBook(std::string transactionId, std::string studentId, std::string username, std::string isbn, std::string issueDate, std::string dueDate);
+    bool issueBook(std::string transactionId, std::string studentId, std::string username, std::string isbn, std::string issueDate, std::string dueDate, std::string bookName);
     bool returnBook(std::string transactionId, std::string returnDate, std::string membershipType);
     void updateAllOverdue(std::string todayDate);
     std::vector<transaction> getTransactionsByStudent(std::string studentId);

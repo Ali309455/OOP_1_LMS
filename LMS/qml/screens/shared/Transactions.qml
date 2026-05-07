@@ -5,10 +5,10 @@ import LMS
 Item {
     id: root
     anchors.fill: parent
-
+    property var currentUser: null
     // Temporary testing switch
 
-    property bool isLibrarian: true
+    property bool isLibrarian: false;
 
     Loader {
         anchors.fill: parent
@@ -19,6 +19,7 @@ Item {
         id: adminView
         TransactionsAdmin {
             anchors.fill: parent
+            currentUser : root.currentUser
         }
     }
 
@@ -26,6 +27,7 @@ Item {
         id: studentView
         TransactionsStudent {
             anchors.fill: parent
+            currentUser : root.currentUser
         }
     }
 }

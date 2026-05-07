@@ -64,6 +64,7 @@ void Database::init() {
                "issuedate TEXT,"
                "duedate TEXT,"
                "returnDate TEXT,"
+               "bookName TEXT,"
                "status TEXT,"
                "fine INTEGER,"
                "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,"
@@ -112,16 +113,17 @@ bool Database::addUser(QString id,QString name, QString email, QString password,
     return true;
 }
 
-bool Database::addTransaction(QString txid, QString userId, QString isbn,QString returnDate,QString status , int fine) {
+bool Database::addTransaction(QString txid, QString userId, QString isbn,QString returnDate,QString bookName,QString status , int fine) {
     QSqlQuery query;
     query.prepare("INSERT INTO transactions "
-                  "(txid, user_id, isbn, issuedate, duedate,returnDate, status, fine) "
-                  "VALUES (?, ?, ?, date('now'), date('now', '+7 days'),?, ?, ?)");
+                  "(txid, user_id, isbn, issuedate, duedate,returnDate,bookName, status, fine) "
+                  "VALUES (?, ?, ?, date('now'), date('now', '+7 days'),?, ?,?, ?)");
 
     query.addBindValue(txid);
     query.addBindValue(userId);
     query.addBindValue(isbn);
     query.addBindValue(returnDate);
+    query.addBindValue(bookName);
     query.addBindValue(status);
     query.addBindValue(fine);
 
@@ -272,6 +274,7 @@ QVariantList Database::getTransactions()
         tx["issuedate"] = query.value("issuedate");
         tx["duedate"] = query.value("duedate");
         tx["returnDate"] = query.value("returnDate");
+        tx["bookName"] = query.value("bookName");
         tx["status"] = query.value("status");
         tx["fine"] = query.value("fine");
 
@@ -347,25 +350,16 @@ bool Database::updateUser(QString id, QString name, QString email, QString passw
     return true;
 }
 
-bool Database::updateBook(QString isbn,QString name,QString author,QString genre,QString section,QString publisher,QString edition,QString language,int publicationYear,int total,int available)
+bool Database::updateBook(QString isbn,int total,int available)
 {
     QSqlQuery query;
 
     query.prepare(
         "UPDATE books SET "
-        "bookname=?, author=?, genre=?, section=?, publisher=?, edition=?, language=?, "
-        "publicationYear=?, totalcopies=?, availablecopies=? "
+        " totalcopies=?, availablecopies=? "
         "WHERE isbn=?"
         );
 
-    query.addBindValue(name);
-    query.addBindValue(author);
-    query.addBindValue(genre);
-    query.addBindValue(section);
-    query.addBindValue(publisher);
-    query.addBindValue(edition);
-    query.addBindValue(language);
-    query.addBindValue(publicationYear);
     query.addBindValue(total);
     query.addBindValue(available);
     query.addBindValue(isbn);
@@ -378,14 +372,15 @@ bool Database::updateBook(QString isbn,QString name,QString author,QString genre
     return true;
 }
 
-bool Database::updateTransaction(QString txid, QString status, int fine)
+bool Database::updateTransaction(QString txid, QString status, int fine, QString returndate)
 {
     QSqlQuery query;
 
-    query.prepare("UPDATE transactions SET status=?, fine=? WHERE txid=?");
+    query.prepare("UPDATE transactions SET status=?, fine=?,returnDate=? WHERE txid=?");
 
     query.addBindValue(status);
     query.addBindValue(fine);
+    query.addBindValue(returndate);
     query.addBindValue(txid);
 
     if (!query.exec()) {

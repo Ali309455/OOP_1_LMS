@@ -40,9 +40,9 @@ double FineCalculator::calculateFinalFine(const string& dueDate, const string& r
 
 // ========= transaction Implementation =========
 
-transaction::transaction() : transactionId(""), studentId(""), isbn(""), issueDate(""), dueDate(""), returnDate(""), status("active"), fine(0.0) {}
+transaction::transaction() : transactionId(""), studentId(""), isbn(""), issueDate(""), dueDate(""), returnDate(""), bookName(""), status("active"), fine(0.0) {}
 
-transaction::transaction(string transactionId, string studentId, string username, string isbn, string issueDate, string dueDate, string returnDate, string status, double fine) {
+transaction::transaction(string transactionId, string studentId, string username, string isbn, string issueDate, string dueDate, string returnDate, string bookName , string status, double fine) {
     this->transactionId = transactionId;
     this->studentId = studentId;
     this->isbn = isbn;
@@ -51,6 +51,7 @@ transaction::transaction(string transactionId, string studentId, string username
     this->dueDate = dueDate;
     this->returnDate = returnDate;
     this->status = status;
+    this->bookName = bookName;
     this->fine = fine;
 }
 
@@ -72,6 +73,7 @@ string transaction::getIssueDate() const { return issueDate; }
 string transaction::getDueDate() const { return dueDate; }
 string transaction::getReturnDate() const { return returnDate; }
 string transaction::getStatus() const { return status; }
+string transaction::getbookName() const { return bookName; }
 double transaction::getFine() const { return fine; }
 
 bool transaction::isActive() const { return status == "active"; }
@@ -127,9 +129,9 @@ bool transactionlog::hasActiveTransaction(string studentId, string isbn) {
     return false;
 }
 
-bool transactionlog::issueBook(string transactionId, string studentId, string username, string isbn, string issueDate, string dueDate) {
+bool transactionlog::issueBook(string transactionId, string studentId, string username, string isbn, string issueDate, string dueDate, string bookName) {
     if (hasActiveTransaction(studentId, isbn)) return false;
-    transactions.emplace_back(transactionId, studentId, username, isbn, issueDate, dueDate, "", "active", 0.0);
+    transactions.emplace_back(transactionId, studentId, username, isbn, issueDate, dueDate, "",bookName, "active", 0.0);
     transactioncount++;
     return true;
 }

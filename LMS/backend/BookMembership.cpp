@@ -42,6 +42,32 @@ int Book::getPages() const { return pages; }
 int Book::getTotalCopies() const { return totalCopies; }
 int Book::getAvailableCopies() const { return availableCopies; }
 BookStatus Book::getStatus() const { return status; }
+void Book::setTitle(const string& t) { title = t; }
+void Book::setAuthor(const string& a) { author = a; }
+void Book::setCategory(const string& c) { category = c; }
+void Book::setSection(const string& s) { section = s; }
+void Book::setPublisher(const string& p) { publisher = p; }
+void Book::setEdition(const string& e) { edition = e; }
+void Book::setLanguage(const string& l) { language = l; }
+void Book::setPublicationYear(int y) { publicationYear = y; }
+void Book::setPages(int p) { pages = p; }
+
+void Book::setTotalCopies(int total) {
+    int issued = totalCopies - availableCopies;
+
+    if (total < issued)
+        throw runtime_error("Cannot reduce total below issued copies.");
+
+    int diff = total - totalCopies;
+
+    totalCopies = total;
+    availableCopies += diff;
+
+    if (availableCopies < 0) availableCopies = 0;
+    if (availableCopies > totalCopies) availableCopies = totalCopies;
+
+    updateStatus();
+}
 
 bool Book::issueOneCopy() {
     if(availableCopies <= 0) throw runtime_error("No copies available.");
@@ -87,6 +113,22 @@ bool BookCatalog::addBook(const Book& book) {
     books.push_back(book);
     bookcount++;
     return true;
+}
+
+bool BookCatalog::updateBook(const string& isbn,int totalCopies){
+    for (auto& b : books) {
+
+        if (b.getIsbn() == isbn) {
+
+
+            // ✔ special logic for copies (important business rule)
+            b.setTotalCopies(totalCopies);
+
+            return true;
+        }
+    }
+
+    throw runtime_error("Book not found.");
 }
 
 bool BookCatalog::removeBook(const string& isbn) {
