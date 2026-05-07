@@ -10,7 +10,7 @@ Window {
     height: 800
     visible: true
     color: "transparent"   // important for rounded corners
-    flags: Qt.FramelessWindowHint
+    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowMinimizeButtonHint
 
     // ── Rounded Main Container ──
     Rectangle {
@@ -38,6 +38,20 @@ Window {
                 Layout.fillWidth: true
                 height: 40
                 color: "transparent"
+
+
+                // Drag window
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+
+                    // ❗ prevent stealing clicks from buttons
+                    propagateComposedEvents: true
+
+                    onPressed: {
+                            root.startSystemMove()
+                    }
+                }
 
                 RowLayout {
                     anchors.fill: parent
@@ -91,18 +105,6 @@ Window {
                     }
                 }
 
-                // Drag window
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.LeftButton
-
-                    // ❗ prevent stealing clicks from buttons
-                    propagateComposedEvents: true
-
-                    onPressed: {
-                            root.startSystemMove()
-                    }
-                }
             }
             Login{
                 Layout.fillHeight: true

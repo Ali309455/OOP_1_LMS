@@ -20,6 +20,8 @@ LibrarySystem::LibrarySystem()
 }
 string LibrarySystem::generateId(const std::string& prefix, int maxIdFromDB) {
     // return prefix + "-" + std::to_string(maxIdFromDB + 1);
+    if (maxIdFromDB < 0)
+        maxIdFromDB = 0;
     return prefix + "-" + std::to_string(maxIdFromDB + 1);
 }
 void LibrarySystem::loadUsersIntoSystem()
@@ -376,7 +378,7 @@ bool LibrarySystem::addbook(const string& isbn,const string&  title,const string
     // permission check HERE
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
-    Book book(isbn, title, author, category, section,publisher, edition, language,publicationYear, pages, totalCopies);
+    Book book(isbn, title, author, category, section,publisher, edition, language,totalCopies,publicationYear, pages, totalCopies);
     BooksManager.addBook(book);
     return Database::addBook(QString::fromStdString(isbn),QString::fromStdString(title),QString::fromStdString(author),pages,QString::fromStdString(category),QString::fromStdString(section),QString::fromStdString(publisher),QString::fromStdString(edition),QString::fromStdString(language),publicationYear,totalCopies,totalCopies);
 }
