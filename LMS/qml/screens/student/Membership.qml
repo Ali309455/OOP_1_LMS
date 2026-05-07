@@ -13,9 +13,9 @@ Rectangle {
     property string borrowLimit: "—"
     property string fineDiscount: "—"
     property string expiryDate: "—"
-    property string userID: ""
+    property string userId: ""
 
-    Component.onCompleted: {
+    function refreshMembership() {
         var data = lms.getMembership()
 
         if (data.tier !== undefined) {
@@ -23,8 +23,17 @@ Rectangle {
             activeTier = data.tier.toUpperCase()
             borrowLimit = data.borrowLimit
             fineDiscount = data.fineDiscount
-            expiryDate = data.expiry
+
+            // SILVER special validity
+            if (activeTier === "SILVER")
+                expiryDate = "Student Life"
+            else
+                expiryDate = data.expiry
         }
+    }
+
+    Component.onCompleted: {
+        refreshMembership()
     }
 
     Flickable {
@@ -68,7 +77,13 @@ Rectangle {
                         // --- MAIN ICON ---
                         Rectangle {
                             width: 44; height: 44; radius: 8
-                            color: isMembershipActive ? "#8b5cf6" : "#475569"
+                            color: {
+                                if (!isMembershipActive) return "#475569"
+                                if (activeTier === "SILVER") return "#94a3b8"
+                                if (activeTier === "GOLD") return "#f59e0b"
+                                if (activeTier === "PLATINUM") return "#8b5cf6"
+                                return "#475569"
+                            }
                             border.color: Qt.rgba(color.r, color.g, color.b, 0.4)
                             border.width: 1
                             Image {
@@ -89,7 +104,13 @@ Rectangle {
                             Text { text: "CURRENT"; color: "#64748b"; font.pixelSize: 10; font.bold: true; font.letterSpacing: 0.5 }
                             Text {
                                 text: isMembershipActive ? activeTier : "No Active Membership"
-                                color: isMembershipActive ? "#fbbf24" : "white"
+                                color: {
+                                    if (!isMembershipActive) return "white"
+                                    if (activeTier === "SILVER") return "#cbd5e1"
+                                    if (activeTier === "GOLD") return "#fbbf24"
+                                    if (activeTier === "PLATINUM") return "#a78bfa"
+                                    return "white"
+                                }
                                 font.pixelSize: 20; font.bold: true
                             }
                         }
@@ -98,12 +119,30 @@ Rectangle {
                             text: isMembershipActive ? "Renew" : "Upgrade"
 
                             onClicked: {
-                                if (isMembershipActive) {
-                                    lms.renewMembership(userId)
-                                }
+
+                                if (!isMembershipActive)
+                                    return
+
+                                var fee = 0
+
+                                if (activeTier === "GOLD")
+                                    fee = 29
+                                else if (activeTier === "PLATINUM")
+                                    fee = 59
+
+                                confirmDialog.actionType = "renew"
+                                confirmDialog.selectedTier = activeTier
+
+                                confirmDialog.dialogMessage =
+                                        fee + "$ will be deducted from your wallet.\n\n" +
+                                        "Are you sure to renew your " +
+                                        activeTier +
+                                        " membership with us?"
+
+                                confirmDialog.open()
                             }
                             background: Rectangle { implicitWidth: 100; implicitHeight: 38; color: "#3b82f6"; radius: 8 }
-                            contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
+                            contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
                         }
                     }
 
@@ -167,15 +206,15 @@ Rectangle {
 
                 onPressed: {
                     pressY = mouseY
-                    pressContentY = reviewsFlick.contentY
+                    pressContentY = flick.contentY
                 }
 
                 onPositionChanged: {
                     if (pressed) {
                         var delta = mouseY - pressY
                         var ratio = delta / scrollTrack.height
-                        var newY = pressContentY + ratio * reviewsFlick.contentHeight
-                        reviewsFlick.contentY = Math.max(0, Math.min(newY, reviewsFlick.contentHeight - reviewsFlick.height))
+                        var newY = pressContentY + ratio * flick.contentHeight
+                        flick.contentY = Math.max(0, Math.min(newY, flick.contentHeight - flick.height))
                     }
                 }
             }
@@ -186,7 +225,158 @@ Rectangle {
             anchors.fill: parent
             onClicked: {
                 var ratio = mouseY / scrollTrack.height
-                reviewsFlick.contentY = Math.max(0, Math.min(ratio * reviewsFlick.contentHeight, reviewsFlick.contentHeight - reviewsFlick.height))
+                flick.contentY = Math.max(0, Math.min(ratio * flick.contentHeight, flick.contentHeight - flick.height))
+            }
+        }
+    }
+
+    //confirmation Dialog
+    Dialog {
+        id: confirmDialog
+
+        property string selectedTier: ""
+        property string actionType: ""
+        property string dialogMessage: ""
+
+        modal: true
+        anchors.centerIn: parent
+        width: 420
+        padding: 20
+
+        background: Rectangle {
+            color: "#1e293b"
+            radius: 14
+            border.color: "#334155"
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 20
+
+            Text {
+                text: "Confirmation!"
+                color: "white"
+                font.pixelSize: 22
+                font.bold: true
+            }
+
+            Text {
+                text: confirmDialog.dialogMessage
+                color: "#cbd5e1"
+                wrapMode: Text.WordWrap
+                font.pixelSize: 14
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                spacing: 12
+
+                Button {
+                    text: "Cancel"
+
+                    onClicked: confirmDialog.close()
+
+                    background: Rectangle {
+                        color: "#475569"
+                        radius: 8
+                    }
+
+                    contentItem: Text {
+                        text: parent.text
+                        color: "white"
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+
+                Button {
+                    text: "Confirm"
+
+                    onClicked: {
+
+                        if (confirmDialog.actionType === "renew") {
+
+                            lms.renewMembership(membershipRoot.userId)
+
+                        } else {
+
+                            lms.upgradeMembership(
+                                        membershipRoot.userId,
+                                        confirmDialog.selectedTier
+                                        )
+                        }
+
+                        refreshMembership()
+
+                        confirmDialog.close()
+                        successDialog.open()
+                    }
+
+                    background: Rectangle {
+                        color: "#3b82f6"
+                        radius: 8
+                    }
+
+                    contentItem: Text {
+                        text: parent.text
+                        color: "white"
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+            }
+        }
+    }
+
+    // Update dialog box
+    Dialog {
+        id: successDialog
+
+        modal: true
+        anchors.centerIn: parent
+        width: 360
+        padding: 20
+
+        background: Rectangle {
+            color: "#1e293b"
+            radius: 14
+            border.color: "#334155"
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 18
+
+            Text {
+                text: "Updated!"
+                color: "white"
+                font.pixelSize: 22
+                font.bold: true
+            }
+
+            Text {
+                text: "Your membership has been updated successfully!"
+                color: "#cbd5e1"
+                wrapMode: Text.WordWrap
+            }
+
+            Button {
+                Layout.alignment: Qt.AlignRight
+                text: "OK"
+
+                onClicked: successDialog.close()
+
+                background: Rectangle {
+                    color: "#10b981"
+                    radius: 8
+                }
+
+                contentItem: Text {
+                    text: parent.text
+                    color: "white"
+                    font.bold: true
+                    horizontalAlignment: Text.AlignHCenter
+                }
             }
         }
     }
@@ -275,19 +465,42 @@ Rectangle {
                     }
                 }
                 onClicked: {
-                    if (tier === membershipRoot.activeTier) return
 
-                    lms.upgradeMembership(membershipRoot.userId, tier)
+                    if (tier === membershipRoot.activeTier)
+                        return
 
-                    // refresh UI
-                    var data = lms.getMembership()
-                    membershipRoot.activeTier = data.tier.toUpperCase()
-                    membershipRoot.borrowLimit = data.borrowLimit
-                    membershipRoot.fineDiscount = data.fineDiscount
-                    membershipRoot.expiryDate = data.expiry
+                    var fee = 0
+
+                    if (tier === "GOLD")
+                        fee = 29
+                    else if (tier === "PLATINUM")
+                        fee = 59
+
+                    var actionWord = "upgrade"
+
+                    if (
+                            (membershipRoot.activeTier === "PLATINUM" && tier === "GOLD") ||
+                            (membershipRoot.activeTier !== "SILVER" && tier === "SILVER")
+                            )
+                    {
+                        actionWord = "downgrade"
+                    }
+
+                    confirmDialog.actionType = "upgrade"
+                    confirmDialog.selectedTier = tier
+
+                    confirmDialog.dialogMessage =
+                            fee + "$ will be deducted from your wallet.\n\n" +
+                            "Are you sure to " +
+                            actionWord +
+                            " your membership to " +
+                            tier +
+                            " tier?"
+
+                    confirmDialog.open()
                 }
                 background: Rectangle { implicitHeight: 40; color: "#3b82f6"; radius: 8 }
-                contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter }
+                contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight}
             }
         }
     }

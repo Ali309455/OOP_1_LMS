@@ -48,7 +48,7 @@ public:
     // ========== Catalog Operations ==========
     bool addbook(const std::string& isbn,const std::string&  title,const std::string&  author, const std::string& category,const std::string&  section, const std::string& publisher,const std::string&  edition, const std::string& language, int publicationYear, int pages,int totalCopies);
     bool removeBook(const std::string& isbn);
-    bool updateBook(const std::string& isbn,const std::string&  title,const std::string&  author, const std::string& category,const std::string&  section, const std::string& publisher,const std::string&  edition, const std::string& language, int publicationYear, int pages,int totalCopies);
+    bool updateBook(const std::string& isbn,int totalCopies);
     // ========== Transaction/Book Ops ==========
     bool issueBook(const std::string& isbn, const std::string& studentID);    // Called by librarian
     bool returnBook(const std::string& txnID);   // Called by librarian

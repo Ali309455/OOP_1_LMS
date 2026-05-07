@@ -6,6 +6,9 @@ Rectangle {
     id: root
     color: "#0b1220"
     property var txData: lms.getTransactions();
+    property var booksData: lms.getBooks();
+    property var usersData: lms.getUsers();
+    property var currentUser: null;
     // ── Theme ──────────────────────────────────────────────────────────────
     readonly property color cardBg:      "#171e2f"
     readonly property color borderColor: "#2a3350"
@@ -36,22 +39,12 @@ Rectangle {
     property bool   returnSuccess:  false
 
     // ── Available students & books for dropdowns ───────────────────────────
-    property var studentList: [
-        { name: "John Doe",    id: "S001" },
-        { name: "Jane Smith",  id: "S002" },
-        { name: "Bob Johnson", id: "S003" },
-        { name: "Alice Brown", id: "S004" }
-    ]
-
-    property var bookList: [
-        { title: "Clean Code",                 isbn: "978-0132350884" },
-        { title: "Design Patterns",            isbn: "978-0201633612" },
-        { title: "Effective Java",             isbn: "978-0134685991" },
-        { title: "The Pragmatic Programmer",   isbn: "978-0137081073" },
-        { title: "Introduction to Algorithms", isbn: "978-0262033848" },
-        { title: "Refactoring",                isbn: "978-0201485677" },
-        { title: "You Don't Know JS",          isbn: "978-1491924464" }
-    ]
+    ListModel {
+      id: students
+    }
+    ListModel {
+      id: booksModel
+    }
 
     // ── Transaction data ───────────────────────────────────────────────────
     ListModel {
@@ -62,12 +55,20 @@ Rectangle {
     //     ListElement { txnId: "TXN-1242"; student: "John Doe";    sId: "S001"; book: "The Pragmatic Programmer";   isbn: "978-0137081073"; issueDate: "2026-04-05"; dueDate: "2026-04-19"; returnDate: "-";          fine: "-";   status: "active"   }
     //     ListElement { txnId: "TXN-1241"; student: "Alice Brown"; sId: "S004"; book: "Introduction to Algorithms"; isbn: "978-0262033848"; issueDate: "2026-03-20"; dueDate: "2026-04-03"; returnDate: "-";          fine: "$30"; status: "overdue"  }
      }
-
-    Component.onCompleted: {
+    function transactiondatafetching(){
         txModel.clear()
 
-        for (let i = 0; i < txData.length; i++) {
-            txModel.append(txData[i])
+    for (let i = 0; i < txData.length; i++) {
+        txModel.append(txData[i])
+    }
+}
+    Component.onCompleted: {
+        transactiondatafetching();
+        for(let j =0; j<usersData.length; j++){
+            students.append(usersData[j]);
+        }
+        for(let k =0; k<booksData.length; k++){
+            booksModel.append(booksData[k]);
         }
     }
 
@@ -126,27 +127,20 @@ Rectangle {
         if (!issueStudent)  { issueMsg = "Please select a student."; issueSuccess = false; return }
         if (!issueBook)     { issueMsg = "Please select a book.";    issueSuccess = false; return }
 
-        var txnId = "TXN-" + nextTxnNum
-        nextTxnNum++
-        lms.login("admin@lib.com","admin");
-        lms.issueBook(issueIsbn, issueStudentId)
-        txModel.insert(0, {
-            txnId:      txnId,
-            student:    issueStudent,
-            sId:        issueStudentId,
-            book:       selectBook,
-            isbn:       issueIsbn,
-            issueDate:  todayStr(),
-            dueDate:    dueDateStr(14),
-            returnDate: "-",
-            fine:       "-",
-            status:     "active"
-        })
-
-        issueMsg = "Book issued successfully! TXN ID: " + txnId
+        // var txnId = "TXN-" + nextTxnNum
+        // nextTxnNum++
+        if(lms.issueBook(issueIsbn, issueStudentId)){
+            txData = lms.getTransactions()
+            transactiondatafetching()
+        issueMsg = "Book issued successfully! "
         issueSuccess = true
         issueFeedbackTimer.restart()
-        issueStudent = ""; issueStudentId = ""; selectBook = ""; issueIsbn = ""
+        issueStudent = ""; issueStudentId = ""; selectBook = ""; issueIsbn = ""}
+        else{
+            issueMsg = "Book issued Failed! "
+            issueSuccess = false
+            issueFeedbackTimer.restart()
+        }
     }
 
     // ── Return Book logic ──────────────────────────────────────────────────
@@ -162,15 +156,22 @@ Rectangle {
                     returnSuccess = false
                     return
                 }
-                var fine = calcFine(row.dueDate)
-                txModel.setProperty(i, "returnDate", todayStr())
-                txModel.setProperty(i, "fine",       fine)
-                txModel.setProperty(i, "status",     "returned")
-                returnMsg = "Book returned! " + (fine !== "-" ? "Fine applied: " + fine : "No fine.")
-                returnSuccess = true
-                returnFeedbackTimer.restart()
-                returnTxnId = ""
-                return
+                if(lms.returnBook(id)){
+                    returnMsg = id+ " is returned."
+                    txData = lms.getTransactions();
+                    transactiondatafetching();
+                    returnSuccess = true;
+                    return
+                }
+                // var fine = calcFine(row.dueDate)
+                // txModel.setProperty(i, "returnDate", todayStr())
+                // txModel.setProperty(i, "fine",       fine)
+                // txModel.setProperty(i, "status",     "returned")
+                // returnMsg = "Book returned! " + (fine !== "-" ? "Fine applied: " + fine : "No fine.")
+                // returnSuccess = true
+                // returnFeedbackTimer.restart()
+                // returnTxnId = ""
+                // return
             }
         }
         returnMsg = "Transaction " + id + " not found."
@@ -408,7 +409,7 @@ Rectangle {
                                                 width: parent.width * 0.25
                                                 anchors.verticalCenter: parent.verticalCenter
                                                 spacing: 2
-                                                Text { text: book; color: root.textPrimary; font.pixelSize: 13; font.bold: true; elide: Text.ElideRight; width: parent.width - 8 }
+                                                Text { text: bookName; color: root.textPrimary; font.pixelSize: 13; font.bold: true; elide: Text.ElideRight; width: parent.width - 8 }
                                                 Text { text: isbn; color: root.textMuted;   font.pixelSize: 11; elide: Text.ElideRight; width: parent.width - 8 }
                                             }
 
@@ -602,10 +603,10 @@ Rectangle {
                     Menu {
                         id: studentMenu
                         Repeater {
-                            model: root.studentList
+                            model: students
                             delegate: MenuItem {
-                                text: modelData.name + " (" + modelData.id + ")"
-                                onTriggered: { root.issueStudent = modelData.name; root.issueStudentId = modelData.id }
+                                text: name + " (" + userId + ")"
+                                onTriggered: { root.issueStudent = name; root.issueStudentId = userId }
                             }
                         }
                     }
@@ -619,17 +620,17 @@ Rectangle {
                     width: parent.width; height: 44; radius: 8
                     color: "#0f1117"; border.color: "#2d3748"; border.width: 1
                     RowLayout { anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                        Text { Layout.fillWidth: true; text: root.selectBook !== "" ? root.seclectBook : "Select a book"; color: root.selectBook !== "" ? root.textPrimary : "#6b7280"; font.pixelSize: 13; elide: Text.ElideRight }
+                        Text { Layout.fillWidth: true; text: root.selectBook !== "" ? root.seleectBook : "Select a book"; color: root.selectBook !== "" ? root.textPrimary : "#6b7280"; font.pixelSize: 13; elide: Text.ElideRight }
                         Text { text: "▼"; color: root.textMuted; font.pixelSize: 9 }
                     }
                     MouseArea { anchors.fill: parent; onClicked: bookMenu.open() }
                     Menu {
                         id: bookMenu
                         Repeater {
-                            model: root.bookList
+                            model: booksModel
                             delegate: MenuItem {
-                                text: modelData.title
-                                onTriggered: { root.selectBook = modelData.title; root.issueIsbn = modelData.isbn }
+                                text: title
+                                onTriggered: { root.selectBook = title; root.issueIsbn = isbn }
                             }
                         }
                     }

@@ -15,7 +15,8 @@ QString getDate(int addDays = 0)
 
 LibrarySystem::LibrarySystem()
 {
-    // initializeSystem();
+    initializeSystem();
+    Database::init();
 }
 string LibrarySystem::generateId(const std::string& prefix, int maxIdFromDB) {
     // return prefix + "-" + std::to_string(maxIdFromDB + 1);
@@ -45,7 +46,7 @@ void LibrarySystem::loadUsersIntoSystem()
             }
 
             Person* person = nullptr;
-
+            transform(role.begin(), role.end(), role.begin(), ::toupper);
             if ( role == ROLE_STUDENT) {
                 if (membership.empty()) {
                     throw std::invalid_argument("Membership field is empty for student: " + name);
@@ -147,6 +148,7 @@ void LibrarySystem::loadTransactionsIntoSystem()
             std::string dueDate       = map["duedate"].toString().toStdString();
             std::string returnDate    = map["returnDate"].toString().toStdString();
             std::string status        = map["status"].toString().toStdString();
+            std::string bookName        = map["bookName"].toString().toStdString();
 
             // Note: returnDate might be empty if the book hasn't been returned yet,
             // so we usually don't throw an error for that specific field.
@@ -166,7 +168,7 @@ void LibrarySystem::loadTransactionsIntoSystem()
 
             // 3. Create object
             transaction tr(transactionId, studentId, username, isbn,
-                           issueDate, dueDate, returnDate,
+                           issueDate, dueDate, returnDate,bookName,
                            status, fine);
 
             // 4. Add to manager
@@ -308,19 +310,23 @@ void LibrarySystem::logout() { currentUser = nullptr; }
 // -------------------> transaction <---------------------------
 
 bool LibrarySystem::issueBook(const string& isbn, const string& sid) {
-    if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN){;
+    /*if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN){;
         return false;
-    }        // permission check HERE
+    }*/        // permission check HERE
     Book* b = BooksManager.findByIsbn(isbn);
     qDebug() << b<< b->getAvailableCopies();
     if (!b || b->getAvailableCopies() == 0) return false;
-    qDebug() <<transactionlog::transactioncount;
+    b->issueOneCopy();
     Person* p = authManager.findById(sid);
     if (!p) return false;
     string username = p->getName();
     string txid =  generateId("TX", Database::getMaxIdNumber("transactions", "txid", "TX"));
-    bool dbresponse = Database::addTransaction(QString::fromStdString(txid),QString::fromStdString(sid),QString::fromStdString(isbn),"",QString::fromStdString("active"),0);
-    return(dbresponse && TransactionManager.issueBook(txid,sid,username,isbn,getDate().toStdString(),getDate(7).toStdString()));
+    bool dbresponse = Database::addTransaction(QString::fromStdString(txid),QString::fromStdString(sid),QString::fromStdString(isbn),"",QString::fromStdString(b->getTitle()),QString::fromStdString("active"),0);
+    int total = b->getTotalCopies(); int available = b->getAvailableCopies();
+    qDebug()<<available;
+    if(isbn.empty() && total && available){qDebug()<<"book data fetching failed"; return false;}
+    bool bookupdate = Database::updateBook(QString::fromStdString(isbn),total, available);
+    return(dbresponse && bookupdate && TransactionManager.issueBook(txid,sid,username,isbn,getDate().toStdString(),getDate(7).toStdString(),b->getTitle()));
 }
 
 bool LibrarySystem::returnBook(const string& txnID) {
@@ -356,12 +362,11 @@ bool LibrarySystem::returnBook(const string& txnID) {
     Book* b = BooksManager.findByIsbn(t->getIsbn());
     if (!b) return false;
     b->returnOneCopy();
-
+    bool bookupdate = Database::updateBook(QString::fromStdString(t->getIsbn()), b->getTotalCopies(),b->getAvailableCopies());
     // ✅ Step 7: update DB
-    return Database::updateTransaction(
+    return bookupdate && Database::updateTransaction(
         QString::fromStdString(t->getTransactionId()),
-        "returned",
-        fine
+        "returned",fine,QString::fromStdString(returnDate)
         );
 }
 
@@ -376,11 +381,14 @@ bool LibrarySystem::addbook(const string& isbn,const string&  title,const string
     return Database::addBook(QString::fromStdString(isbn),QString::fromStdString(title),QString::fromStdString(author),pages,QString::fromStdString(category),QString::fromStdString(section),QString::fromStdString(publisher),QString::fromStdString(edition),QString::fromStdString(language),publicationYear,totalCopies,totalCopies);
 }
 
-// bool LibrarySystem::updateBook(const std::string& isbn,const std::string&  title,const std::string&  author, const std::string& category,const std::string&  section, const std::string& publisher,const std::string&  edition, const std::string& language, int publicationYear, int pages,int totalCopies){
-//     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
-//         return false;
-//     BookManager.upd
-// }
+bool LibrarySystem::updateBook(const std::string& isbn,int totalCopies){
+    if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
+        return false;
+    int avaliablecopies;
+    bool res =BooksManager.updateBook(isbn,totalCopies);
+    if (res) avaliablecopies = BooksManager.findByIsbn(isbn)->getAvailableCopies()   ;
+    return res && Database::updateBook(QString::fromStdString(isbn),totalCopies,avaliablecopies) ;
+}
 
 bool LibrarySystem::removeBook(const string& isbn){
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
@@ -630,11 +638,28 @@ bool LibrarySystem::updateUser( const string& id, const string& name, const stri
 }
 
 // -------------------> membership <---------------------------
-bool LibrarySystem::upgradeStudentMembership(const string& studentId, const string& newTier){
+bool LibrarySystem::upgradeStudentMembership(
+    const string& studentId,
+    const string& newTier)
+{
     authManager.upgrademembership(newTier, studentId);
+
     Person *p = authManager.findById(studentId);
-    Database::updateUser(QString::fromStdString(studentId),QString::fromStdString(p->getName()),QString::fromStdString(p->getEmail()),QString::fromStdString(p->getPassword()),QString::fromStdString(newTier),QString::fromStdString(p->getRole()));
-    return Database::updateUser(QString::fromStdString(studentId),QString::fromStdString(p->getName()),QString::fromStdString(p->getEmail()),QString::fromStdString(p->getPassword()),QString::fromStdString(newTier),QString::fromStdString(p->getRole()));;
+
+    Student* s = dynamic_cast<Student*>(p);
+
+    if (!p || !s)
+        return false;
+
+    return Database::updateUser(
+        QString::fromStdString(studentId),
+        QString::fromStdString(p->getName()),
+        QString::fromStdString(p->getEmail()),
+        QString::fromStdString(p->getPassword()),
+        QString::fromStdString(newTier),
+        QString::fromStdString(p->getRole()),
+        QString::fromStdString(s->getStatus())
+        );
 }
 
 QVariantMap LibrarySystem::getCurrentMembershipDetails() {
@@ -669,12 +694,19 @@ QVariantMap LibrarySystem::getCurrentMembershipDetails() {
     return map;
 }
 
-bool LibrarySystem::renewMembership(const string& studentId) {
+bool LibrarySystem::renewMembership(const string& studentId)
+{
     Person* p = authManager.findById(studentId);
-    if (!p) return false;
 
-    string tier = p->getRole() == ROLE_STUDENT ?
-                      dynamic_cast<Student*>(p)->getMembershipTier() : "";
+    if (!p)
+        return false;
+
+    Student* s = dynamic_cast<Student*>(p);
+
+    if (!s)
+        return false;
+
+    string tier = s->getMembershipTier();
 
     return Database::updateUser(
         QString::fromStdString(studentId),
@@ -682,7 +714,8 @@ bool LibrarySystem::renewMembership(const string& studentId) {
         QString::fromStdString(p->getEmail()),
         QString::fromStdString(p->getPassword()),
         QString::fromStdString(tier),
-        QString::fromStdString(p->getRole())
+        QString::fromStdString(p->getRole()),
+        QString::fromStdString(s->getStatus())
         );
 }
 

@@ -20,8 +20,8 @@ Item {
             Layout.preferredWidth: 800
             height: 56
             clip: true
-            userName: "Admin User"
-            userRole: "Librarian"
+            userName: centralbox.currentUser.name
+            userRole: centralbox.islibrarian?"librarian":"student"
             notificationCount: 3
 
             onSearchTextChanged: function(text) {
@@ -53,10 +53,12 @@ Item {
         }
 
         Component { id: reviewsComp; Reviews {userRole: centralbox.islibrarian?"librarian":"student" }}
-        Component { id: membershipComp; Membership {userID: centralbox.currentUser.userID} }
+        Component { id: membershipComp; Membership {userId: centralbox.currentUser.userId} }
         Component { id: usersComp; UserManagement {} }
         Component { id: settingsComp; Profile { currentUser: centralbox.currentUser} }
-        Component { id: transactionComp; Transactions {isLibrarian: centralbox.islibrarian} }
+        Component { id: transactionComp; Transactions {isLibrarian: centralbox.islibrarian
+            currentUser: centralbox.currentUser
+            } }
         Component { id: librariandashboardComp;  LibrarianDashboard {} }
         Component { id: studentdashboardComp;  StudentDashboard {} }
         Component {

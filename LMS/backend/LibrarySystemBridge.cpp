@@ -54,13 +54,17 @@ bool LibrarySystemBridge::updateUser(const QString& id,const QString& name, cons
 // }
 }
 bool LibrarySystemBridge::addBook(const QString &isbn, const QString &title, const QString &author, const QString &category, const QString &section, const QString &publisher, const QString &edition, const QString &language, int publicationYear, int pages, int totalCopies)
-{
+{  // const string& isbn,const string&  title,const string&  author, const string& category,const string&  section, const string& publisher,const string&  edition, const string& language, int publicationYear, int pages,int totalCopies
     return m_system.addbook(isbn.toStdString(), title.toStdString(), author.toStdString(), category.toStdString(), section.toStdString(), publisher.toStdString(), edition.toStdString(), language.toStdString(), publicationYear, pages, totalCopies);
 }
 
 bool LibrarySystemBridge::removeBook(const QString &isbn)
 {
     return m_system.removeBook(isbn.toStdString());
+}
+
+bool LibrarySystemBridge::updateBook(const QString& isbn,int totalCopies){
+    return m_system.updateBook(isbn.toStdString(),  totalCopies);
 }
 
 bool LibrarySystemBridge::issueBook(const QString &isbn, const QString &studentID)
@@ -166,6 +170,7 @@ QVariantList LibrarySystemBridge::getTransactions()
         map["returnDate"] = tx.getReturnDate().empty()
             ? "--"
             : QString::fromStdString(tx.getReturnDate());
+        map["bookName"] = QString::fromStdString(tx.getbookName());
         map["status"] = QString::fromStdString(tx.getStatus());
         map["fine"] = (tx.getFine() == 0.0)
             ? "--"

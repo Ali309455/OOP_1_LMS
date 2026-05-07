@@ -10,7 +10,7 @@ Rectangle {
 
     // ── Role: controls Add Book button visibility ──────────────────────────
     property bool isLibrarian: true   // set false for student view
-
+    property bool isEditMode :false
     signal bookSelected(var book)
     signal filterChanged(string filterKey, var filterValue)
 
@@ -81,8 +81,8 @@ Rectangle {
         }
         if (filterGenre    && book.genre    !== filterGenre)    return false
         if (filterSection  && book.section  !== filterSection)  return false
-        if (filterAvailability === "available"   && book.available === 0) return false
-        if (filterAvailability === "unavailable" && book.available > 0)   return false
+        if (filterAvailability === "available"   && book.availableCopies === 0) return false
+        if (filterAvailability === "unavailable" && book.availableCopies > 0)   return false
         return true
     }
 
@@ -98,27 +98,52 @@ Rectangle {
     property string formIsbn: ""
     property string formTitle: ""
     property string formAuthor: ""
+    property string formPublisher: ""
+    property string formEdition: ""
+    property string formLanguage: ""
+    property int    formYear: 2024
+    property int    formPages: 1
     property string formGenre: "Programming"
     property string formSection: "CS-A"
-    property int    formAvailable: 1
+    property int    formTotalCopies: 1
+    property int editIndex;
 
     function resetForm() {
         formIsbn = ""; formTitle = ""; formAuthor = ""
-        formGenre = "Programming"; formSection = "CS-A"; formAvailable = 1
+        formGenre = "Programming"; formSection = "CS-A"
+        formTotalCopies = 1
+        formPublisher = ""
+        formEdition = ""
+        formLanguage = ""
+        formYear = 2024
+        formPages = 1
     }
 
     function addBook() {
         if (!formIsbn || !formTitle || !formAuthor) return
-        booksModel.insert(0, {
-            isbn:      formIsbn,
-            title:     formTitle,
-            author:    formAuthor,
-            genre:     formGenre,
-            section:   formSection,
-            available: formAvailable
-        })
-        resetForm()
-        showAddDialog = false
+        // const string& isbn,const string&  title,const string&  author, const string& category,const string&  section, const string& publisher,const string&  edition, const string& language, int publicationYear, int pages,int totalCopies;
+        let ok;
+        if(!booksView.isEditMode){
+         ok = lms.addBook(
+            formIsbn, formTitle, formAuthor, formGenre, formSection, formPublisher, formEdition, formLanguage,
+            formYear, formPages, formTotalCopies
+        )}
+        else{
+            // console.log(                        formIsbn, formTitle, formAuthor, formGenre, formSection, formPublisher, formEdition, formLanguage,
+            //             formYear, formPages, formTotalCopies);
+         ok =lms.updateBook(
+                        formIsbn,  formTotalCopies
+                    )
+
+        console.log(ok);}
+        if (ok) {
+            // Re-fetch data from backend (highly recommended):
+            bookList = lms.getBooks()
+            syncBooksModel()
+            resetForm()
+            showAddDialog = false
+            isEditMode = false
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -176,7 +201,10 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: { booksView.resetForm(); booksView.showAddDialog = true }
+                        onClicked: {
+                                booksView.showAddDialog = true
+                                booksView.addBook()
+                        }
                     }
                 }
             }
@@ -321,7 +349,24 @@ Rectangle {
                                 spacing: 0
 
                                 Text { Layout.preferredWidth: 110; text: model.isbn;   font.pixelSize: 12; font.bold: true; color: "#9ca3af"; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
-                                Text { Layout.fillWidth: true;     text: model.title;  font.pixelSize: 13; font.bold: true; color: "#ffffff";  verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
+                                // Text { Layout.fillWidth: true;     text: model.title;  font.pixelSize: 13; font.bold: true; color: "#ffffff";  verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
+                                Rectangle {  // highlight on hover if you want
+                                    Layout.fillWidth: true
+                                    color: titleActionMA.containsMouse ? "#18243c" : "transparent"
+                                    Text {
+                                        text: model.title
+                                        color: "#3b82f6";       // to show it's clickable
+                                        font.pixelSize: 13; font.bold: true
+                                        verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight
+                                    }
+                                    MouseArea {
+                                        id: titleActionMA
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: booksView.bookSelected(model)
+                                    }
+                                }
                                 Text { Layout.preferredWidth: 150; text: model.author; font.pixelSize: 12; color: "#9ca3af"; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
                                 Text { Layout.preferredWidth: 100; text: model.genre;  font.pixelSize: 12; color: "#9ca3af"; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
 
@@ -348,6 +393,42 @@ Rectangle {
                                 }
 
                                 // Eye action
+                                // Edit button
+                                Rectangle {
+                                    Layout.preferredWidth: 60; height: 32; radius: 8
+                                    color: actionEditMA.containsPress ? "#1e3a5f" : actionEditMA.containsMouse ? "#162d4a" : "transparent"
+                                    Behavior on color { ColorAnimation { duration: 100 } }
+                                    Row {
+                                        anchors.centerIn: parent; spacing: 6
+                                        Image{
+                                            width: 18
+                                            height: 18
+                                            source: "qrc:/assets/icons/edit.png"
+                                            fillMode: Image.PreserveAspectFit
+                                        }
+                                    }
+                                    MouseArea {
+                                        id: actionEditMA; anchors.fill: parent
+                                        hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            booksView.isEditMode = true
+                                            booksView.showAddDialog = true
+                                            booksView.editIndex = index
+
+                                            booksView.formIsbn = model.isbn
+                                            booksView.formTitle = model.title
+                                            booksView.formAuthor = model.author
+                                            booksView.formGenre = model.genre
+                                            booksView.formSection = model.section
+                                            booksView.formPublisher = model.publisher
+                                            booksView.formEdition = model.edition
+                                            booksView.formLanguage = model.language
+                                            booksView.formYear = model.year || 2024
+                                            booksView.formPages = model.pages || 1
+                                            booksView.formTotalCopies = model.totalCopies
+                                        }
+                                    }
+                                }
                                 Rectangle {
                                     Layout.preferredWidth: 46; height: 32; radius: 8
                                     color: actionMA.containsPress ? "#1e3a5f" : actionMA.containsMouse ? "#162d4a" : "transparent"
@@ -438,7 +519,7 @@ Rectangle {
             // Title row
             RowLayout {
                 Layout.fillWidth: true
-                Text { text: "Add New Book"; color: "#ffffff"; font.pixelSize: 18; font.bold: true }
+                Text {  text: booksView.isEditMode ? "Edit Book" : "Add New Book"; color: "#ffffff"; font.pixelSize: 18; font.bold: true }
                 Item { Layout.fillWidth: true }
                 Text {
                     text: "✕"; color: "#9ca3af"; font.pixelSize: 16
@@ -455,10 +536,11 @@ Rectangle {
                         color: "#0f1117"; border.color: isbnInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
                         TextInput {
                             id: isbnInput
+                            readOnly: booksView.isEditMode
                             anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
                             color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
                             onTextChanged: booksView.formIsbn = text
-                            Text { visible: !parent.text; text: "e.g. 978-12345"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                            Text { visible: !parent.text; text: booksView.isEditMode? formIsbn:"e.g. 978-12345"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
                         }
                     }
                 }
@@ -469,10 +551,11 @@ Rectangle {
                         color: "#0f1117"; border.color: titleInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
                         TextInput {
                             id: titleInput
+                            readOnly: booksView.isEditMode
                             anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
                             color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
                             onTextChanged: booksView.formTitle = text
-                            Text { visible: !parent.text; text: "Enter book title"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                            Text { visible: !parent.text; text: booksView.isEditMode? formTitle:"Enter book title"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
                         }
                     }
                 }
@@ -486,14 +569,114 @@ Rectangle {
                     color: "#0f1117"; border.color: authorInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
                     TextInput {
                         id: authorInput
+                        readOnly: booksView.isEditMode
                         anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
                         color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
                         onTextChanged: booksView.formAuthor = text
-                        Text { visible: !parent.text; text: "Author name(s)"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                        Text { visible: !parent.text; text:booksView.isEditMode? formAuthor:"Author name(s)"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                    }
+                }
+            }
+            // Publisher, Edition
+            RowLayout {
+                spacing: 14; Layout.fillWidth: true
+
+                // Publisher
+                ColumnLayout { spacing: 8; Layout.fillWidth: true
+                    Text { text: "Publisher"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+                    Rectangle {
+                        Layout.fillWidth: true; height: 40; radius: 8
+                        color: "#0f1117"; border.color: publisherInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
+                        TextInput {
+                            id: publisherInput
+                            readOnly: booksView.isEditMode
+                            anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                            color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
+                            onTextChanged: booksView.formPublisher = text
+                            Text { visible: !parent.text; text: booksView.isEditMode? formPublisher:"Publisher"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                        }
+                    }
+                }
+                // Edition
+                ColumnLayout { spacing: 8; Layout.fillWidth: true
+                    Text { text: "Edition"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+                    Rectangle {
+                        Layout.fillWidth: true; height: 40; radius: 8
+                        color: "#0f1117"; border.color: editionInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
+                        TextInput {
+                            id: editionInput
+                            readOnly: booksView.isEditMode
+                            anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                            color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
+                            onTextChanged: booksView.formEdition = text
+                            Text { visible: !parent.text; text:booksView.isEditMode? formEdition: "Edition"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                        }
                     }
                 }
             }
 
+            // Language, Year, Pages
+            RowLayout {
+                spacing: 14; Layout.fillWidth: true
+
+                // Language
+                ColumnLayout { spacing: 8; Layout.fillWidth: true
+                    Text { text: "Language"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+                    Rectangle {
+                        Layout.fillWidth: true; height: 40; radius: 8
+                        color: "#0f1117"; border.color: "#2d3748"; border.width: 1
+                        RowLayout { anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                            Text { Layout.fillWidth: true; text: booksView.formLanguage; color: "#e5e7eb"; font.pixelSize: 13 }
+                            Text { text: "▼"; color: "#9ca3af"; font.pixelSize: 9 }
+                        }
+                        MouseArea { anchors.fill: parent; onClicked: !booksView.isEditMode?languageMenu.open():"" }
+                        Menu {
+                            id: languageMenu
+                            MenuItem { text: "English"; onTriggered: booksView.formLanguage = text }
+                            MenuItem { text: "Urdu";    onTriggered: booksView.formLanguage = text }
+                            // Add more languages
+                        }
+                    }
+                }
+                // Year
+                ColumnLayout { spacing: 8; Layout.preferredWidth: 85
+                    Text { text: "Year"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+                    Rectangle {
+                        Layout.fillWidth: true; height: 40; radius: 8
+                        color: "#0f1117"; border.color: yearInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
+                        TextInput {
+                            id: yearInput
+                            anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                            color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
+                            inputMethodHints: Qt.ImhDigitsOnly
+                            text: ""+booksView.formYear
+                            validator: IntValidator { bottom: 1500; top: 2100 }
+                            onTextChanged: booksView.formYear = parseInt(text)||2024
+                            readOnly: booksView.isEditMode
+                            Text { visible: !parent.text; text: booksView.isEditMode? formYear:"2024"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                        }
+                    }
+                }
+                // Pages
+                ColumnLayout { spacing: 8; Layout.preferredWidth: 65
+                    Text { text: "Pages"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+                    Rectangle {
+                        Layout.fillWidth: true; height: 40; radius: 8
+                        color: "#0f1117"; border.color: pagesInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
+                        TextInput {
+                            id: pagesInput
+                            anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                            color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
+                            inputMethodHints: Qt.ImhDigitsOnly
+                            text: ""+booksView.formPages
+                            validator: IntValidator { bottom: 1; top: 20000 }
+                            onTextChanged: booksView.formPages = parseInt(text)||1
+                            readOnly: booksView.isEditMode
+                            Text { visible: !parent.text; text: booksView.isEditMode? formPages:"1"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                        }
+                    }
+                }
+            }
             // Genre + Section + Available
             RowLayout { spacing: 14; Layout.fillWidth: true
                 // Genre
@@ -525,14 +708,12 @@ Rectangle {
                             Text { Layout.fillWidth: true; text: booksView.formSection; color: "#e5e7eb"; font.pixelSize: 12 }
                             Text { text: "▼"; color: "#9ca3af"; font.pixelSize: 9 }
                         }
-                        MouseArea { anchors.fill: parent; onClicked: formSectionMenu.open() }
+                        MouseArea { anchors.fill: parent; onClicked: booksView.isEditMode?"":formSectionMenu.open() }
                         Menu {
                             id: formSectionMenu
                             MenuItem { text: "CS-A";  onTriggered: booksView.formSection = text }
                             MenuItem { text: "CS-B";  onTriggered: booksView.formSection = text }
                             MenuItem { text: "CS-C";  onTriggered: booksView.formSection = text }
-                            MenuItem { text: "WEB-A"; onTriggered: booksView.formSection = text }
-                            MenuItem { text: "WEB-B"; onTriggered: booksView.formSection = text }
                         }
                     }
                 }
@@ -547,9 +728,9 @@ Rectangle {
                             anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
                             color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
                             inputMethodHints: Qt.ImhDigitsOnly
-                            text: "1"
+                            text: booksView.isEditMode? formTotalCopies:"1"
                             validator: IntValidator { bottom: 0; top: 999 }
-                            onTextChanged: booksView.formAvailable = parseInt(text) || 0
+                            onTextChanged: booksView.formTotalCopies = parseInt(text) || 0
                         }
                     }
                 }
@@ -569,7 +750,7 @@ Rectangle {
                     Layout.fillWidth: true; height: 40; radius: 6
                     color: (booksView.formIsbn && booksView.formTitle && booksView.formAuthor) ? "#3b82f6" : "#374151"
                     Behavior on color { ColorAnimation { duration: 150 } }
-                    Text { anchors.centerIn: parent; text: "Add Book"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
+                    Text { anchors.centerIn: parent; text: booksView.isEditMode ? "Update Book" : "Add Book"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
                     MouseArea {
                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                         enabled: booksView.formIsbn && booksView.formTitle && booksView.formAuthor

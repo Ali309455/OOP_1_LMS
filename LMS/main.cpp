@@ -27,10 +27,10 @@ int main(int argc, char *argv[])
     }
 
     LibrarySystem sys;
-    sys.initializeSystem();
+    // sys.initializeSystem();
     LibrarySystemBridge lmsBridge(&sys);
     engine.rootContext()->setContextProperty("lms", &lmsBridge);
-    Database::init();
+    // Database::init();
 
     // // =========================
     // // ADD TEST DATA
@@ -38,10 +38,16 @@ int main(int argc, char *argv[])
 
     // qDebug() << "\n=== ADD DATA ===";
 
-    Database::addBook("978-2", "C++ advanced", "Bjarne Stroustrup",420,"Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
-    Database::addUser("s-13", "aw", "aw@gmail.com", "2113", "Gold", "Student", "Active");
 
+    Database::addBook("978-2", "C++ advanced", "Bjarne Stroustrup",420,"Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
+    Database::addUser("s-13", "aw", "aw@gmail.com", "2113", "Gold", "STUDENT", "Active");
+    Database::addUser("s-88", "ali", "ali@gmail.com", "123", "Gold", "STUDENT", "Active");
     qDebug()<< sys.login("ali@gmail.com","123");
+
+    // Database::addBook("978-2", "C++ advanced", "Bjarne Stroustrup",420,"Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
+    Database::addUser("LIB-1","Admin","admin@lib.com","admin","","LIBRARIAN","active");
+    // qDebug()<< sys.login("admin@lib.com","admin");
+
     // sys.login("ali@gmail.com","123");
     // qDebug()<< sys.updateUser("SU-6","dkj2","dkj@gmail,com","123","Gold","STUDENT","active");
     // sys.removeUser("SU-2");
@@ -51,13 +57,13 @@ int main(int argc, char *argv[])
 
     // sys.addbook("278-2", "AI essentails", "Bjarne ","SI", "CS", "Pearson", "2st","English", 2022,520, 10);
     // sys.removeBook("278-2");
-    bool ok = sys.submitReview("SU-1","978-2",4,"good for fe students");
-    qDebug()<<"Review status: "<<ok;
+    // bool ok = sys.submitReview("SU-1","978-2",4,"good for fe students");
+    // qDebug()<<"Review status: "<<ok;
     // bool ok2 = sys.submitReview("SU-0","278-2",3,"good for fe students");
     // qDebug()<<"Review status: "<<ok2;
     // sys.approveReview("RV-1");
-    // qDebug() << sys.issueBook("978-2","SU-1");
-    // qDebug() << sys.returnBook("TX-2");
+    // qDebug() << sys.issueBook("978-2","SU-2");
+    // qDebug() << sys.returnBook("TX-1");
     // sys.displayAllData();
 
 

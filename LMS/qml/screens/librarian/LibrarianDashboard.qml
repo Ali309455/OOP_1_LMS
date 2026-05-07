@@ -8,6 +8,7 @@ Rectangle {
     anchors.fill: parent
 
     signal quickActionClicked(string action)
+    property var txData: lms.getTransactions();
 
     // ───────────────── DATA ─────────────────
     property var colW: [140, 160, 190, 120, 120]
@@ -19,12 +20,9 @@ Rectangle {
         { icon: "qrc:/assets/icons/addreview.png", value: "8",     label: "Pending Reviews",     iconColor: "#091291" }
     ]
 
-    property var transactions: [
-        { id: "TXN-1245", student: "John Doe",    book: "Clean Code",      date: "2026-04-12", status: "active"   },
-        { id: "TXN-1244", student: "Jane Smith",  book: "Design Patterns", date: "2026-04-11", status: "returned" },
-        { id: "TXN-1243", student: "Bob Johnson", book: "Refactoring",     date: "2026-04-10", status: "overdue"  },
-        { id: "TXN-1242", student: "Alice Brown", book: "SICP",            date: "2026-04-09", status: "active"   }
-    ]
+    ListModel{
+        id:transactions
+    }
 
     property var quickActions: [
         { label: "Add Book",       color: "#3b82f6", action: "addBook"       },
@@ -41,7 +39,23 @@ Rectangle {
         { month: "May", value: 370 },
         { month: "Jun", value: 340 }
     ]
+    function transactiondatafetching() {
+        transactions.clear()
 
+        let count = txData.length
+
+        if (count > 10)
+            count = 10
+
+        for (let i = 0; i < count; i++) {
+            console.log(JSON.stringify(txData[i]))
+            transactions.append(txData[i])
+        }
+    }
+    Component.onCompleted: {
+        transactiondatafetching();
+
+    }
     property int chartMax: 600
 
     // ── Vertical scrollbar ─────────────────────────────────────────────────
@@ -357,7 +371,7 @@ Rectangle {
 
                         // Data rows
                         Repeater {
-                            model: dashboard.transactions
+                            model: transactions
                             delegate: Column {
                                 width: parent.width
                                 spacing: 0
@@ -370,7 +384,7 @@ Rectangle {
                                     Text {
                                         width: dashboard.colW[0]
                                         height: parent.height
-                                        text: modelData.id
+                                        text: txnId
                                         font.bold: true
                                         font.pixelSize: 13
                                         color: "#ffffff"
@@ -382,7 +396,7 @@ Rectangle {
                                     Text {
                                         width: dashboard.colW[1]
                                         height: parent.height
-                                        text: modelData.student
+                                        text: student
                                         font.pixelSize: 13
                                         color: "#e5e7eb"
                                         verticalAlignment: Text.AlignVCenter
@@ -392,7 +406,7 @@ Rectangle {
                                     Text {
                                         width: dashboard.colW[2]
                                         height: parent.height
-                                        text: modelData.book
+                                        text: bookName
                                         font.pixelSize: 13
                                         color: "#e5e7eb"
                                         verticalAlignment: Text.AlignVCenter
@@ -402,7 +416,7 @@ Rectangle {
                                     Text {
                                         width: dashboard.colW[3]
                                         height: parent.height
-                                        text: modelData.date
+                                        text: issueDate
                                         font.pixelSize: 12
                                         color: "#9ca3af"
                                         verticalAlignment: Text.AlignVCenter
@@ -419,8 +433,8 @@ Rectangle {
                                             radius: 13
                                             anchors.verticalCenter: parent.verticalCenter
 
-                                            color: modelData.status === "active"   ? "#052e16"
-                                                 : modelData.status === "returned" ? "#1e3a5f"
+                                            color: status === "active"   ? "#052e16"
+                                                 : status === "returned" ? "#1e3a5f"
                                                  : "#3b0f0f"
 
                                             border.color: modelData.status === "active"   ? "#10b981"
@@ -430,11 +444,11 @@ Rectangle {
 
                                             Text {
                                                 anchors.centerIn: parent
-                                                text: modelData.status
+                                                text: status
                                                 font.pixelSize: 11
                                                 font.bold: true
-                                                color: modelData.status === "active"   ? "#10b981"
-                                                     : modelData.status === "returned" ? "#3b82f6"
+                                                color: status === "active"   ? "#10b981"
+                                                     : status === "returned" ? "#3b82f6"
                                                      : "#ef4444"
                                             }
                                         }
@@ -446,7 +460,7 @@ Rectangle {
                                     width: parent.width
                                     height: 1
                                     color: "#1e2535"
-                                    visible: index < dashboard.transactions.length - 1
+                                    visible: index <transactions.length - 1
                                 }
                             }
                         }

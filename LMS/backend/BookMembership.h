@@ -38,7 +38,16 @@ public:
     int getTotalCopies() const;
     int getAvailableCopies() const;
     BookStatus getStatus() const;
-
+    void setTitle(const std::string& t) ;
+    void setAuthor(const std::string& a) ;
+    void setCategory(const std::string& c) ;
+    void setSection(const std::string& s) ;
+    void setPublisher(const std::string& p);
+    void setEdition(const std::string& e);
+    void setLanguage(const std::string& l);
+    void setPublicationYear(int y) ;
+    void setPages(int p);
+    void setTotalCopies(int total);
     bool issueOneCopy();
     void returnOneCopy();
     std::string statusToString() const;
@@ -51,6 +60,7 @@ private:
 public:
     static int bookcount;
     bool addBook(const Book& book);
+    bool updateBook(const std::string& isbn,int totalCopies);
     bool removeBook(const std::string& isbn);
     const std::vector<Book>& getAllBooks() const;
     Book* findByIsbn(const std::string& isbn) ;
