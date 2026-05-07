@@ -41,6 +41,7 @@ void Database::init() {
                "password TEXT,"
                "status TEXT,"
                "membership TEXT,"
+               "expiry_date TEXT,"
                "role TEXT)");
 
     query.exec("CREATE TABLE IF NOT EXISTS books ("
@@ -91,11 +92,11 @@ void Database::init() {
                "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
 }
 
-bool Database::addUser(QString id,QString name, QString email, QString password, QString membership, QString role,QString status) { // can be used in register and add user both
+bool Database::addUser(QString id,QString name, QString email, QString password, QString membership, QString role, QString status) { // can be used in register and add user both
     QSqlQuery query;
 
-    query.prepare("INSERT INTO users (id, joining_date, name, email, password,status, membership, role) "
-                  "VALUES ( ? , date('now'), ?, ?, ?, ?,?, ?)");
+    query.prepare("INSERT INTO users (id, joining_date, name, email, password, status, membership, expiry_date, role) "
+                  "VALUES ( ? , date('now'), ?, ?, ?, ?, ?, date('now', '+1 year'), ?)");
 
     query.addBindValue(id);
     query.addBindValue(name);
@@ -223,6 +224,7 @@ QVariantList Database::getUsers()
         user["membership"] = query.value("membership");
         user["role"] = query.value("role");
         user["status"] = query.value("status");
+        user["expiry_date"] = query.value("expiry_date");
         users.append(user);
     }
 
@@ -332,7 +334,7 @@ bool Database::updateUser(QString id, QString name, QString email, QString passw
 {
     QSqlQuery query;
 
-    query.prepare("UPDATE users SET name=?, email=?, password=?, membership=?, status=?, role=? WHERE id=?");
+    query.prepare("UPDATE users SET name=?, email=?, password=?, membership=?,  expiry_date=date('now','+1 year'), status=?, role=? WHERE id=?");
 
     query.addBindValue(name);
     query.addBindValue(email);

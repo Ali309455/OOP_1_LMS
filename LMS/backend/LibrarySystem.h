@@ -55,6 +55,8 @@ public:
 
     // ========== Membership Ops =========
     bool upgradeStudentMembership(const std::string& studentId, const std::string& newTier);
+    QVariantMap getCurrentMembershipDetails();
+    bool renewMembership(const std::string& studentId);
 
     // ========== Review System ==========
     bool submitReview(const std::string& studentId, const std::string& isbn, int rating, const std::string& comment);

@@ -200,3 +200,25 @@ QVariantList LibrarySystemBridge::getReviews()
     }
     return list;
 }
+
+// -------------------- Membership --------------------
+
+QVariantMap LibrarySystemBridge::getMembership()
+{
+    return m_system.getCurrentMembershipDetails();
+}
+
+bool LibrarySystemBridge::upgradeMembership(const QString& userId, const QString& tier)
+{
+    return m_system.upgradeStudentMembership(
+        userId.toStdString(),
+        tier.toStdString()
+        );
+}
+
+bool LibrarySystemBridge::renewMembership(const QString& userId)
+{
+    return m_system.renewMembership(
+        userId.toStdString()
+        );
+}

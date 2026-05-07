@@ -13,12 +13,7 @@ Rectangle {
 
     property string userRole: "librarian"
 
-    property var allBooks: [
-        "Clean Code", "Design Patterns", "Effective Java",
-        "The Pragmatic Programmer", "Introduction to Algorithms",
-        "Cracking the Coding Interview", "You Don't Know JS",
-        "Web Development with Django", "Eloquent JavaScript", "Python Crash Course"
-    ]
+    property var allBooks: []
 
     ListModel {
         id: reviewsModel/*
@@ -41,6 +36,17 @@ Rectangle {
         for (let i = 0; i < rData.length; i++) {
             reviewsModel.append(rData[i])
         }
+
+        // LOAD BOOKS FROM DATABASE
+        let booksData = lms.getBooks()
+
+        allBooks = []
+
+        for (let j = 0; j < booksData.length; j++) {
+            allBooks.push(booksData[j].title)
+        }
+
+        filteredBooks = allBooks
     }
 
     property string currentTab: "all"
@@ -64,15 +70,59 @@ Rectangle {
     }
 
     function submitReview() {
-        if (selectedBook && selectedRating > 0 && reviewComment) {
-            reviewsModel.insert(0, {
-                book: selectedBook, rating: selectedRating,
-                author: "Current User",
-                date: new Date().toISOString().split('T')[0],
-                text: reviewComment, status: "pending"
-            })
-            selectedRating = 0; reviewComment = ""; bookSearchText = ""
+
+        if (!selectedBook || selectedRating <= 0 || !reviewComment)
+            return
+
+        // FIND ISBN FROM BOOK TITLE
+        let booksData = lms.getBooks()
+
+        let selectedIsbn = ""
+
+        for (let i = 0; i < booksData.length; i++) {
+
+            if (booksData[i].title === selectedBook) {
+                selectedIsbn = booksData[i].isbn
+                break
+            }
+        }
+
+        if (selectedIsbn === "") {
+            console.log("ISBN NOT FOUND")
+            return
+        }
+
+        // SEND TO BACKEND
+        let ok = lms.submitReview(
+                    selectedIsbn,
+                    selectedRating,
+                    reviewComment
+                    )
+
+        if (ok) {
+
+            console.log("Review submitted")
+
+            // RELOAD REVIEWS
+            rData = lms.getReviews()
+
+            reviewsModel.clear()
+
+            for (let j = 0; j < rData.length; j++) {
+                reviewsModel.append(rData[j])
+            }
+
+            // RESET
+            selectedRating = 0
+            reviewComment = ""
+            bookSearchText = ""
+            selectedBook = ""
+
             showReviewDialog = false
+            successPopup.visible = true
+        } else {
+
+            console.log("Review submission failed")
         }
     }
 
@@ -265,7 +315,7 @@ Rectangle {
                             spacing: 12
 
                             Text {
-                                text: model.book
+                                text: model.book ? model.book : model.bookname
                                 color: "#ffffff"; font.pixelSize: 15; font.bold: true
                             }
 
@@ -441,51 +491,136 @@ Rectangle {
                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: reviewsView.showReviewDialog = false } }
             }
 
-            // Book picker
-            ColumnLayout { spacing: 8
-                Text { text: "Book"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
-                Rectangle {
-                    Layout.fillWidth: true; height: 44; radius: 8
-                    color: "#0f1117"
-                    border.color: bookInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
+            // ================= BOOK PICKER =================
+            Item {
+                Layout.fillWidth: true
+                height: 260
+                z: 9999
 
-                    RowLayout {
-                        anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 10
-                        Text { text: "📖"; font.pixelSize: 16; opacity: 0.6 }
-                        TextInput {
-                            id: bookInput
-                            Layout.fillWidth: true; color: "#e5e7eb"; font.pixelSize: 13
-                            clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
-                            text: reviewsView.selectedBook
-                            onTextChanged: reviewsView.bookSearchText = text
-                            Text { visible: !parent.text; text: "Select a book"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                Column {
+                    width: parent.width
+                    spacing: 8
+
+                    Text {
+                        text: "Book"
+                        color: "#e5e7eb"
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+
+                    Rectangle {
+                        id: bookField
+                        width: parent.width
+                        height: 44
+                        radius: 8
+                        color: "#0f1117"
+                        border.color: bookInput.activeFocus ? "#3b82f6" : "#2d3748"
+                        border.width: 1
+                        z: 9999
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 14
+                            anchors.rightMargin: 14
+                            spacing: 10
+
+                            Text {
+                                text: "📖"
+                                font.pixelSize: 16
+                                opacity: 0.7
+                            }
+
+                            TextInput {
+                                id: bookInput
+                                Layout.fillWidth: true
+                                color: "#e5e7eb"
+                                font.pixelSize: 13
+                                verticalAlignment: TextInput.AlignVCenter
+                                clip: true
+                                selectByMouse: true
+
+                                text: reviewsView.selectedBook
+
+                                onTextChanged: {
+                                    reviewsView.bookSearchText = text
+                                }
+
+                                Text {
+                                    visible: !parent.text
+                                    text: "Search book..."
+                                    color: "#6b7280"
+                                    font: parent.font
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
                         }
                     }
 
-                    // Drop-down
+                    // ================= DROPDOWN =================
                     Rectangle {
-                        visible: bookInput.activeFocus && reviewsView.filteredBooks.length > 0
-                        anchors.top: parent.bottom; anchors.left: parent.left; anchors.right: parent.right
-                        anchors.topMargin: 6
-                        implicitHeight: Math.min(220, dropList.implicitHeight)
-                        radius: 8; color: "#0f1117"; border.color: "#2d3748"; border.width: 1; z: 100
+                        id: resultsDropdown
+
+                        visible: bookInput.activeFocus
+                                 && reviewsView.filteredBooks.length > 0
+
+                        width: parent.width
+                        height: Math.min(220, booksColumn.implicitHeight)
+
+                        radius: 10
+                        color: "#111827"
+
+                        border.color: "#3b82f6"
+                        border.width: 1
+
+                        clip: true
+                        z: 10000
 
                         Flickable {
-                            anchors.fill: parent; contentWidth: width
-                            contentHeight: dropList.implicitHeight; clip: true
+                            anchors.fill: parent
+                            contentWidth: width
+                            contentHeight: booksColumn.implicitHeight
+                            clip: true
 
-                            ColumnLayout {
-                                id: dropList; width: parent.width; spacing: 0
+                            Column {
+                                id: booksColumn
+                                width: parent.width
+                                spacing: 0
+
                                 Repeater {
                                     model: reviewsView.filteredBooks
+
                                     delegate: Rectangle {
-                                        Layout.fillWidth: true; height: 40
-                                        color: dMA.containsMouse ? "#2d3748" : "transparent"
-                                        Text { anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 14; text: modelData; color: "#e5e7eb"; font.pixelSize: 13 }
+
+                                        width: parent.width
+                                        height: 42
+
+                                        color: itemMouse.containsMouse
+                                               ? "#1e293b"
+                                               : "#111827"
+
+                                        Text {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            anchors.left: parent.left
+                                            anchors.leftMargin: 14
+
+                                            text: modelData
+                                            color: "#f9fafb"
+                                            font.pixelSize: 13
+                                        }
+
                                         MouseArea {
-                                            id: dMA; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                                            onClicked: { reviewsView.selectedBook = modelData; bookInput.text = modelData; bookInput.focus = false }
+                                            id: itemMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+
+                                            onClicked: {
+
+                                                reviewsView.selectedBook = modelData
+                                                bookInput.text = modelData
+
+                                                bookInput.focus = false
+                                            }
                                         }
                                     }
                                 }
@@ -494,9 +629,63 @@ Rectangle {
                     }
                 }
             }
+            // // Book picker
+            // ColumnLayout { spacing: 8
+            //     Text { text: "Book"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+            //     Rectangle {
+            //         Layout.fillWidth: true; height: 44; radius: 8
+            //         color: "#0f1117"
+            //         border.color: bookInput.activeFocus ? "#3b82f6" : "#2d3748"; border.width: 1
+            //         Behavior on border.color { ColorAnimation { duration: 150 } }
+
+            //         RowLayout {
+            //             anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 10
+            //             Text { text: "📖"; font.pixelSize: 16; opacity: 0.6 }
+            //             TextInput {
+            //                 id: bookInput
+            //                 Layout.fillWidth: true; color: "#e5e7eb"; font.pixelSize: 13
+            //                 clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
+            //                 text: reviewsView.selectedBook
+            //                 onTextChanged: reviewsView.bookSearchText = text
+            //                 Text { visible: !parent.text; text: "Select a book"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+            //             }
+            //         }
+            //         // Drop-down
+            //         Rectangle {
+            //             id: resultsDropdown
+            //             visible: bookInput.activeFocus && reviewsView.filteredBooks.length > 0
+            //             anchors.top: parent.bottom; anchors.left: parent.left; anchors.right: parent.right
+            //             anchors.topMargin: 6
+            //             height: Math.min(220, dropList.implicitHeight)
+            //             radius: 8; color: "#111827"; border.color: "#3b82f6"; border.width: 1
+            //             z: 9999; clip: true
+
+            //             Flickable {
+            //                 anchors.fill: parent; contentWidth: width
+            //                 contentHeight: dropList.implicitHeight; clip: true
+
+            //                 ColumnLayout {
+            //                     id: dropList; width: parent.width; spacing: 0
+            //                     Repeater {
+            //                         model: reviewsView.filteredBooks
+            //                         delegate: Rectangle {
+            //                             Layout.fillWidth: true; height: 40
+            //                             color: dMA.containsMouse ? "#2d3748" : "transparent"
+            //                             Text { anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 14; text: modelData; color: "#e5e7eb"; font.pixelSize: 13 }
+            //                             MouseArea {
+            //                                 id: dMA; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+            //                                 onClicked: { reviewsView.selectedBook = modelData; bookInput.text = modelData; bookInput.focus = false }
+            //                             }
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //         }
 
             // Star rating
-            ColumnLayout { spacing: 8
+            ColumnLayout {
+                visible: !bookInput.activeFocus
+                spacing: 8
                 Text { text: "Rating"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
                 RowLayout { spacing: 10
                     Repeater {
@@ -513,7 +702,9 @@ Rectangle {
             }
 
             // Comment
-            ColumnLayout { spacing: 8
+            ColumnLayout {
+                visible: !bookInput.activeFocus
+                spacing: 8
                 Text { text: "Comment"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
                 Rectangle {
                     Layout.fillWidth: true; height: 110; radius: 8
@@ -547,7 +738,7 @@ Rectangle {
                     Text { anchors.centerIn: parent; text: "Submit Review"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
                     MouseArea {
                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                        enabled: reviewsView.selectedBook && reviewsView.selectedRating > 0 && reviewsView.reviewComment
+                        enabled: reviewsView.selectedBook !== "" && reviewsView.selectedRating > 0 && reviewsView.reviewComment.trim() !== ""
                         onClicked: {
                             reviewsView.submitReview()
                             bookInput.text = ""
@@ -558,4 +749,23 @@ Rectangle {
             }
         }
     }
+    // --- Success Message Popup (Paste before the very last '}') ---
+        Rectangle {
+            id: successPopup
+            visible: false
+            anchors.fill: parent; color: "#cc000000"; z: 10000
+            Rectangle {
+                anchors.centerIn: parent; width: 320; height: 180; radius: 12; color: "#1a1f2e"; border.color: "#3b82f6"
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 20; spacing: 10
+                    Text { text: "✅ Success!"; color: "#10b981"; font.pixelSize: 20; font.bold: true; Layout.alignment: Qt.AlignHCenter }
+                    Text { text: "Review submitted successfully!\nWaiting for Admin's approval!!"; color: "white"; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                    Button {
+                        text: "OK"; Layout.alignment: Qt.AlignHCenter
+                        onClicked: successPopup.visible = false
+                    }
+                }
+            }
+        }
 }
+

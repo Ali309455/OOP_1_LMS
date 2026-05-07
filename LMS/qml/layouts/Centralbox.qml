@@ -53,7 +53,7 @@ Item {
         }
 
         Component { id: reviewsComp; Reviews {userRole: centralbox.islibrarian?"librarian":"student" }}
-        Component { id: membershipComp; Membership {} }
+        Component { id: membershipComp; Membership {userId: centralbox.currentUser.userId} }
         Component { id: usersComp; UserManagement {} }
         Component { id: settingsComp; Profile { currentUser: centralbox.currentUser} }
         Component { id: transactionComp; Transactions {isLibrarian: centralbox.islibrarian

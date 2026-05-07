@@ -24,6 +24,11 @@ public:
     Q_INVOKABLE bool updateUser(const QString& id,const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role);
     Q_INVOKABLE bool removeUser(const QString& id);
 
+    // -------------------- Membership -------------------------
+    Q_INVOKABLE QVariantMap getMembership();
+    Q_INVOKABLE bool upgradeMembership(const QString& userID,const QString& tier);
+    Q_INVOKABLE bool renewMembership(const QString& userID);
+
     // -------------------- Book Management --------------------
     Q_INVOKABLE bool addBook(const QString& isbn,const QString&  title,const QString&  author, const QString& category,const QString&  section, const QString& publisher,const QString&  edition, const QString& language, int publicationYear, int pages,int totalCopies);
     Q_INVOKABLE bool removeBook(const QString& isbn);
