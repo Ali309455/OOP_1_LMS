@@ -116,6 +116,8 @@ Rectangle {
                         }
                         Item { Layout.fillWidth: true }
                         Button {
+                            id: control
+                            hoverEnabled: true
                             text: isMembershipActive ? "Renew" : "Upgrade"
 
                             onClicked: {
@@ -141,7 +143,28 @@ Rectangle {
 
                                 confirmDialog.open()
                             }
-                            background: Rectangle { implicitWidth: 100; implicitHeight: 38; color: "#3b82f6"; radius: 8 }
+                            background: Rectangle {
+                                implicitWidth: 100
+                                implicitHeight: 38
+                                radius: 8
+
+                                color: control.down
+                                       ? "#1d4ed8"
+                                       : control.hovered
+                                         ? "#2563eb"
+                                         : "#3b82f6"
+
+                                border.color: control.hovered ? "#60a5fa" : "#3b82f6"
+                                border.width: 1
+
+                                Behavior on color {
+                                    ColorAnimation { duration: 120 }
+                                }
+
+                                Behavior on border.color {
+                                    ColorAnimation { duration: 120 }
+                                }
+                            }
                             contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
                         }
                     }
@@ -239,6 +262,8 @@ Rectangle {
         property string dialogMessage: ""
 
         modal: true
+        Overlay.modal: Rectangle {
+            color: "#66000000"}
         anchors.centerIn: parent
         width: 420
         padding: 20
@@ -273,6 +298,7 @@ Rectangle {
                 spacing: 12
 
                 Button {
+                    hoverEnabled: true
                     text: "Cancel"
 
                     onClicked: confirmDialog.close()
@@ -333,6 +359,10 @@ Rectangle {
         id: successDialog
 
         modal: true
+        Overlay.modal: Rectangle {
+            color: "#66000000"
+        }
+
         anchors.centerIn: parent
         width: 360
         padding: 20
@@ -361,6 +391,7 @@ Rectangle {
             }
 
             Button {
+                hoverEnabled: true
                 Layout.alignment: Qt.AlignRight
                 text: "OK"
 
@@ -453,6 +484,8 @@ Rectangle {
             }
             Item { Layout.fillHeight: true }
             Button {
+                id: control
+                hoverEnabled: true
                 Layout.fillWidth: true; text: {
                     if (!membershipRoot.isMembershipActive) return "Select Plan"
                     if (membershipRoot.activeTier === tier) return "Current Plan"
@@ -499,7 +532,29 @@ Rectangle {
 
                     confirmDialog.open()
                 }
-                background: Rectangle { implicitHeight: 40; color: "#3b82f6"; radius: 8 }
+
+                background: Rectangle {
+                    implicitWidth: 100
+                    implicitHeight: 38
+                    radius: 8
+
+                    color: control.down
+                           ? "#1d4ed8"
+                           : control.hovered
+                             ? "#2563eb"
+                             : "#3b82f6"
+
+                    border.color: control.hovered ? "#60a5fa" : "#3b82f6"
+                    border.width: 1
+
+                    Behavior on color {
+                        ColorAnimation { duration: 120 }
+                    }
+
+                    Behavior on border.color {
+                        ColorAnimation { duration: 120 }
+                    }
+                }
                 contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight}
             }
         }
