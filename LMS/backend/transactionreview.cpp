@@ -156,6 +156,20 @@ std::vector<transaction> transactionlog::getAllTransactions() const {
     return transactions;
 }
 
+std::vector<transaction> transactionlog::getTransactionsByStudent(std::string studentId)
+{
+    std::vector<transaction> result;
+
+    for (const auto& tx : transactions)
+    {
+        if (tx.getStudentId() == studentId)
+        {
+            result.push_back(tx);
+        }
+    }
+
+    return result;
+}
 // ========= Review Implementation =========
 
 Review::Review() : reviewId(""), studentId(""), username(""), isbn(""), bookname(""), rating(0), comment(""), status("pending"), reviewDate("") {}

@@ -26,6 +26,8 @@ public:
 
     // -------------------- Membership -------------------------
     Q_INVOKABLE QVariantMap getMembership();
+    Q_INVOKABLE QVariantMap getStudentDashboard(const QString& studentId);
+    Q_INVOKABLE QVariantList getStudentBorrowHistory(const QString& studentId);
     Q_INVOKABLE bool upgradeMembership(const QString& userID,const QString& tier);
     Q_INVOKABLE bool renewMembership(const QString& userID);
 

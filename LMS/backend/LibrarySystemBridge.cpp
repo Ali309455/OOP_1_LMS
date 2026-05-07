@@ -47,9 +47,9 @@ bool LibrarySystemBridge::updateUser(const QString& id,const QString& name, cons
         name.toStdString(),
         email.toStdString(),
         pwd.toStdString(),
-        status.toStdString(),
         membership.toStdString(),
-        role.toStdString()
+        role.toStdString(),
+        status.toStdString()
         );
 // }
 }
@@ -220,5 +220,21 @@ bool LibrarySystemBridge::renewMembership(const QString& userId)
 {
     return m_system.renewMembership(
         userId.toStdString()
+        );
+}
+
+// ---------------- Dashboard ----------------
+
+QVariantMap LibrarySystemBridge::getStudentDashboard(const QString& studentId)
+{
+    return m_system.getStudentDashboardData(
+        studentId.toStdString()
+        );
+}
+
+QVariantList LibrarySystemBridge::getStudentBorrowHistory(const QString& studentId)
+{
+    return m_system.getStudentBorrowHistory(
+        studentId.toStdString()
         );
 }

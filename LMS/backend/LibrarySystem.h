@@ -64,6 +64,8 @@ public:
     bool deleteReview(const std::string& reviewID);
 
     // ========== Utility ==========
+    QVariantMap getStudentDashboardData(const std::string& studentId);
+    QVariantList getStudentBorrowHistory(const std::string& studentId);
     std::vector<Book> getAllBooks() const;
     std::vector<Person*> getAllUsers() const;
     std::vector<transaction> getAllTransactions() const;

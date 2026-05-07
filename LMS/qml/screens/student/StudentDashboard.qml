@@ -4,8 +4,26 @@ import QtQuick.Layouts
 
 Rectangle {
     id: centralDashboard
+    property var currentUser: null
+
+    property var dashboardData: ({})
+    property var historyData: []
     anchors.fill: parent
     color: "#0f172a"
+
+    Component.onCompleted: {
+
+        if (!currentUser)
+            return
+
+        dashboardData =
+            lms.getStudentDashboard(currentUser.userId)
+
+        historyData =
+            lms.getStudentHistory(currentUser.userId)
+
+        console.log(historyData.length)
+    }
 
     Flickable {
         id: flick
@@ -36,10 +54,30 @@ Rectangle {
 
                 Repeater {
                     model: [
-                        { name: "Borrowed Books", img: "qrc:/assets/icons/book-read-fill.svg", col: "#3b82f6" },
-                        { name: "Due Books",      img: "qrc:/assets/icons/time-fill.svg", col: "#f97316" },
-                        { name: "Total Fine",     img: "qrc:/assets/icons/currency-fill.svg", col: "#06b6d4" },
-                        { name: "Membership",     img: "qrc:/assets/icons/shield-user-fill.svg",  col: "#8b5cf6" }
+                        {
+                            name: "Borrowed Books",
+                            value: dashboardData.borrowedBooks || 0,
+                            img: "qrc:/assets/icons/book-read-fill.svg",
+                            col: "#3b82f6"
+                        },
+                        {
+                            name: "Due Books",
+                            value: dashboardData.dueBooks || 0,
+                            img: "qrc:/assets/icons/time-fill.svg",
+                            col: "#f97316"
+                        },
+                        {
+                            name: "Current Balancd",
+                            value: "$" + (dashboardData.balance || 0),
+                            img: "qrc:/assets/icons/currency-fill.svg",
+                            col: "#06b6d4"
+                        },
+                        {
+                            name: "Membership",
+                            value: dashboardData.membership || "N/A",
+                            img: "qrc:/assets/icons/shield-user-fill.svg",
+                            col: "#8b5cf6"
+                        }
                     ]
                     delegate: Rectangle {
                         Layout.fillWidth: true
@@ -83,7 +121,12 @@ Rectangle {
                             }
 
                             Item { Layout.fillHeight: true }
-
+                            Text {
+                                text: modelData.value
+                                color: "white"
+                                font.pixelSize: 28
+                                font.bold: true
+                            }
                             Text {
                                 text: modelData.name
                                 color: "#94a3b8"
@@ -115,14 +158,14 @@ Rectangle {
                     anchors.margins: 15
                     spacing: 10
                     clip: true
-                    model: 5
+                    model: historyData
 
                     delegate: Rectangle {
                         width: parent.width
                         height: 70
                         color: "transparent"
                         readonly property color statusTheme: {
-                            var s = model.status || ""
+                            var s = modelData.status || ""
                             if (s === "DUE" || s === "PENDING") return "#ef4444"
                             if (s === "RETURNED") return "#22c55e"
                             if (s === "ACTIVE") return "#3b82f6"
@@ -137,10 +180,10 @@ Rectangle {
                             ColumnLayout {
                                 spacing: 4
                                 Rectangle { width: 150; height: 18; color: "#334155"; radius: 4
-                                    Text{ anchors.centerIn: parent; text: "Book Title"; color: "white"; font.pixelSize: 10 }
+                                    Text{ anchors.centerIn: parent; text: modelData.bookName; color: "white"; font.pixelSize: 10 }
                                 }
                                 Rectangle { width: 100; height: 12; color: "#334155"; radius: 4; opacity: 0.6
-                                    Text{ anchors.centerIn: parent; text: "Due Date"; color: "white"; font.pixelSize: 8 }
+                                    Text{ anchors.centerIn: parent; text: modelData.dueDate; color: "white"; font.pixelSize: 8 }
                                 }
                             }
 
@@ -148,14 +191,14 @@ Rectangle {
                             Rectangle {
                                 width: 70; height: 26
                                 radius: 13
-                                color: model.status ? Qt.rgba(statusTheme.r, statusTheme.g, statusTheme.b, 0.2) : "#334155"
-                                border.color: model.status ? statusTheme : "transparent"
-                                border.width: model.status ? 1 : 0
-                                opacity: model.status ? 1.0 : 0.4
+                                color: modelData.status ? Qt.rgba(statusTheme.r, statusTheme.g, statusTheme.b, 0.2) : "#334155"
+                                border.color: modelData.status ? statusTheme : "transparent"
+                                border.width: modelData.status ? 1 : 0
+                                opacity: modelData.status ? 1.0 : 0.4
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: model.status || "status"
+                                    text: modelData.status || "status"
                                     color: "white"
                                     font.pixelSize: 8
                                 }
@@ -211,15 +254,15 @@ Rectangle {
 
                 onPressed: {
                     pressY = mouseY
-                    pressContentY = reviewsFlick.contentY
+                    pressContentY = flick.contentY
                 }
 
                 onPositionChanged: {
                     if (pressed) {
                         var delta = mouseY - pressY
                         var ratio = delta / scrollTrack.height
-                        var newY = pressContentY + ratio * reviewsFlick.contentHeight
-                        reviewsFlick.contentY = Math.max(0, Math.min(newY, reviewsFlick.contentHeight - reviewsFlick.height))
+                        var newY = pressContentY + ratio * flick.contentHeight
+                        flick.contentY = Math.max(0, Math.min(newY, flick.contentHeight - flick.height))
                     }
                 }
             }
@@ -230,7 +273,7 @@ Rectangle {
             anchors.fill: parent
             onClicked: {
                 var ratio = mouseY / scrollTrack.height
-                reviewsFlick.contentY = Math.max(0, Math.min(ratio * reviewsFlick.contentHeight, reviewsFlick.contentHeight - reviewsFlick.height))
+                flick.contentY = Math.max(0, Math.min(ratio * flick.contentHeight, flick.contentHeight - flick.height))
             }
         }
     }
