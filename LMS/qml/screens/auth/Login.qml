@@ -7,7 +7,7 @@ import LMS
 Rectangle {
     id: loginPage
     width: 1024
-    height: 800
+    height: 700
     color: "#0b1016" // Matched dark background
 
     signal loginRequested(string email, string password)

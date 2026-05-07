@@ -18,9 +18,13 @@ Rectangle {
     // ── Filter state ───────────────────────────────────────────────────────
     property string searchText:   ""
     property string statusFilter: "All Status"
+    property string studentSearchText: ""
+    property string bookSearchText: ""
 
     // ── Dialog state ───────────────────────────────────────────────────────
     property bool showIssueDialog:  false
+    property bool showStudentDropdown: false
+    property bool showBookDropdown: false
     property bool showReturnDialog: false
 
     // Issue form
@@ -228,7 +232,7 @@ Rectangle {
                     id: issueMA
                     anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        root.issueStudent = ""; root.issueStudentId = ""
+                        root.issueStudent = root.currentUser.name; root.issueStudentId = root.currentUser.userId
                         root.selectBook = ""; root.issueIsbn = ""; root.issueMsg = ""
                         root.showIssueDialog = true
                     }
@@ -602,38 +606,218 @@ Rectangle {
                         Text { Layout.fillWidth: true; text: root.issueStudent !== "" ? root.issueStudent + " (" + root.issueStudentId + ")" : "Select a student"; color: root.issueStudent !== "" ? root.textPrimary : "#6b7280"; font.pixelSize: 13 }
                         Text { text: "▼"; color: root.textMuted; font.pixelSize: 9 }
                     }
-                    MouseArea { anchors.fill: parent; onClicked: studentMenu.open() }
-                    Menu {
-                        id: studentMenu
-                        Repeater {
-                            model: students
-                            delegate: MenuItem {
-                                text: name + " (" + userId + ")"
-                                onTriggered: { root.issueStudent = name; root.issueStudentId = userId }
-                            }
-                        }
-                    }
+                    // MouseArea { anchors.fill: parent; onClicked: studentMenu.open() }
+                    // Menu {
+                    //     id: studentMenu
+                    //     Repeater {
+                    //         model: students
+                    //         delegate: MenuItem {
+                    //             text: name + " (" + userId + ")"
+                    //             onTriggered: { root.issueStudent = name; root.issueStudentId = userId }
+                    //         }
+                    //     }
+                    // }
                 }
             }
 
+
             // Select Book
-            Column { width: parent.width; spacing: 8
-                Text { text: "Book"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+            // Column { width: parent.width; spacing: 8
+            //     Text { text: "Book"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+            //     Rectangle {
+            //         width: parent.width; height: 44; radius: 8
+            //         color: "#0f1117"; border.color: "#2d3748"; border.width: 1
+            //         RowLayout { anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+            //             Text { Layout.fillWidth: true; text: root.selectBook !== "" ? root.seleectBook : "Select a book"; color: root.selectBook !== "" ? root.textPrimary : "#6b7280"; font.pixelSize: 13; elide: Text.ElideRight }
+            //             Text { text: "▼"; color: root.textMuted; font.pixelSize: 9 }
+            //         }
+            //         MouseArea { anchors.fill: parent; onClicked: bookMenu.open() }
+            //         Menu {
+            //             id: bookMenu
+            //             Repeater {
+            //                 model: booksModel
+            //                 delegate: MenuItem {
+            //                     text: title
+            //                     onTriggered: { root.selectBook = title; root.issueIsbn = isbn }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+            Column {
+                width: parent.width
+                spacing: 8
+
+                Text {
+                    text: "Book"
+                    color: "#e5e7eb"
+                    font.pixelSize: 12
+                    font.bold: true
+                }
+
                 Rectangle {
-                    width: parent.width; height: 44; radius: 8
-                    color: "#0f1117"; border.color: "#2d3748"; border.width: 1
-                    RowLayout { anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                        Text { Layout.fillWidth: true; text: root.selectBook !== "" ? root.seleectBook : "Select a book"; color: root.selectBook !== "" ? root.textPrimary : "#6b7280"; font.pixelSize: 13; elide: Text.ElideRight }
-                        Text { text: "▼"; color: root.textMuted; font.pixelSize: 9 }
+                    width: parent.width
+                    height: 44
+                    radius: 8
+
+                    color: "#0f1117"
+                    border.color: "#2d3748"
+                    border.width: 1
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
+
+                        Text {
+                            Layout.fillWidth: true
+
+                            text: root.selectBook !== ""
+                                  ? root.selectBook
+                                  : "Select a book"
+
+                            color: root.selectBook !== ""
+                                   ? root.textPrimary
+                                   : "#6b7280"
+
+                            font.pixelSize: 13
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            text: root.showBookDropdown ? "▲" : "▼"
+                            color: root.textMuted
+                            font.pixelSize: 9
+                        }
                     }
-                    MouseArea { anchors.fill: parent; onClicked: bookMenu.open() }
-                    Menu {
-                        id: bookMenu
-                        Repeater {
-                            model: booksModel
-                            delegate: MenuItem {
-                                text: title
-                                onTriggered: { root.selectBook = title; root.issueIsbn = isbn }
+
+                    MouseArea {
+                        anchors.fill: parent
+
+                        onClicked: {
+                            root.showBookDropdown = !root.showBookDropdown
+                            root.showStudentDropdown = false
+                        }
+                    }
+                }
+
+                Rectangle {
+                    visible: root.showBookDropdown
+
+                    width: parent.width
+                    height: 240
+                    radius: 8
+
+                    color: "#111827"
+
+                    border.color: "#2d3748"
+                    border.width: 1
+
+                    Column {
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        spacing: 8
+
+                        Rectangle {
+                            width: parent.width
+                            height: 38
+                            radius: 6
+
+                            color: "#0f1117"
+                            border.color: "#2d3748"
+
+                            TextInput {
+                                anchors.fill: parent
+                                anchors.leftMargin: 12
+                                anchors.rightMargin: 12
+
+                                color: "#ffffff"
+                                font.pixelSize: 13
+
+                                verticalAlignment: Text.AlignVCenter
+
+                                onTextChanged: root.bookSearchText = text
+
+                                Text {
+                                    visible: parent.text === ""
+                                    text: "Search book..."
+                                    color: "#6b7280"
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                        }
+
+                        Flickable {
+                            width: parent.width
+                            height: 170
+
+                            clip: true
+                            contentHeight: booksList.height
+
+                            Column {
+                                id: booksList
+                                width: parent.width
+                                spacing: 4
+
+                                Repeater {
+                                    model: booksModel
+
+                                    delegate: Rectangle {
+                                        width: parent.width
+                                        height: visible ? 46 : 0
+
+                                        visible:
+                                            title.toLowerCase().includes(root.bookSearchText.toLowerCase())
+                                            || isbn.toLowerCase().includes(root.bookSearchText.toLowerCase())
+
+                                        radius: 6
+
+                                        color: bookHover.containsMouse
+                                               ? "#1e293b"
+                                               : "transparent"
+
+                                        Column {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            anchors.left: parent.left
+                                            anchors.leftMargin: 12
+
+                                            width: parent.width - 24
+                                            spacing: 2
+
+                                            Text {
+                                                width: parent.width
+                                                text: title
+                                                color: "#ffffff"
+                                                font.pixelSize: 12
+                                                font.bold: true
+                                                elide: Text.ElideRight
+                                            }
+
+                                            Text {
+                                                width: parent.width
+                                                text: isbn
+                                                color: "#9ca3af"
+                                                font.pixelSize: 11
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            id: bookHover
+
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+
+                                            cursorShape: Qt.PointingHandCursor
+
+                                            onClicked: {
+                                                root.selectBook = title
+                                                root.issueIsbn = isbn
+                                                root.showBookDropdown = false
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -648,7 +832,7 @@ Rectangle {
                 Column {
                     anchors { fill: parent; margins: 12 } spacing: 4
                     Text { text: "Issue Date: " + root.todayStr();    color: root.textMuted;   font.pixelSize: 12 }
-                    Text { text: "Due Date:   " + root.dueDateStr(14); color: "#f59e0b"; font.pixelSize: 12; font.bold: true }
+                    Text { text: "Due Date:   " + root.dueDateStr(7); color: "#f59e0b"; font.pixelSize: 12; font.bold: true }
                 }
             }
 

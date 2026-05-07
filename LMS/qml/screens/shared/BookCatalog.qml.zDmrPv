@@ -391,38 +391,9 @@ Rectangle {
                                         onClicked: booksView.bookSelected(model)
                                     }
                                 }
-                                Text {
-                                    Layout.preferredWidth: 150
-                                    Layout.fillHeight: true
+                                Text { Layout.preferredWidth: 150; text: model.author; font.pixelSize: 12; color: "#9ca3af"; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
+                                Text { Layout.preferredWidth: 100; text: model.genre;  font.pixelSize: 12; color: "#9ca3af"; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
 
-                                    text: model.author
-                                    color: "#9ca3af"
-                                    font.pixelSize: 12
-
-                                    verticalAlignment: Text.AlignVCenter
-
-                                    elide: Text.ElideRight
-                                    wrapMode: Text.NoWrap
-                                    maximumLineCount: 1
-                                    clip: true
-                                }
-
-                                // GENRE
-                                Text {
-                                    Layout.preferredWidth: 100
-                                    Layout.fillHeight: true
-
-                                    text: model.genre
-                                    color: "#9ca3af"
-                                    font.pixelSize: 12
-
-                                    verticalAlignment: Text.AlignVCenter
-
-                                    elide: Text.ElideRight
-                                    wrapMode: Text.NoWrap
-                                    maximumLineCount: 1
-                                    clip: true
-                                }
                                 // Section badge
                                 Item {
                                     Layout.preferredWidth: 80; height: parent.height
