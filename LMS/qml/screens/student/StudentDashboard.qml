@@ -20,7 +20,7 @@ Rectangle {
             lms.getStudentDashboard(currentUser.userId)
 
         historyData =
-            lms.getStudentHistory(currentUser.userId)
+            lms.getStudentBorrowHistory(currentUser.userId)
 
         console.log(historyData.length)
     }
@@ -67,7 +67,7 @@ Rectangle {
                             col: "#f97316"
                         },
                         {
-                            name: "Current Balancd",
+                            name: "Current Balance",
                             value: "$" + (dashboardData.balance || 0),
                             img: "qrc:/assets/icons/currency-fill.svg",
                             col: "#06b6d4"
