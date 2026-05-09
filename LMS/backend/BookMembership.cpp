@@ -8,7 +8,7 @@ using namespace std;
 const int YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
 
 // ========= BOOK IMPLEMENTATION =========
-
+// Constructor
 Book::Book(string isbn, string title, string author, string category, string section,
            string publisher, string edition, string language, int publicationYear, int pages, int totalCopies, int avaliableCopies) {
     if(isbn.empty() || title.empty() || author.empty() || category.empty() || section.empty() || totalCopies <= 0) {
@@ -28,7 +28,7 @@ Book::Book(string isbn, string title, string author, string category, string sec
     this->availableCopies = avaliableCopies;
     updateStatus();
 }
-
+// Getter Functions
 string Book::getIsbn() const { return isbn; }
 string Book::getTitle() const { return title; }
 string Book::getAuthor() const { return author; }
@@ -42,6 +42,7 @@ int Book::getPages() const { return pages; }
 int Book::getTotalCopies() const { return totalCopies; }
 int Book::getAvailableCopies() const { return availableCopies; }
 BookStatus Book::getStatus() const { return status; }
+// Setter Functions
 void Book::setTitle(const string& t) { title = t; }
 void Book::setAuthor(const string& a) { author = a; }
 void Book::setCategory(const string& c) { category = c; }
@@ -51,7 +52,6 @@ void Book::setEdition(const string& e) { edition = e; }
 void Book::setLanguage(const string& l) { language = l; }
 void Book::setPublicationYear(int y) { publicationYear = y; }
 void Book::setPages(int p) { pages = p; }
-
 void Book::setTotalCopies(int total) {
     int issued = totalCopies - availableCopies;
 
@@ -68,21 +68,21 @@ void Book::setTotalCopies(int total) {
 
     updateStatus();
 }
-
+// Function to issue one copy 
 bool Book::issueOneCopy() {
     if(availableCopies <= 0) throw runtime_error("No copies available.");
     availableCopies--;
     updateStatus();
     return true;
 }
-
+// Function to return one copy
 void Book::returnOneCopy() {
     if (availableCopies < totalCopies) {
         availableCopies++;
         updateStatus();
     }
 }
-
+// Update Book availability status
 void Book::updateStatus() {
     if (availableCopies == 0) status = UNAVAILABLE;
     else if (availableCopies <= totalCopies / 2) status = LIMITED;
@@ -93,6 +93,7 @@ std::ostream& operator<<(std::ostream& os, const Book& book) {
     std::cout << "ID: " << book.getIsbn() << " Name: " << book.getTitle();
     return os;
 }
+// funtion to convert enum to string
 string Book::statusToString() const {
     switch (status) {
     case AVAILABLE: return "Available";
@@ -105,7 +106,7 @@ string Book::statusToString() const {
 // ========= CATALOG IMPLEMENTATION =========
 
 int BookCatalog::bookcount = 0;
-
+// function to add books into catalog
 bool BookCatalog::addBook(const Book& book) {
     for (const auto& b : books) {
         if (b.getIsbn() == book.getIsbn()) throw runtime_error("ISBN already exists.");
@@ -114,23 +115,19 @@ bool BookCatalog::addBook(const Book& book) {
     bookcount++;
     return true;
 }
-
+// funtion to uodate the total copies in case of restock
 bool BookCatalog::updateBook(const string& isbn,int totalCopies){
     for (auto& b : books) {
 
         if (b.getIsbn() == isbn) {
-
-
-            // ✔ special logic for copies (important business rule)
             b.setTotalCopies(totalCopies);
-
             return true;
         }
     }
 
     throw runtime_error("Book not found.");
 }
-
+// function to remove book in case of outdated
 bool BookCatalog::removeBook(const string& isbn) {
     for (auto it = books.begin(); it != books.end(); ++it) {
         if (it->getIsbn() == isbn) {
@@ -141,9 +138,9 @@ bool BookCatalog::removeBook(const string& isbn) {
     }
     throw runtime_error("Book not found.");
 }
-
+// funtion to get all books in catalog
 const vector<Book>& BookCatalog::getAllBooks() const { return books; }
-
+// funtion to find all the books by their ISBN
 Book* BookCatalog::findByIsbn(const string& isbn) {
     for (auto& b : books) {
         if (b.getIsbn() == isbn) return &b;
@@ -154,7 +151,7 @@ Book* BookCatalog::findByIsbn(const string& isbn) {
 // ... (Other search methods searchByTitle, searchByAuthor, etc. follow the same pattern)
 
 // ========= MEMBERSHIP IMPLEMENTATION =========
-
+// constructor
 Membership::Membership(string id, int loandays) {
     if(id.empty() || loandays <= 0) throw invalid_argument("Invalid details.");
     studentId = id;
@@ -163,9 +160,9 @@ Membership::Membership(string id, int loandays) {
     startDate = time(0);
     expiryDate = startDate + YEAR_IN_SECONDS;
 }
-
+// destructor
 Membership::~Membership() {}
-
+// function to check the activity status of membership 
 bool Membership::isExpired() {
     if(time(0) > expiryDate) {
         isActive = false;
@@ -173,21 +170,21 @@ bool Membership::isExpired() {
     }
     return false;
 }
-
+// function to renew current membership for another year
 void Membership::renewMembership() {
     startDate = time(0);
     expiryDate = startDate + YEAR_IN_SECONDS;
     isActive = true;
 }
 
-// Tier-specific constructors
+// ======== SILVER IMPLEMENTATION =========
 Silver::Silver(string id) : Membership(id, 14) {}
+
 int Silver::getBorrowedLimit() const { return 3; }
 double Silver::getFineDiscount() const { return 0.0; }
 double Silver::getRenewalFee() const { return 0.0; }
 string Silver::getTierName() const { return "Silver"; }
 
-// (Add Gold and Platinum implementations similarly...)
 // ========= GOLD IMPLEMENTATION =========
 
 Gold::Gold(string id) : Membership(id, 21) {}
@@ -200,11 +197,12 @@ string Gold::getTierName() const {return "Gold";}
 // ========= PLATINUM IMPLEMENTATION =========
 
 Platinum::Platinum(string id) : Membership(id, 30) {}
+
 int Platinum::getBorrowedLimit() const {return 7;}
 double Platinum::getFineDiscount() const {return 0.5;}
 double Platinum::getRenewalFee() const {return 59.0;}
 string Platinum::getTierName() const {return "Platinum";}
-
+// Factory function 
 Membership* createMembership(string tier, string studentId) {
     transform(tier.begin(), tier.end(), tier.begin(), ::tolower);
     if(tier == "silver") return new Silver(studentId);
@@ -213,10 +211,7 @@ Membership* createMembership(string tier, string studentId) {
     throw invalid_argument("Invalid tier.");
 }
 
-    // ======================================================
-    // WALLET CLASS
-    // ======================================================
-
+// Wallet Class
 Wallet::Wallet(std::string id,
                    double initialDeposit)
 {
@@ -233,7 +228,7 @@ Wallet::Wallet(std::string id,
     balance = deposit;
     suspended = sus;
 }
-
+// getter functions for wallet class
 std::string Wallet::getStudentId() const
 {
     return studentId;
@@ -258,7 +253,7 @@ void Wallet::activateWallet()
 {
     suspended = false;
 }
-
+// function to add amount to wallet balance
 void Wallet::addAmount(double amount)
 {
     if (amount <= 0)
@@ -269,7 +264,7 @@ void Wallet::addAmount(double amount)
 
     balance += amount;
 }
-
+// function to deduct amount from wallet balance
 bool Wallet::deductAmount(double amount)
 {
     if (amount <= 0)
@@ -288,7 +283,7 @@ bool Wallet::deductAmount(double amount)
 
     return true;
 }
-
+// function to deduct fine from wallet balance and suspend if balance is insufficient
 void Wallet::deductFine(double fineAmount)
 {
     if (!deductAmount(fineAmount))
@@ -298,10 +293,11 @@ void Wallet::deductFine(double fineAmount)
         std::cout << "Wallet suspended due to unpaid fine.\n";
     }
 }
+
 void Wallet::setbalance(double b){
     balance = b;
 }
-
+// function to deduct membership renewal fee from wallet balance and suspend if balance is insufficient
 void Wallet::deductMembershipRenewalFee(double feeAmount)
 {
     if (!deductAmount(feeAmount))
@@ -323,7 +319,7 @@ WalletTransaction::WalletTransaction(std::string sid,
     type = t;
     timestamp = time(nullptr);
 }
-
+// getter functions for wallet transaction class
 std::string WalletTransaction::getStudentId() const
 {
     return studentId;
@@ -344,10 +340,8 @@ time_t WalletTransaction::getTimestamp() const
     return timestamp;
 }
 
-// ======================================================
 // WALLET LOG CLASS
-// ======================================================
-
+// constructor
 void WalletLog::addLog(std::string studentId,
                        double amount,
                        std::string type)
@@ -361,7 +355,7 @@ void WalletLog::addLog(std::string studentId,
 
     logs.push_back(entry);
 }
-
+// getter functions for wallet log class
 std::vector<WalletLog::WalletEntry>
 WalletLog::getAllLogs() const
 {
@@ -385,49 +379,5 @@ WalletLog::getLogsByStudent(std::string studentId) const
 }
 
 
-// ========= WALLET IMPLEMENTATION =========
-
-// Wallet::Wallet(string id, double initialDeposit) {
-//     studentId = id;
-//     balance = initialDeposit;
-//     suspended = false;
-// }
-// Wallet::Wallet(std::string user_id, double Deposit, bool sus){
-//     studentId = user_id;
-//     balance = Deposit;
-//     suspended = sus;
-// }
-// string Wallet::getStudentId() const {return studentId;}
-// void Wallet::addAmount(double amount) {
-//     balance += amount;
-//     suspended = (balance < SUSPENSION_THRESHOLD);
-// }
-
-// void Wallet::deductFine(double fineAmount) {
-//     balance -= fineAmount;
-//     if (balance < SUSPENSION_THRESHOLD) suspended = true;
-// }
-
-// // ========= WALLET LOG IMPLEMENTATION =========
-
-// void WalletLog::createWallet(string studentId, double initialDeposit) {
-//     wallets.push_back(Wallet(studentId, initialDeposit));
-//     logs.push_back({studentId, initialDeposit, "initial_deposit", time(0)});
-// }
-// void WalletLog::createWallet(string studentId, double initialDeposit, int sus) {
-//     wallets.push_back(Wallet(studentId, initialDeposit, sus));
-//     logs.push_back({studentId, initialDeposit, "initial_deposit", time(0)});
-// }
-// // void WalletLog::addWallet( Wallet& w, const string& sid, double initialDeposit){
-// //     wallets.push_back(w);
-// //     logs.push_back({sid, initialDeposit, "initial_deposit", time(0)});
-// // }
-
-// Wallet* WalletLog::getWallet(string studentId) {
-//     for (auto& w : wallets) {
-//         if (w.getStudentId() == studentId) return &w;
-//     }
-//     return nullptr;
-// }
 
 

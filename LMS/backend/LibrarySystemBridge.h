@@ -8,8 +8,6 @@
 class LibrarySystemBridge : public QObject {
     Q_OBJECT
 
-    // Optionally, add Q_PROPERTY for reactive property binding (like login state)
-
 public:
     explicit LibrarySystemBridge(LibrarySystem* system, QObject *parent = nullptr);
 
@@ -31,21 +29,21 @@ public:
     Q_INVOKABLE bool upgradeMembership(const QString& userID,const QString& tier);
     Q_INVOKABLE bool renewMembership(const QString& userID);
 
-    // -------------------- Book Management --------------------
+    // -------------------- Catalog Management --------------------
     Q_INVOKABLE bool addBook(const QString& isbn,const QString&  title,const QString&  author, const QString& category,const QString&  section, const QString& publisher,const QString&  edition, const QString& language, int publicationYear, int pages,int totalCopies);
     Q_INVOKABLE bool removeBook(const QString& isbn);
     Q_INVOKABLE bool updateBook(const QString& isbn,int totalCopies);
 
-    // -------------------- Transactions --------------------
+    // -------------------- Transaction Management --------------------
     Q_INVOKABLE bool issueBook(const QString& isbn, const QString& studentID);
     Q_INVOKABLE bool returnBook(const QString& transactionId);
 
-    // -------------------- Reviews --------------------
+    // -------------------- Review Management --------------------
     Q_INVOKABLE bool submitReview(const QString& isbn, int rating, const QString& comment);
     Q_INVOKABLE bool approveReview(const QString& reviewId);
     Q_INVOKABLE bool deleteReview(const QString &reviewId);
 
-    // -------------------- Wallet --------------------
+    // -------------------- Wallet Management --------------------
     Q_INVOKABLE bool addBalance(const QString& sid, double amount);
 
     // -------------------- generate pdf --------------------

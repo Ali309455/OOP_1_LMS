@@ -23,8 +23,9 @@ public:
          std::string publisher = "", std::string edition = "", std::string language = "",int avaliableCopies = 0,
          int publicationYear = 0, int pages = 0, int totalCopies = 0);
 
-    // Getters
+    // friend function to print book details
     friend std::ostream& operator<<(std::ostream& os, const Book& book);
+    // Getters
     std::string getIsbn() const;
     std::string getTitle() const;
     std::string getAuthor() const;
@@ -38,6 +39,7 @@ public:
     int getTotalCopies() const;
     int getAvailableCopies() const;
     BookStatus getStatus() const;
+    // Setters
     void setTitle(const std::string& t) ;
     void setAuthor(const std::string& a) ;
     void setCategory(const std::string& c) ;
@@ -48,6 +50,7 @@ public:
     void setPublicationYear(int y) ;
     void setPages(int p);
     void setTotalCopies(int total);
+    // Book issue and return functions
     bool issueOneCopy();
     void returnOneCopy();
     std::string statusToString() const;
@@ -55,14 +58,16 @@ public:
 
 class BookCatalog {
 private:
-    std::vector<Book> books;
+    std::vector<Book> books; // association with Book class
 
 public:
     static int bookcount;
+    // Catalog management functions
     bool addBook(const Book& book);
     bool updateBook(const std::string& isbn,int totalCopies);
     bool removeBook(const std::string& isbn);
     const std::vector<Book>& getAllBooks() const;
+    // Search functions
     Book* findByIsbn(const std::string& isbn) ;
     std::vector<Book> searchByTitle(const std::string& title) const;
     std::vector<Book> searchByAuthor(const std::string& author) const;
@@ -79,14 +84,16 @@ protected:
     time_t startDate, expiryDate;
 
 public:
+    // constructor
     Membership(std::string id, int loandays);
+    // virtual destructor to allow proper cleanup of derived classes
     virtual ~Membership();
-
+    // pure virtual functions to be implemented by derived classes
     virtual std::string getTierName() const = 0;
     virtual int getBorrowedLimit() const = 0;
     virtual double getFineDiscount() const = 0;
     virtual double getRenewalFee() const = 0;
-
+    // getter functions for membership class
     int getLoanDuration() const;
     std::string getStudentId() const;
     time_t getExpiryDate() const;
@@ -95,10 +102,11 @@ public:
     bool isExpired();
     void renewMembership();
 };
-
+// ========= DERIVED MEMBERSHIP TIERS =========
 class Silver : public Membership {
 public:
     Silver(std::string id);
+    // override functions for silver tier
     int getBorrowedLimit() const override;
     double getFineDiscount() const override;
     double getRenewalFee() const override;
@@ -108,6 +116,7 @@ public:
 class Gold : public Membership {
 public:
     Gold(std::string id);
+    // override functions for gold tier
     int getBorrowedLimit() const override;
     double getFineDiscount() const override;
     double getRenewalFee() const override;
@@ -117,71 +126,39 @@ public:
 class Platinum : public Membership {
 public:
     Platinum(std::string id);
+    // override functions for platinum tier
     int getBorrowedLimit() const override;
     double getFineDiscount() const override;
     double getRenewalFee() const override;
     std::string getTierName() const override;
 };
-
+// Factory function to create membership based on tier
 Membership* createMembership(std::string tier, std::string studentId);
 
 // ========= WALLET SYSTEM =========
-// class Wallet {
-// private:
-//     std::string studentId;
-//     double balance;
-//     bool suspended;
-
-// public:
-//     Wallet(std::string id, double initialDeposit);
-//     Wallet(std::string user_id, double Deposit, bool suspended);
-//     std::string getStudentId() const;
-//     double getBalance() const;
-//     bool isSuspended() const;
-//     void addAmount(double amount);
-//     void deductFine(double fineAmount);
-//     void deductMembershipRenewalFee(double feeAmount);
-// };
-
-// class WalletLog {
-// private:
-//     struct WalletEntry {
-//         std::string studentId;
-//         double amount;
-//         std::string type;
-//         time_t timestamp;
-//     };
-//     std::vector<Wallet> wallets;
-//     std::vector<WalletEntry> logs;
-
-// public:
-//     static void  addWallet( Wallet& w, const std::string& sid, double initialDeposit);
-//     void createWallet(std::string studentId, double initialDeposit);
-//     void createWallet(std::string studentId, double initialDeposit, int sus);
-//     Wallet* getWallet(std::string studentId);
-//     bool isUserSuspended(std::string studentId);
-//     void applyFine(std::string studentId, double fineAmount);
-//     void payMembershipRenewalFee(std::string studentId, double feeAmount);
-//     void addMoney(std::string studentId, double amount);
-// };
 class Wallet {
 private:
     std::string studentId;
     double balance;
     bool suspended;
 public:
+    // constructors
     Wallet(std::string id,double initialDeposit);
     Wallet(std::string id,double deposit,bool suspended);
+    // getter functions for wallet class
     std::string getStudentId() const;
     double getBalance() const;
     bool isSuspended() const;
     void suspendWallet();
     void activateWallet();
+    // function to add/deduct amount from wallet balance
     void setbalance(double b);
     void addAmount(double amount);
     bool deductAmount(double amount);
     void deductFine(double fineAmount);
-    void deductMembershipRenewalFee(double feeAmount);};
+    void deductMembershipRenewalFee(double feeAmount);
+};
+
 // ========= WALLET TRANSACTION =========
 class WalletTransaction {
 private:
@@ -190,22 +167,27 @@ private:
     std::string type;
     time_t timestamp;
 public:
+    // constructor
     WalletTransaction(std::string sid,double amt,std::string t);
+    // getter functions for wallet transaction class
     std::string getStudentId() const;
     double getAmount() const;
     std::string getType() const;
-    time_t getTimestamp() const;};
+    time_t getTimestamp() const;
+};
 // ========= WALLET LOG =========
 class WalletLog {
 private:
+    // structure to represent a wallet transaction log entry
     struct WalletEntry {
         std::string studentId;
         double amount;
         std::string type;
         time_t timestamp;
     };
-    std::vector<WalletEntry>
-        logs;public:
+    std::vector<WalletEntry> logs; // vector to store wallet transaction logs
+public:
+    // function to add a log entry to the wallet log
     void addLog(std::string studentId,double amount,std::string type);
     std::vector<WalletEntry> getAllLogs() const;
     std::vector<WalletEntry> getLogsByStudent(std::string studentId) const;

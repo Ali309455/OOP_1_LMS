@@ -23,13 +23,16 @@ public:
 
     // Getters and Logic
     friend std::ostream& operator<<(std::ostream& os, const Person& person);
+    // Get User ID, Name, Email, Password
     std::string getUserID() const;
     std::string getName() const;
     std::string getEmail() const;
     std::string getPassword() const;
+    // Set Name, Email, Password
     void setName(const std::string& n){name = n;};
     void setEmail(const std::string& e){email = e;};
     void setPassword(const std::string& p){password = p;}
+    // Authentication
     bool authenticate(const std::string& tryPass) const;
 };
 
@@ -41,13 +44,16 @@ private:
     int borrowedCount;
     int totalfineowed;
     std::string status;
-    Membership* membership;  // add
-    Wallet studentwallet;
+    Membership* membership; // association 
+    Wallet studentwallet; // composition
     double balance;
 
 public:
+    // Constructor with membership tier and initial wallet balance
     Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd,const std::string& status,const std::string& tier,double balance);
+    // Destructor to clean up heap memory
     ~Student();
+    // Getter Setter Functions & Methods of Student Class
     void setmembership(Membership* m);
     std::string getMembershipTier() const;
     std::string getRole() const override;
@@ -86,6 +92,7 @@ private:
 public:
     AuthManager() = default;
     ~AuthManager(); // Destructor to clean up heap memory
+    // getter setter and other methods
     int getuserCount();
     Person* findById(const std::string id);
     std::vector<Person*> getAllUsers() const;

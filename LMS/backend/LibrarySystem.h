@@ -4,23 +4,22 @@
 #include "Database.h"
 #include "BookMembership.h"
 #include "transactionreview.h"
-// Forward declarations if necessary
-struct RegistrationResult {
+
+// Used for both Student and Librarian registration
+struct RegistrationResult { 
     bool success;
     std::string userId;
-    std::string message; // Optional: To explain why it failed
+    std::string message; 
 };
+// main library system class that manages users, books, transactions, reviews, and overall system operations, with integration to the database for persistence and retrieval of data
 class LibrarySystem {
-    AuthManager authManager;
-    transactionlog TransactionManager;
-    Reviewlog ReviewManager;
-    BookCatalog BooksManager;
-    FineCalculator FineCalc;
-    // Add more service managers as needed, e.g., ReviewLog, TransactionLog, etc.
-
-    // Store current user context (pointer, id, or email)
-    Person* currentUser = nullptr;
-     Wallet libraryWallet;
+    AuthManager authManager; // manages user authentication and registration
+    transactionlog TransactionManager; // manages book issue/return transactions
+    Reviewlog ReviewManager; // manages book reviews and approvals
+    BookCatalog BooksManager; // manages the library's book catalog
+    FineCalculator FineCalc; // calculates fines for overdue books
+    Person* currentUser = nullptr; // tracks the currently logged-in user
+    Wallet libraryWallet; // manages the library's funds from fines and membership fees
     double libraryBalance = 0;
     int totalBooks;
     int activeTransations;
@@ -63,14 +62,14 @@ public:
     bool addbook(const std::string& isbn,const std::string&  title,const std::string&  author, const std::string& category,const std::string&  section, const std::string& publisher,const std::string&  edition, const std::string& language, int publicationYear, int pages,int totalCopies);
     bool removeBook(const std::string& isbn);
     bool updateBook(const std::string& isbn,int totalCopies);
-    // ========== Transaction/Book Ops ==========
+    // ========== Transaction/Book Operations ==========
     bool issueBook(const std::string& isbn, const std::string& studentID);    // Called by librarian
     bool returnBook(const std::string& txnID);   // Called by librarian
 
-    // ========== Membership Ops =========
-    bool upgradeStudentMembership(const std::string& studentId, const std::string& newTier);
+    // ========== Membership Operations =========
     QVariantMap getCurrentMembershipDetails();
     bool renewMembership(const std::string& studentId);
+    bool upgradeStudentMembership(const std::string& studentId, const std::string& newTier);
 
     // ========== Review System ==========
     bool submitReview(const std::string& studentId, const std::string& isbn, int rating, const std::string& comment);
