@@ -209,20 +209,20 @@ Rectangle {
         Item { width: 1; height: 20 }
 
         // ── Sign up link ───────────────────────────────────────────────────
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: "Don't have an account? <font color='#0078d4'>Sign up</font>"
-            color: "#9ca3af"
-            font.pixelSize: 13
-            textFormat: Text.RichText
+        // Text {
+        //     anchors.horizontalCenter: parent.horizontalCenter
+        //     text: "Don't have an account? <font color='#0078d4'>Sign up</font>"
+        //     color: "#9ca3af"
+        //     font.pixelSize: 13
+        //     textFormat: Text.RichText
 
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: loginPage.signupRequested()
-            }
-        }
+        //     MouseArea {
+        //         anchors.fill: parent
+        //         hoverEnabled: true
+        //         cursorShape: Qt.PointingHandCursor
+        //         onClicked: loginPage.signupRequested()
+        //     }
+        // }
 
         Item { width: 1; height: 32 }
 

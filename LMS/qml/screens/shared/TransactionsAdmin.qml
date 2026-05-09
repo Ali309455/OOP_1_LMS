@@ -244,7 +244,7 @@ Rectangle {
                 RowLayout {
                     anchors.centerIn: parent; spacing: 8
                     Text { text: "📋"; font.pixelSize: 15 }
-                    Text { text: "Borrow Book"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
+                    Text { text: "Issue Book"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
                 }
 
                 MouseArea {
