@@ -213,47 +213,221 @@ Membership* createMembership(string tier, string studentId) {
     throw invalid_argument("Invalid tier.");
 }
 
-// ========= WALLET IMPLEMENTATION =========
+    // ======================================================
+    // WALLET CLASS
+    // ======================================================
 
-Wallet::Wallet(string id, double initialDeposit) {
+Wallet::Wallet(std::string id,
+                   double initialDeposit)
+{
     studentId = id;
     balance = initialDeposit;
     suspended = false;
 }
-Wallet::Wallet(std::string user_id, double Deposit, bool sus){
-    studentId = user_id;
-    balance = Deposit;
+
+Wallet::Wallet(std::string id,
+               double deposit,
+               bool sus)
+{
+    studentId = id;
+    balance = deposit;
     suspended = sus;
 }
-string Wallet::getStudentId() const {return studentId;}
-void Wallet::addAmount(double amount) {
+
+std::string Wallet::getStudentId() const
+{
+    return studentId;
+}
+
+double Wallet::getBalance() const
+{
+    return balance;
+}
+
+bool Wallet::isSuspended() const
+{
+    return suspended;
+}
+
+void Wallet::suspendWallet()
+{
+    suspended = true;
+}
+
+void Wallet::activateWallet()
+{
+    suspended = false;
+}
+
+void Wallet::addAmount(double amount)
+{
+    if (amount <= 0)
+    {
+        std::cout << "Invalid amount.\n";
+        return;
+    }
+
     balance += amount;
-    suspended = (balance < SUSPENSION_THRESHOLD);
 }
 
-void Wallet::deductFine(double fineAmount) {
-    balance -= fineAmount;
-    if (balance < SUSPENSION_THRESHOLD) suspended = true;
+bool Wallet::deductAmount(double amount)
+{
+    if (amount <= 0)
+    {
+        std::cout << "Invalid deduction amount.\n";
+        return false;
+    }
+
+    if (balance < amount)
+    {
+        std::cout << "Insufficient balance.\n";
+        return false;
+    }
+
+    balance -= amount;
+
+    return true;
 }
 
-// ========= WALLET LOG IMPLEMENTATION =========
+void Wallet::deductFine(double fineAmount)
+{
+    if (!deductAmount(fineAmount))
+    {
+        suspended = true;
 
-void WalletLog::createWallet(string studentId, double initialDeposit) {
-    wallets.push_back(Wallet(studentId, initialDeposit));
-    logs.push_back({studentId, initialDeposit, "initial_deposit", time(0)});
+        std::cout << "Wallet suspended due to unpaid fine.\n";
+    }
 }
-void WalletLog::createWallet(string studentId, double initialDeposit, int sus) {
-    wallets.push_back(Wallet(studentId, initialDeposit, sus));
-    logs.push_back({studentId, initialDeposit, "initial_deposit", time(0)});
+void Wallet::setbalance(double b){
+    balance = b;
 }
-// void WalletLog::addWallet( Wallet& w, const string& sid, double initialDeposit){
-//     wallets.push_back(w);
-//     logs.push_back({sid, initialDeposit, "initial_deposit", time(0)});
+
+void Wallet::deductMembershipRenewalFee(double feeAmount)
+{
+    if (!deductAmount(feeAmount))
+    {
+        std::cout << "Unable to pay membership renewal fee.\n";
+    }
+}
+
+// ======================================================
+// WALLET TRANSACTION CLASS
+// ======================================================
+
+WalletTransaction::WalletTransaction(std::string sid,
+                                     double amt,
+                                     std::string t)
+{
+    studentId = sid;
+    amount = amt;
+    type = t;
+    timestamp = time(nullptr);
+}
+
+std::string WalletTransaction::getStudentId() const
+{
+    return studentId;
+}
+
+double WalletTransaction::getAmount() const
+{
+    return amount;
+}
+
+std::string WalletTransaction::getType() const
+{
+    return type;
+}
+
+time_t WalletTransaction::getTimestamp() const
+{
+    return timestamp;
+}
+
+// ======================================================
+// WALLET LOG CLASS
+// ======================================================
+
+void WalletLog::addLog(std::string studentId,
+                       double amount,
+                       std::string type)
+{
+    WalletEntry entry;
+
+    entry.studentId = studentId;
+    entry.amount = amount;
+    entry.type = type;
+    entry.timestamp = time(nullptr);
+
+    logs.push_back(entry);
+}
+
+std::vector<WalletLog::WalletEntry>
+WalletLog::getAllLogs() const
+{
+    return logs;
+}
+
+std::vector<WalletLog::WalletEntry>
+WalletLog::getLogsByStudent(std::string studentId) const
+{
+    std::vector<WalletEntry> result;
+
+    for (const WalletEntry& entry : logs)
+    {
+        if (entry.studentId == studentId)
+        {
+            result.push_back(entry);
+        }
+    }
+
+    return result;
+}
+
+
+// ========= WALLET IMPLEMENTATION =========
+
+// Wallet::Wallet(string id, double initialDeposit) {
+//     studentId = id;
+//     balance = initialDeposit;
+//     suspended = false;
+// }
+// Wallet::Wallet(std::string user_id, double Deposit, bool sus){
+//     studentId = user_id;
+//     balance = Deposit;
+//     suspended = sus;
+// }
+// string Wallet::getStudentId() const {return studentId;}
+// void Wallet::addAmount(double amount) {
+//     balance += amount;
+//     suspended = (balance < SUSPENSION_THRESHOLD);
 // }
 
-Wallet* WalletLog::getWallet(string studentId) {
-    for (auto& w : wallets) {
-        if (w.getStudentId() == studentId) return &w;
-    }
-    return nullptr;
-}
+// void Wallet::deductFine(double fineAmount) {
+//     balance -= fineAmount;
+//     if (balance < SUSPENSION_THRESHOLD) suspended = true;
+// }
+
+// // ========= WALLET LOG IMPLEMENTATION =========
+
+// void WalletLog::createWallet(string studentId, double initialDeposit) {
+//     wallets.push_back(Wallet(studentId, initialDeposit));
+//     logs.push_back({studentId, initialDeposit, "initial_deposit", time(0)});
+// }
+// void WalletLog::createWallet(string studentId, double initialDeposit, int sus) {
+//     wallets.push_back(Wallet(studentId, initialDeposit, sus));
+//     logs.push_back({studentId, initialDeposit, "initial_deposit", time(0)});
+// }
+// // void WalletLog::addWallet( Wallet& w, const string& sid, double initialDeposit){
+// //     wallets.push_back(w);
+// //     logs.push_back({sid, initialDeposit, "initial_deposit", time(0)});
+// // }
+
+// Wallet* WalletLog::getWallet(string studentId) {
+//     for (auto& w : wallets) {
+//         if (w.getStudentId() == studentId) return &w;
+//     }
+//     return nullptr;
+// }
+
+

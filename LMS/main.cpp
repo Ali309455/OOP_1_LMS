@@ -40,15 +40,17 @@ int main(int argc, char *argv[])
 
 
     // Database::addBook("978-2", "C++ advanced", "Bjarne Stroustrup",420,"Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
-    // Database::addUser("s-13", "aw", "aw@gmail.com", "2113", "Gold", "STUDENT", "Active");
+    // Database::addUser("LIB-1", "Admin", "admin@lib.com", "admin", "", "LIBRARIAN", "",0);
+
     // Database::addUser("s-88", "ali", "ali@gmail.com", "123", "Gold", "STUDENT", "Active");
-    qDebug()<< sys.login("ali@gmail.com","123");
+    // qDebug()<< sys.login("ali@gmail.com","123");
 
     // Database::addBook("978-2", "C++ advanced", "Bjarne Stroustrup",420,"Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
     // Database::addUser("LIB-1","Admin","admin@lib.com","admin","","LIBRARIAN","active");
     // qDebug()<< sys.login("admin@lib.com","admin");
 
     // sys.login("ali@gmail.com","123");
+    // qDebug()<<sys.addBalance("SU-1",12);
     // qDebug()<< sys.updateUser("SU-6","dkj2","dkj@gmail,com","123","Gold","STUDENT","active");
     // sys.removeUser("SU-2");
     // sys.updateUser("LIB-5","ali", "ai@gmail.com", "mai", "gold", "LIBRARIAN");

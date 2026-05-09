@@ -20,7 +20,7 @@ public:
     // -------------------- User Management --------------------
     Q_INVOKABLE RegistrationResult registerStudent(const QString& name, const QString& email, const QString& pwd,const QString& status, const QString& membership, const QString& role);
     Q_INVOKABLE RegistrationResult registerLibrarian(const QString& name, const QString& email, const QString& pwd, const QString& role);
-    Q_INVOKABLE QVariantMap registerUser(const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role);
+    Q_INVOKABLE QVariantMap registerUser(const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role , const double balance);
     Q_INVOKABLE bool updateUser(const QString& id,const QString& name, const QString& email, const QString& pwd, const QString& status, const QString& membership, const QString& role);
     Q_INVOKABLE bool removeUser(const QString& id);
 
@@ -43,11 +43,23 @@ public:
     Q_INVOKABLE bool approveReview(const QString& reviewId);
     Q_INVOKABLE bool deleteReview(const QString &reviewId);
 
+    // -------------------- Wallet --------------------
+    Q_INVOKABLE bool addBalance(const QString& sid, double amount);
+
+    // -------------------- generate pdf --------------------
+    static Q_INVOKABLE bool exportDatabaseReportPdf(const QString& outputPdfPath, QString* outError = nullptr);
+
+    // ------------------ stats card ----------------------
+    Q_INVOKABLE double getlibraryBalance() const;
+    Q_INVOKABLE int gettotalBooks() const;
+    Q_INVOKABLE int getactiveTransations() const;
+    Q_INVOKABLE int getpendingReviews() const;
     // -------------------- Data Fetching (QML ListModel support) --------------------
     Q_INVOKABLE QVariantList getBooks();
     Q_INVOKABLE QVariantList getUsers();
     Q_INVOKABLE QVariantList getTransactions();
     Q_INVOKABLE QVariantList getReviews();
+
 
 private:
     LibrarySystem m_system;

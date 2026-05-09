@@ -32,6 +32,13 @@ void Database::init() {
     QSqlQuery query;
 
     query.exec("PRAGMA foreign_keys = ON;");
+    query.exec("CREATE TABLE IF NOT EXISTS libraries ("
+               "id TEXT PRIMARY KEY ,"
+               "name TEXT,"
+               "totalBooks INTEGER,"
+               "activeTransactions INTEGER,"
+               "pendingReviews INTEGER,"
+               "balance INTEGER)");
 
     query.exec("CREATE TABLE IF NOT EXISTS users ("
                "id TEXT PRIMARY KEY ,"
@@ -42,7 +49,8 @@ void Database::init() {
                "status TEXT,"
                "membership TEXT,"
                "expiry_date TEXT,"
-               "role TEXT)");
+               "role TEXT,"
+                "balance INTEGER)");
 
     query.exec("CREATE TABLE IF NOT EXISTS books ("
                "isbn TEXT PRIMARY KEY,"
@@ -92,11 +100,11 @@ void Database::init() {
                "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
 }
 
-bool Database::addUser(QString id,QString name, QString email, QString password, QString membership, QString role, QString status) { // can be used in register and add user both
+bool Database::addUser(QString id,QString name, QString email, QString password, QString membership, QString role, QString status, double balance) { // can be used in register and add user both
     QSqlQuery query;
 
-    query.prepare("INSERT INTO users (id, joining_date, name, email, password, status, membership, expiry_date, role) "
-                  "VALUES ( ? , date('now'), ?, ?, ?, ?, ?, date('now', '+1 year'), ?)");
+    query.prepare("INSERT INTO users (id, joining_date, name, email, password, status, membership, expiry_date, role, balance) "
+                  "VALUES ( ? , date('now'), ?, ?, ?, ?, ?, date('now', '+1 year'), ?,?)");
 
     query.addBindValue(id);
     query.addBindValue(name);
@@ -105,6 +113,7 @@ bool Database::addUser(QString id,QString name, QString email, QString password,
     query.addBindValue(status);
     query.addBindValue(membership);
     query.addBindValue(role);
+    query.addBindValue(balance);
 
     if (!query.exec()) {
         qDebug() << "Add User Error:" << query.lastError().text();
@@ -114,15 +123,16 @@ bool Database::addUser(QString id,QString name, QString email, QString password,
     return true;
 }
 
-bool Database::addTransaction(QString txid, QString userId, QString isbn,QString returnDate,QString bookName,QString status , int fine) {
+bool Database::addTransaction(QString txid, QString userId, QString isbn,QString duedate,QString returnDate,QString bookName,QString status , int fine) {
     QSqlQuery query;
     query.prepare("INSERT INTO transactions "
                   "(txid, user_id, isbn, issuedate, duedate,returnDate,bookName, status, fine) "
-                  "VALUES (?, ?, ?, date('now'), date('now', '+7 days'),?, ?,?, ?)");
+                  "VALUES (?, ?, ?, date('now'),  ?,?, ?,?, ?)");
 
     query.addBindValue(txid);
     query.addBindValue(userId);
     query.addBindValue(isbn);
+    query.addBindValue(duedate);
     query.addBindValue(returnDate);
     query.addBindValue(bookName);
     query.addBindValue(status);
@@ -225,6 +235,7 @@ QVariantList Database::getUsers()
         user["role"] = query.value("role");
         user["status"] = query.value("status");
         user["expiry_date"] = query.value("expiry_date");
+        user["balance"] = query.value("balance");
         users.append(user);
     }
 
@@ -342,6 +353,22 @@ bool Database::updateUser(QString id, QString name, QString email, QString passw
     query.addBindValue(membership);
     query.addBindValue(status);
     query.addBindValue(role);
+    query.addBindValue(id);
+
+    if (!query.exec()) {
+        qDebug() << "Update User Error:" << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+bool Database::updateUser(QString id, int balance)
+{
+    QSqlQuery query;
+
+    query.prepare("UPDATE users SET balance=? WHERE id=?");
+
+    query.addBindValue(balance);
     query.addBindValue(id);
 
     if (!query.exec()) {

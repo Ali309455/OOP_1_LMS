@@ -5,6 +5,28 @@ import LMS
 Rectangle {
     id: root
     color: "#0b1220"
+    function getBorrowLimitDays() {
+        for (var i = 0; i < usersData.length; i++) {
+
+            // find selected user
+            if (usersData[i].userId === root.issueStudentId) {
+
+                var tier = usersData[i].membership
+
+                if (tier === "Silver")
+                    return 14
+
+                if (tier === "Gold")
+                    return 21
+
+                if (tier === "Platinum")
+                    return 30
+            }
+        }
+
+        // default
+        return 14
+    }
     property var txData: lms.getTransactions();
     property var booksData: lms.getBooks();
     property var usersData: lms.getUsers();
@@ -222,7 +244,7 @@ Rectangle {
                 RowLayout {
                     anchors.centerIn: parent; spacing: 8
                     Text { text: "📋"; font.pixelSize: 15 }
-                    Text { text: "Issue Book"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
+                    Text { text: "Borrow Book"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
                 }
 
                 MouseArea {
@@ -999,7 +1021,7 @@ Rectangle {
                 Column {
                     anchors { fill: parent; margins: 12 } spacing: 4
                     Text { text: "Issue Date: " + root.todayStr();    color: root.textMuted;   font.pixelSize: 12 }
-                    Text { text: "Due Date:   " + root.dueDateStr(14); color: "#f59e0b"; font.pixelSize: 12; font.bold: true }
+                    Text { text: "Due Date:   " + root.dueDateStr(root.getBorrowLimitDays()); color: "#f59e0b"; font.pixelSize: 12; font.bold: true }
                 }
             }
 

@@ -94,6 +94,7 @@ Rectangle {
     property string formMembership: "Silver"
     property string formStatus: "active"
     property string formPassword: ""
+    property string formbalance: ""
 
     // ── Edit form state ────────────────────────────────────────────────────
     property string editName: ""
@@ -127,31 +128,31 @@ Rectangle {
     function addUser() {
         if (!formName || !formEmail || !formPassword || !formRole) return
 
-        lms.login("admin@lib.com","admin");
         let result = lms.registerUser(
             formName,
             formEmail,
             formPassword,
             formStatus,
             formMembership,
-            formRole
+            formRole,
+            formbalance
         )
-        console.log(result.success);
-        if (result) {
+        // console.log(result.success);
+        if (result.success) {
 
             usersModel.append({
                         userId: result.userId,
                         name: formName,
                         email: formEmail,
                         role: formRole,
-                        membership: formRole === "Librarian" ? "-" : formMembership,
+                        membership: formRole === "LIBRARIAN" ? "-" : formMembership,
                         status: formStatus
                     });
 
 
             // Optionally reload your users model from backend
-            // usersModel = lms.getUsers()   // Replace or refresh with a call to your bridge
-            // syncUsersModel() ;
+            usersModel = lms.getUsers()   // Replace or refresh with a call to your bridge
+            syncUsersModel() ;
             resetForm()
             showAddDialog = false
             statsRefresh.restart()
@@ -168,7 +169,6 @@ Rectangle {
         if (editingIndex < 0 || !editName || !editEmail) return
         let user = usersModel.get(editingIndex);
         let userRole = user.role;
-        console.log(user.userId,editName, editEmail, editPassword,editMembership,editRole,editStatus);
         let ok = lms.updateUser(
             user.userId,
             editName,
@@ -871,23 +871,77 @@ Rectangle {
                     }
                 }
 
-                ColumnLayout { spacing: 8; Layout.fillWidth: true
-                    Text { text: "Membership"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
+                ColumnLayout {
+                    spacing: 8
+                    Layout.fillWidth: true
+
+                    Text {
+                        text: "Membership"
+                        color: "#e5e7eb"
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+
                     Rectangle {
-                        Layout.fillWidth: true; height: 40; radius: 8
+                        Layout.fillWidth: true
+                        height: 40
+                        radius: 8
+
                         enabled: usersView.formRole === "STUDENT"
-                        opacity: usersView.formRole === "LIBRARIAN" ? 1.0 : 0.4
-                        color: "#0f1117"; border.color: "#2d3748"; border.width: 1
-                        RowLayout { anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                            Text { Layout.fillWidth: true; text: usersView.formRole === "LIBRARIAN" ? "-" : usersView.formMembership; color: "#e5e7eb"; font.pixelSize: 13 }
-                            Text { text: "▼"; color: "#9ca3af"; font.pixelSize: 9 }
+                        opacity: usersView.formRole === "STUDENT" ? 1.0 : 0.4
+
+                        color: "#0f1117"
+                        border.color: "#2d3748"
+                        border.width: 1
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: usersView.formRole === "LIBRARIAN"
+                                      ? "-"
+                                      : usersView.formMembership
+
+                                color: "#e5e7eb"
+                                font.pixelSize: 13
+                            }
+
+                            Text {
+                                text: "▼"
+                                color: "#9ca3af"
+                                font.pixelSize: 9
+                            }
                         }
-                        MouseArea { anchors.fill: parent; onClicked: if (usersView.formRole === "STUDENT") addMshipMenu.open() }
+
+                        MouseArea {
+                            anchors.fill: parent
+
+                            onClicked: {
+                                if (usersView.formRole === "STUDENT")
+                                    addMshipMenu.open()
+                            }
+                        }
+
                         Menu {
                             id: addMshipMenu
-                            MenuItem { text: "silver";   onTriggered: usersView.formMembership = text }
-                            MenuItem { text: "gold";     onTriggered: usersView.formMembership = text }
-                            MenuItem { text: "Platinum"; onTriggered: usersView.formMembership = text }
+
+                            MenuItem {
+                                text: "Silver"
+                                onTriggered: usersView.formMembership = text
+                            }
+
+                            MenuItem {
+                                text: "Gold"
+                                onTriggered: usersView.formMembership = text
+                            }
+
+                            MenuItem {
+                                text: "Platinum"
+                                onTriggered: usersView.formMembership = text
+                            }
                         }
                     }
                 }
@@ -910,6 +964,59 @@ Rectangle {
                     }
                 }
             }
+            // Balance
+            ColumnLayout {
+                spacing: 8
+                Layout.fillWidth: true
+
+                Text {
+                    text: "Balance"
+                    color: "#e5e7eb"
+                    font.pixelSize: 12
+                    font.bold: true
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 40
+                    radius: 8
+
+                    color: "#0f1117"
+                    border.color: addBalanceInput.activeFocus ? "#3b82f6" : "#2d3748"
+                    border.width: 1
+
+                    TextInput {
+                        id: addBalanceInput
+
+                        anchors {
+                            fill: parent
+                            leftMargin: 12
+                            rightMargin: 12
+                        }
+
+                        color: "#e5e7eb"
+                        font.pixelSize: 13
+                        clip: true
+                        selectByMouse: true
+
+                        verticalAlignment: TextInput.AlignVCenter
+
+                        validator: DoubleValidator {
+                            bottom: 0
+                        }
+
+                        onTextChanged: usersView.formbalance = text
+
+                        Text {
+                            visible: !parent.text
+                            text: "Enter initial balance amount"
+                            color: "#6b7280"
+                            font: parent.font
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+                }
+            }
 
             // Buttons
             RowLayout { Layout.fillWidth: true; spacing: 12
@@ -920,7 +1027,12 @@ Rectangle {
                 }
                 Rectangle {
                     Layout.fillWidth: true; height: 40; radius: 6
-                    color: (usersView.formName && usersView.formEmail && usersView.formPassword) ? "#3b82f6" : "#374151"
+                    property bool formValid:
+                           usersView.formName.trim().length > 0 &&
+                           usersView.formEmail.trim().length > 0 &&
+                           usersView.formPassword.trim().length > 0
+
+                       color: formValid ? "#3b82f6" : "#374151"
                     enabled: usersView.formName && usersView.formEmail && usersView.formPassword
                     Behavior on color { ColorAnimation { duration: 150 } }
                     Text { anchors.centerIn: parent; text: "Add User"; color: "#ffffff"; font.pixelSize: 13; font.bold: true }
@@ -1092,13 +1204,13 @@ Rectangle {
                     Text { text: "Membership"; color: "#e5e7eb"; font.pixelSize: 12; font.bold: true }
                     Rectangle {
                         Layout.fillWidth: true; height: 40; radius: 8
-                        enabled: usersView.editRole === "Student"; opacity: usersView.editRole === "Student" ? 1 : 0.4
+                        enabled: usersView.editRole === "STUDENT"; opacity: usersView.editRole === "STUDENT" ? 1 : 0.4
                         color: "#0f1117"; border.color: "#2d3748"; border.width: 1
                         RowLayout { anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                            Text { Layout.fillWidth: true; text: usersView.editRole === "Librarian" ? "-" : usersView.editMembership; color: "#e5e7eb"; font.pixelSize: 13 }
+                            Text { Layout.fillWidth: true; text: usersView.editRole === "LIBRARIAN" ? "-" : usersView.editMembership; color: "#e5e7eb"; font.pixelSize: 13 }
                             Text { text: "▼"; color: "#9ca3af"; font.pixelSize: 9 }
                         }
-                        MouseArea { anchors.fill: parent; onClicked: if (usersView.editRole === "Student") editMshipMenu.open() }
+                        MouseArea { anchors.fill: parent; onClicked: if (usersView.editRole === "STUDENT") editMshipMenu.open() }
                         Menu {
                             id: editMshipMenu
                             MenuItem { text: "Silver";   onTriggered: usersView.editMembership = text }

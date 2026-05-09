@@ -15,12 +15,16 @@ class LibrarySystem {
     transactionlog TransactionManager;
     Reviewlog ReviewManager;
     BookCatalog BooksManager;
-    WalletLog WalletsManager;
     FineCalculator FineCalc;
     // Add more service managers as needed, e.g., ReviewLog, TransactionLog, etc.
 
     // Store current user context (pointer, id, or email)
     Person* currentUser = nullptr;
+     Wallet libraryWallet;
+    double libraryBalance = 0;
+    int totalBooks;
+    int activeTransations;
+    int pendingReviews;
 public:
     LibrarySystem();
 
@@ -33,14 +37,24 @@ public:
     void loadTransactionsIntoSystem();
     void loadReviewsIntoSystem();
     void loadWalletsIntoSystem();
+    // ========= setters & getters =========
+    double getlibraryBalance() const;
+    int gettotalBooks() const;
+    int getactiveTransations() const;
+    int getpendingReviews() const;
+
+    void setlibraryBalance(double b);
+    void settotalBooks(int totalbooks);
+    void setactiveTransations(int transactions);
+    void setpendingReviews(int r);
     // ========== Authentication ===========
     QVariantMap login(const std::string& email, const std::string& password);
     void logout();
     std::string generateId(const std::string& prefix, int maxIDfromDB);
     // ========== User Management ==========
-    RegistrationResult registerStudent( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
+    RegistrationResult registerStudent( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role, double balance);
     RegistrationResult registerLibrarian( const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);
-    RegistrationResult registerUser( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
+    RegistrationResult registerUser( const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role, double balance);
     bool removeUser(const std::string& sid);
     bool updateStudent( const std::string& id,const std::string& name, const std::string& email, const std::string& pwd,const std::string& status, const std::string& membership, const std::string& role);
     bool updateLibrarian( const std::string& id ,const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);
@@ -69,5 +83,8 @@ public:
     std::vector<transaction> getAllTransactions() const;
     std::vector<Review> getAllReviews() const;
     void displayAllData() const ;
+    static bool exportDatabaseReportPdf(const QString& outputPdfPath, QString* outError = nullptr);
 
+    double getLibraryBalance() const;
+    bool addBalance(const std::string& sid, double amount);
 };

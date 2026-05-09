@@ -16,17 +16,17 @@ void LibrarySystemBridge::logout()
 
 RegistrationResult LibrarySystemBridge::registerStudent(const QString &name, const QString &email, const QString &pwd,const QString &status ,const QString &membership, const QString &role)
 {
-    return m_system.registerStudent(name.toStdString(), email.toStdString(), pwd.toStdString(), status.toStdString(), membership.toStdString(), role.toStdString());
+    return m_system.registerStudent(name.toStdString(), email.toStdString(), pwd.toStdString(), status.toStdString(), membership.toStdString(), role.toStdString(),0);
 }
 RegistrationResult LibrarySystemBridge::registerLibrarian(const QString &name, const QString &email, const QString &pwd, const QString &role)
 {
     return m_system.registerLibrarian(name.toStdString(), email.toStdString(), pwd.toStdString(), role.toStdString());
 }
-QVariantMap LibrarySystemBridge::registerUser(const QString& name, const QString& email, const QString& pwd,  const QString& status, const QString& membership, const QString& role)
+QVariantMap LibrarySystemBridge::registerUser(const QString& name, const QString& email, const QString& pwd,  const QString& status, const QString& membership, const QString& role, const double balance )
 {
     auto result = m_system.registerUser(name.toStdString(), email.toStdString(),
                                         pwd.toStdString(), status.toStdString(),
-                                        membership.toStdString(), role.toStdString());
+                                        membership.toStdString(), role.toStdString(),balance);
 
     QVariantMap map;
     map["success"] = result.success;
@@ -93,6 +93,31 @@ bool LibrarySystemBridge::deleteReview(const QString &reviewId)
 {
     return m_system.deleteReview(reviewId.toStdString());
 }
+
+bool LibrarySystemBridge::addBalance(const QString& sid, double amount){
+    return m_system.addBalance(sid.toStdString(),amount);
+}
+
+// ----------> Stats card data <---------------
+double LibrarySystemBridge::getlibraryBalance() const {
+    return m_system.getLibraryBalance();
+}
+int LibrarySystemBridge::gettotalBooks() const{
+    return m_system.gettotalBooks();
+}
+int LibrarySystemBridge::getactiveTransations() const{
+    return m_system.getactiveTransations();
+}
+int LibrarySystemBridge::getpendingReviews() const{
+    return m_system.getpendingReviews();
+}
+
+// ----------> Generate Pdf <---------------
+bool LibrarySystemBridge::exportDatabaseReportPdf(const QString& outputPdfPath, QString* outError ){
+    return LibrarySystem::exportDatabaseReportPdf(outputPdfPath);
+}
+
+
 // ------------------ Data for QML ListModels ------------------
 
 // Each QVariantMap returned here models a "row" in a QML ListView
@@ -143,6 +168,7 @@ QVariantList LibrarySystemBridge::getUsers()
 
             // Assuming membership has a method like getType() or getName()
                 map["membership"] = QString::fromStdString(student->getMembershipTier());
+                map["balance"] = student->getBalance();
 
         } else {
             // Fallback for non-students (Librarians, etc.)

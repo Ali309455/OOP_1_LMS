@@ -41,20 +41,29 @@ private:
     int borrowedCount;
     int totalfineowed;
     std::string status;
-    Membership* membership;
-    Wallet* wallet;
+    Membership* membership;  // add
+    Wallet studentwallet;
+    double balance;
 
 public:
-    Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd,const std::string& status,const std::string& tier);
+    Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd,const std::string& status,const std::string& tier,double balance);
     ~Student();
     void setmembership(Membership* m);
     std::string getMembershipTier() const;
     std::string getRole() const override;
     std::string getStatus() const;
+    Wallet* getstudentwallet();
     void setStatus(const std::string& s);
     int getTotalFineOwed() const;
     int get_BorrowedCount() const;
+    int getBalance() const;
     void setmembership(Membership& m );
+    void addWalletBalance(double amount);
+    void payFine(double amount);
+    void paymembershipfee(double amount);
+    double getWalletBalance() const;
+    bool isWalletSuspended() const;
+
 };
 
 class Librarian : public Person {
@@ -83,7 +92,11 @@ public:
     void registerPerson(Person* p);
     bool upgrademembership(const std::string& tier, const std::string& id);
     Person* login(const std::string& email, const std::string& password) const;
-    bool updateUser(const std::string& id,const std::string& name, const std::string& email, const std::string& password, const std::string& status="");
+    bool updateUser(const std::string& id,const std::string& name, const std::string& email, const std::string& password, const std::string& status="", double b=0);
+    bool addBalance(const std::string& studentId, double amount);
+    bool deductFine(const std::string& studentId, double fine);
+    double getStudentBalance(const std::string& studentId);
+    bool isWalletSuspended(const std::string& studentId);
 };
 
 #endif // LIBRARY_SYSTEM_H

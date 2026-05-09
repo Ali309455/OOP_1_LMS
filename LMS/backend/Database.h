@@ -13,9 +13,9 @@ public:
     static void init(); // create tables
 
     // CRUD functions
-    static bool addUser(QString id,QString name, QString email, QString password, QString membership, QString role,QString status);
+    static bool addUser(QString id,QString name, QString email, QString password, QString membership, QString role,QString status, double balance);
     static bool addBook(QString isbn, QString name, QString author,int pages, QString genre, QString section, QString publisher,QString edition, QString language,int publicationYear,int total, int available);
-    static bool addTransaction(QString txid, QString userId, QString isbn,QString returnDate,QString bookName, QString status, int fine);
+    static bool addTransaction(QString txid, QString userId, QString isbn,QString duedate,QString returnDate,QString bookName, QString status, int fine);
     static bool addReview(QString review_id, QString userId, QString username, QString isbn,QString bookname, int rating, QString comment, QString status);
     static bool addWallet(QString user_id,int balance,int status);
     // READ (Array of Objects)
@@ -27,6 +27,7 @@ public:
 
     //update
     static bool updateUser(QString id, QString name, QString email, QString password, QString membership, QString role,QString status = "");
+    static bool updateUser(QString id, int balance);
     static bool updateBook(QString isbn,int total,int available);
     static bool updateTransaction(QString txid, QString status, int fine,QString returndate = "");
     static bool updateReview(QString reviewId,std::optional<int> rating ,std::optional<QString> comment ,std::optional<QString> status );

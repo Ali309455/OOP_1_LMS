@@ -1,9 +1,161 @@
 #include<iostream>
 #include"LibrarySystem.h"
+#include"BookMembership.h"
 #include<qDebug>
 #include <QDate>
 #include <QString>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlRecord>
+#include <QVariant>
+#include <QFileInfo>
+#include <QDateTime>
+#include <QTextDocument>
+#include <QPrinter>
+#include <QDir>
+#include <QApplication>
 using namespace std;
+
+static QString htmlEscape(QString s) {
+    return s.replace('&', "&amp;")
+    .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;");
+}
+
+// Call this AFTER Database::connect() (so the default connection exists).
+// Example: Database::exportDatabaseReportPdf("D:/report/lms-report.pdf");
+bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QString* outError) {
+    QSqlDatabase db = QSqlDatabase::database(); // default connection created by Database::connect()
+    if (!db.isValid() || !db.isOpen()) {
+        if (outError) *outError = "Database is not open. Call Database::connect() first.";
+        return false;
+    }
+
+    // 1) Collect all user tables (skip SQLite internal tables)
+    QStringList tables;
+    {
+        QSqlQuery q(db);
+        if (!q.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name;")) {
+            if (outError) *outError = "Failed to read table list: " + q.lastError().text();
+            return false;
+        }
+        while (q.next()) tables << q.value(0).toString();
+    }
+
+    // 2) Build HTML
+    QString html;
+    html += "<html><head><meta charset='utf-8'/>";
+    html += R"(
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #111; }
+  .header { margin-bottom: 14px; }
+  .title { font-size: 18pt; font-weight: 700; margin: 0; }
+  .meta { color: #444; margin-top: 4px; }
+  .section { margin-top: 18px; page-break-inside: avoid; }
+  .section h2 { font-size: 13pt; margin: 0 0 8px 0; padding: 6px 8px; background: #f2f4f7; border: 1px solid #d9dee7; }
+  .submeta { font-size: 9pt; color: #555; margin: 6px 0 8px 0; }
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 6px; vertical-align: top; word-wrap: break-word; }
+  th { background: #111827; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #f9fafb; }
+  .empty { color: #666; font-style: italic; padding: 8px 0; }
+</style>
+)";
+    html += "</head><body>";
+
+    const QString dbName = QFileInfo(db.databaseName()).absoluteFilePath();
+    html += "<div class='header'>";
+    html += "<p class='title'>LMS Database Report</p>";
+    html += "<div class='meta'>Generated: " + htmlEscape(QDateTime::currentDateTime().toString(Qt::ISODate)) + "</div>";
+    html += "<div class='meta'>Database: " + htmlEscape(dbName) + "</div>";
+    html += "<div class='meta'>Tables: " + QString::number(tables.size()) + "</div>";
+    html += "</div>";
+
+    for (const QString& table : tables) {
+        // Row count
+        int rowCount = -1;
+        {
+            QSqlQuery qc(db);
+            if (qc.exec("SELECT COUNT(*) FROM \"" + table + "\";") && qc.next())
+                rowCount = qc.value(0).toInt();
+        }
+
+        html += "<div class='section'>";
+        html += "<h2>Table: " + htmlEscape(table) + "</h2>";
+        html += "<div class='submeta'>Rows: " + QString::number(rowCount) + "</div>";
+
+        QSqlQuery q(db);
+        if (!q.exec("SELECT * FROM \"" + table + "\";")) {
+            html += "<div class='empty'>Error reading table: " + htmlEscape(q.lastError().text()) + "</div>";
+            html += "</div>";
+            continue;
+        }
+
+        QSqlRecord rec = q.record();
+        const int colCount = rec.count();
+
+        if (colCount <= 0) {
+            html += "<div class='empty'>No columns found.</div></div>";
+            continue;
+        }
+
+        // Table header
+        html += "<table><thead><tr>";
+        for (int c = 0; c < colCount; ++c)
+            html += "<th>" + htmlEscape(rec.fieldName(c)) + "</th>";
+        html += "</tr></thead><tbody>";
+
+        bool anyRow = false;
+        while (q.next()) {
+            anyRow = true;
+            html += "<tr>";
+            for (int c = 0; c < colCount; ++c) {
+                const QVariant v = q.value(c);
+                QString cell = v.isNull() ? "NULL" : v.toString();
+                html += "<td>" + htmlEscape(cell) + "</td>";
+            }
+            html += "</tr>";
+        }
+        html += "</tbody></table>";
+
+        if (!anyRow) html += "<div class='empty'>No data.</div>";
+        html += "</div>";
+    }
+
+    html += "</body></html>";
+
+    // 3) Render HTML -> PDF
+    QTextDocument doc;
+    doc.setHtml(html);
+
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    QString basePath = QCoreApplication::applicationDirPath();
+    QDir dir(basePath);
+    dir.cdUp();
+    dir.cdUp();    // Debug/
+    QString pdfpath = dir.filePath(outputPdfPath);
+    printer.setOutputFileName(pdfpath);
+
+    // A4 with reasonable margins
+    printer.setPageSize(QPageSize(QPageSize::A4));
+    printer.setPageMargins(QMarginsF(12, 12, 12, 12), QPageLayout::Millimeter);
+
+    doc.print(&printer);
+
+    // QPrinter doesn't reliably signal write errors; do a basic existence check
+    if (!QFileInfo::exists(outputPdfPath) || QFileInfo(outputPdfPath).size() == 0) {
+        if (outError) {
+            qDebug()<< "PDF was not created (check output path permissions).";
+            return false;
+        }
+    }
+    return true;
+}
+
 
 
 
@@ -13,7 +165,7 @@ QString getDate(int addDays = 0)
     return date.toString("yyyy-MM-dd");  // DB-friendly format
 }
 
-LibrarySystem::LibrarySystem()
+LibrarySystem::LibrarySystem():libraryWallet("LIBRARY", 0),totalBooks(0),activeTransations(0),pendingReviews(0)
 {
     initializeSystem();
     Database::init();
@@ -40,7 +192,7 @@ void LibrarySystem::loadUsersIntoSystem()
             std::string status = map["status"].toString().toStdString();
             std::string role = map["role"].toString().toStdString();
             std::string membership = map["membership"].toString().toStdString();
-
+            int balance = map["balance"].toInt();
             // Check for empty fields using standard logic
             if (id.empty() || name.empty() || email.empty() || password.empty() || role.empty()) {
                 // std::invalid_argument is the standard way to flag bad data input
@@ -53,7 +205,7 @@ void LibrarySystem::loadUsersIntoSystem()
                 if (membership.empty()) {
                     throw std::invalid_argument("Membership field is empty for student: " + name);
                 }
-                person = new Student(id, name, email, password,status, membership);
+                person = new Student(id, name, email, password,status, membership, balance);
             }
             else if (role == ROLE_LIBRARIAN) {
                 person = new Librarian(id, name, email, password, "cs211");
@@ -122,6 +274,7 @@ void LibrarySystem::loadBooksIntoSystem()
                             publicationYear, pages, totalCopies,avaliableCopies);
 
                   BooksManager.addBook(book);
+
                   // Proceed with using the book object...
 
               } catch (const std::exception& e) {
@@ -131,14 +284,16 @@ void LibrarySystem::loadBooksIntoSystem()
               }
         // Add to catalog
     }
+    settotalBooks(BooksManager.bookcount);
 }
 
 void LibrarySystem::loadTransactionsIntoSystem()
 {
     QVariantList transactions = Database::getTransactions();
-
+    int activeCnt = 0;
     for (const auto& t : transactions) {
         try {
+
             QVariantMap map = t.toMap();
 
             // Extract values
@@ -162,7 +317,6 @@ void LibrarySystem::loadTransactionsIntoSystem()
             }
 
             int fine = map["fine"].toInt();
-            qDebug()<< username;
             // 2. Validate numeric logic (fine shouldn't be negative)
             if (fine < 0) {
                 throw std::runtime_error("Invalid fine amount for Transaction ID: " + transactionId);
@@ -174,6 +328,8 @@ void LibrarySystem::loadTransactionsIntoSystem()
                            status, fine);
 
             // 4. Add to manager
+            qDebug()<<"status "+ status;
+            if(status == "active"){ qDebug()<<"here";setactiveTransations(++activeCnt);};
             TransactionManager.addTransaction(tr);
 
         } catch (const std::invalid_argument& e) {
@@ -192,7 +348,7 @@ void LibrarySystem::loadTransactionsIntoSystem()
 void LibrarySystem::loadReviewsIntoSystem()
 {
     QVariantList reviews = Database::getReviews();
-
+    int pendingr = 0;
     for (const auto& r : reviews) {
         try {
             QVariantMap map = r.toMap();
@@ -225,6 +381,9 @@ void LibrarySystem::loadReviewsIntoSystem()
                           rating, comment, status, reviewDate);
 
             // 4. Add to manager
+            if(status == "pending") {
+                setpendingReviews(++pendingr);
+            }
             ReviewManager.addReview(review);
 
         } catch (const std::invalid_argument& e) {
@@ -254,7 +413,7 @@ void LibrarySystem::loadWalletsIntoSystem()
         // Create Wallet object
 
         // Add to manager
-        WalletsManager.createWallet(id, balance,sus);
+        // WalletsManager.createWallet(id, balance,sus);
     }
 }
 
@@ -265,7 +424,24 @@ void LibrarySystem::initializeSystem(){
     loadReviewsIntoSystem();
     loadWalletsIntoSystem();
 }
+// ========= setters & getters =========
+int LibrarySystem::gettotalBooks() const {
+    return totalBooks;
+};
+int LibrarySystem::getactiveTransations() const{
+    return activeTransations;
+};
+int LibrarySystem::getpendingReviews() const{
+    return pendingReviews;
+};
 
+void LibrarySystem::settotalBooks(int tb){totalBooks =tb ;};
+void LibrarySystem::setactiveTransations(int transactions){activeTransations = transactions;};
+void LibrarySystem::setpendingReviews(int r){pendingReviews = r;};
+
+double LibrarySystem::getLibraryBalance() const {
+    return libraryWallet.getBalance();
+}
 // -------------------> Auht <---------------------------
 
 #include <QVariantMap>
@@ -315,20 +491,46 @@ bool LibrarySystem::issueBook(const string& isbn, const string& sid) {
     /*if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN){;
         return false;
     }*/        // permission check HERE
+    vector<transaction> txs = TransactionManager.getAllTransactions();
+
+    int todayBorrowCount = 0;
+
+    QString today = getDate();
+
+    for (const auto& tx : txs)
+    {
+        if (tx.getStudentId() == sid && QString::fromStdString(tx.getIssueDate()) == today &&tx.getStatus() == "active")
+        {
+            todayBorrowCount++;
+        }
+    }
+
+    // limit = 2 books per day
+    if (todayBorrowCount >= 2)
+    {
+        qDebug()<<"today's borrow count exeded";
+        return false;
+    }
+    int borrowlimitdays;
     Book* b = BooksManager.findByIsbn(isbn);
-    qDebug() << b<< b->getAvailableCopies();
     if (!b || b->getAvailableCopies() == 0) return false;
     b->issueOneCopy();
     Person* p = authManager.findById(sid);
     if (!p) return false;
+    auto* s = dynamic_cast<Student*>(p);
+    string tier = s->getMembershipTier();
+    if(tier == "Silver") borrowlimitdays = 14;
+    if(tier == "Gold")borrowlimitdays = 21;
+    if(tier == "Platinum")borrowlimitdays = 30;
     string username = p->getName();
     string txid =  generateId("TX", Database::getMaxIdNumber("transactions", "txid", "TX"));
-    bool dbresponse = Database::addTransaction(QString::fromStdString(txid),QString::fromStdString(sid),QString::fromStdString(isbn),"",QString::fromStdString(b->getTitle()),QString::fromStdString("active"),0);
+    bool dbresponse = Database::addTransaction(QString::fromStdString(txid),QString::fromStdString(sid),QString::fromStdString(isbn),getDate(borrowlimitdays),"",QString::fromStdString(b->getTitle()),QString::fromStdString("active"),0);
     int total = b->getTotalCopies(); int available = b->getAvailableCopies();
-    qDebug()<<available;
+    ++activeTransations;
+    qDebug()<<activeTransations;
     if(isbn.empty() && total && available){qDebug()<<"book data fetching failed"; return false;}
     bool bookupdate = Database::updateBook(QString::fromStdString(isbn),total, available);
-    return(dbresponse && bookupdate && TransactionManager.issueBook(txid,sid,username,isbn,getDate().toStdString(),getDate(7).toStdString(),b->getTitle()));
+    return(dbresponse && bookupdate && TransactionManager.issueBook(txid,sid,username,isbn,getDate().toStdString(),getDate(borrowlimitdays).toStdString(),b->getTitle()));
 }
 
 bool LibrarySystem::returnBook(const string& txnID) {
@@ -351,12 +553,13 @@ bool LibrarySystem::returnBook(const string& txnID) {
     string tier = s->getMembershipTier();
 
     // ✅ Step 4: calculate fine correctly
-    double fine = FineCalc.calculateFinalFine(
-        t->getDueDate(),
-        returnDate,
-        tier
-        );
+    double fine = FineCalc.calculateFinalFine(t->getDueDate(),returnDate,tier);
+    if (fine > 0) {
+        s->payFine(fine);
 
+        // library receives money
+        libraryWallet.addAmount(fine);
+    }
     // ✅ Step 5: update transaction
     t->markReturned(returnDate, fine);
 
@@ -372,6 +575,7 @@ bool LibrarySystem::returnBook(const string& txnID) {
         );
 }
 
+// string getDueDate(const ){}
 // -------------------> Book Manager <---------------------------
 
 bool LibrarySystem::addbook(const string& isbn,const string&  title,const string&  author, const string& category,const string&  section, const string& publisher,const string&  edition, const string& language, int publicationYear, int pages,int totalCopies){
@@ -417,7 +621,7 @@ bool LibrarySystem::approveReview(const string& reviewID) {
         return false;
 
     ReviewManager.approveReview(reviewID);
-
+    --pendingReviews;
     return Database::updateReview(
         QString::fromStdString(reviewID),
         std::nullopt,
@@ -430,6 +634,7 @@ bool LibrarySystem::deleteReview(const string& reviewID){
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
     ReviewManager.deleteReview(reviewID);
+    --pendingReviews;
     return Database::deleteReview(QString::fromStdString(reviewID));
 
 }
@@ -460,7 +665,7 @@ qDebug()<<role;
 }
 
 // -------------------> User <---------------------------
-RegistrationResult LibrarySystem::registerStudent(const string& name, const string& email, const string& pwd, const string& status, const string& membership, const string& role) {
+RegistrationResult LibrarySystem::registerStudent( const string& name, const string& email, const string& pwd,const string& status, const string& membership, const string& role, double balance){
 
     RegistrationResult result;
     result.success = false;
@@ -471,7 +676,7 @@ RegistrationResult LibrarySystem::registerStudent(const string& name, const stri
     string id = generateId("SU", Database::getMaxIdNumber("users", "id", "SU"));
 
     // 2. Create the Student object (Heap allocation)
-    Student* student = new Student(id, name, email, pwd, status, membership);
+    Student* student = new Student(id, name, email, pwd, status, membership,balance);
 
     // 3. Attempt to save to Database
     // We assign the boolean return value to our struct's success member
@@ -482,7 +687,8 @@ RegistrationResult LibrarySystem::registerStudent(const string& name, const stri
         QString::fromStdString(pwd),
         QString::fromStdString(membership),
         QString::fromStdString(role),
-        QString::fromStdString(status)
+        QString::fromStdString(status),
+        balance
         );
 
     // 4. Handle logic based on the boolean result
@@ -512,7 +718,7 @@ RegistrationResult LibrarySystem::registerLibrarian(const string& name, const st
         QString::fromStdString(pwd),
         "",
         QString::fromStdString(role),
-        ""
+        "",0
         );
 
     if (result.success) {
@@ -526,7 +732,7 @@ RegistrationResult LibrarySystem::registerLibrarian(const string& name, const st
 
     return result;
 }
-RegistrationResult LibrarySystem::registerUser(const string& name, const string& email, const string& pwd, const string& status, const string& membership, const string& role)
+RegistrationResult LibrarySystem::registerUser(const string& name, const string& email, const string& pwd, const string& status, const string& membership, const string& role, double balance)
 {
     // 1. Authorization Check
     // Ensure only an authorized librarian can perform registration
@@ -542,7 +748,7 @@ RegistrationResult LibrarySystem::registerUser(const string& name, const string&
     // 3. Routing based on Role
     // This calls your specific logic for Student or Librarian
     if (role == ROLE_STUDENT) {
-        return registerStudent(name, email, pwd, status, membership, role);
+        return registerStudent(name, email, pwd, status, membership, role, balance);
     }
     else if (role == ROLE_LIBRARIAN) {
         return registerLibrarian(name, email, pwd, role);
@@ -638,21 +844,58 @@ bool LibrarySystem::updateUser( const string& id, const string& name, const stri
         return false;
     }
 }
+// ---------------> wallet <---------------------------
+bool LibrarySystem::addBalance(const string& sid, double amount){
+    if(authManager.addBalance(sid,amount))
+        return Database::updateUser(QString::fromStdString(sid),authManager.getStudentBalance(sid));
+    return false;
+}
 
 // -------------------> membership <---------------------------
-bool LibrarySystem::upgradeStudentMembership(
-    const string& studentId,
-    const string& newTier)
+bool LibrarySystem::upgradeStudentMembership(const string& studentId,const string& newTier)
 {
-    authManager.upgrademembership(newTier, studentId);
+    // Find user
+    Person* p = authManager.findById(studentId);
 
-    Person *p = authManager.findById(studentId);
-
-    Student* s = dynamic_cast<Student*>(p);
-
-    if (!p || !s)
+    if (!p)
         return false;
 
+    // Ensure student
+    Student* s = dynamic_cast<Student*>(p);
+
+    if (!s)
+        return false;
+
+    // Create temporary membership object
+    Membership* m = createMembership(newTier, studentId);
+
+    if (!m)
+        return false;
+
+    // Get fee
+    double fee = m->getRenewalFee();
+
+    // Optional: prevent insufficient balance
+    if (s->getWalletBalance() < fee) {
+        delete m;
+        return false;
+    }
+
+    // Deduct from student wallet
+    qDebug()<<fee;
+    s->paymembershipfee(fee);
+    qDebug() <<s->getstudentwallet()->getBalance();
+
+    // Add money to library wallet
+    libraryWallet.addAmount(fee);
+
+    // Upgrade membership
+    authManager.upgrademembership(newTier, studentId);
+
+    // Cleanup
+    delete m;
+
+    // Update DB
     return Database::updateUser(
         QString::fromStdString(studentId),
         QString::fromStdString(p->getName()),
@@ -661,7 +904,7 @@ bool LibrarySystem::upgradeStudentMembership(
         QString::fromStdString(newTier),
         QString::fromStdString(p->getRole()),
         QString::fromStdString(s->getStatus())
-        );
+               ) && Database::updateUser(QString::fromStdString(studentId),s->getWalletBalance());
 }
 
 QVariantMap LibrarySystem::getCurrentMembershipDetails() {

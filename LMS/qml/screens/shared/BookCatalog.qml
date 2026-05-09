@@ -445,10 +445,10 @@ Rectangle {
                                     }
                                 }
 
-                                // Eye action
                                 // Edit button
                                 Rectangle {
                                     Layout.preferredWidth: 60; height: 32; radius: 8
+                                    visible: booksView.isLibrarian
                                     color: actionEditMA.containsPress ? "#1e3a5f" : actionEditMA.containsMouse ? "#162d4a" : "transparent"
                                     Behavior on color { ColorAnimation { duration: 100 } }
                                     Row {

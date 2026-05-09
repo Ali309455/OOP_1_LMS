@@ -1,6 +1,7 @@
 #include "Auth.h"
 #include <stdexcept>
 #include <iostream>
+#include<qDebug>
 
 // ========= PERSON IMPLEMENTATION =========
 
@@ -30,21 +31,24 @@ bool Person::authenticate(const std::string& tryPass) const {
 }
 
 // ========= STUDENT IMPLEMENTATION =========
-Student::Student(const std::string& id,const std::string& nm,const std::string& em,const std::string& pwd,const std::string& status, const std::string& tier): Person(id, nm, em, pwd),
+
+Student::Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd, const std::string& stat, const std::string& tier, double balance)
+    : Person(id, nm, em, pwd),
     borrowedCount(0),
     totalfineowed(0),
-    membership(nullptr),
-    wallet(nullptr)
+    status(stat),
+    // composition
+    studentwallet(id, balance)
 {
-    // Create membership
+    // create membership dynamically
     membership = createMembership(tier, id);
-    this->status = status;
-    // Create wallet (assuming WalletLog is global or accessible)
-    // wallet = new Wallet(id, 0.0);   // local object for this student
-    // WalletLog::addWallet(wallet, id,0);
-    // Also log it (optional, depending on your design)
 
+    if (!membership) {
+        membership = new Silver(id);
+    }
 }
+
+
 void Student::setmembership(Membership* m) {
     // delete old membership to avoid memory leak
     delete membership;
@@ -68,12 +72,41 @@ std::string Student::getMembershipTier() const {
 int Student::getTotalFineOwed() const {
     return totalfineowed;
 }
+int Student::getBalance() const {
+    return balance;
+}
 
 int Student::get_BorrowedCount() const {
     return borrowedCount;
 }
+void Student::paymembershipfee(double amount){
+    studentwallet.deductMembershipRenewalFee(amount);
+}
 Student::~Student() {
     delete membership;
+}
+// ========= WALLET OPERATIONS =========
+
+void Student::addWalletBalance(double amount) {
+    studentwallet.addAmount(amount);
+}
+
+void Student::payFine(double amount) {
+    studentwallet.deductFine(amount);
+
+    if (totalfineowed >= amount)
+        totalfineowed -= amount;
+}
+
+double Student::getWalletBalance() const {
+    return studentwallet.getBalance();
+}
+Wallet* Student::getstudentwallet(){
+    return &studentwallet;
+}
+
+bool Student::isWalletSuspended() const {
+    return studentwallet.isSuspended();
 }
 
 // ========= LIBRARIAN IMPLEMENTATION =========
@@ -144,6 +177,7 @@ AuthManager::~AuthManager() {
 }
 Person* AuthManager::findById(const std::string id) {
     for (auto* user : registeredUsers) {
+        // qDebug()<<(user->getUserID() == id);
         if (user->getUserID() == id) {
             return user;
         }
@@ -167,8 +201,65 @@ void AuthManager::registerPerson(Person* p) {
 }
 
 int AuthManager::getuserCount(){return userCount;}
+bool AuthManager::addBalance(const std::string& studentId, double amount)
+{
+    Person* p = findById(studentId);
+    if (!p)
+        return false;
 
-bool AuthManager::updateUser(const std::string& id,const std::string& name,const std::string& email,const std::string& password, const std::string& status)
+    Student* s = dynamic_cast<Student*>(p);
+
+    if (!s)
+        return false;
+
+    s->addWalletBalance(amount);
+
+    return true;
+}
+bool AuthManager::deductFine(const std::string& studentId, double fine){
+    Person* p = findById(studentId);
+
+    if (!p)
+        return false;
+
+    Student* s = dynamic_cast<Student*>(p);
+
+    if (!s)
+        return false;
+
+    s->payFine(fine);
+
+    return true;
+}
+double AuthManager::getStudentBalance(const std::string& studentId)
+{
+    Person* p = findById(studentId);
+
+    if (!p)
+        return -1;
+
+    Student* s = dynamic_cast<Student*>(p);
+
+    if (!s)
+        return -1;
+
+    return s->getWalletBalance();
+}
+bool AuthManager::isWalletSuspended(const std::string& studentId)
+{
+    Person* p = findById(studentId);
+
+    if (!p)
+        return true;
+
+    Student* s = dynamic_cast<Student*>(p);
+
+    if (!s)
+        return true;
+
+    return s->isWalletSuspended();
+}
+bool AuthManager::updateUser(const std::string& id,const std::string& name,const std::string& email,const std::string& password, const std::string& status, double balance)
 {
     Person* user = findById(id);
 
@@ -185,7 +276,7 @@ bool AuthManager::updateUser(const std::string& id,const std::string& name,const
     if (!password.empty())
         user->setPassword(password);
     Student* student = dynamic_cast<Student*>(user);
-    if(student ) student->setStatus(status);
+    if(student ){ student->setStatus(status); student->getstudentwallet()->setbalance(balance);};
     return true;
 }
 
@@ -201,22 +292,30 @@ Person* AuthManager::login(const std::string& email, const std::string& password
     throw std::runtime_error("User not found.");
 };
 
-bool AuthManager::upgrademembership(const std::string& tier,const std::string& id){
+bool AuthManager::upgrademembership(const std::string& tier,
+                                    const std::string& id)
+{
     Person* p = findById(id);
 
-    if (!p) return false;
+    if (!p)
+        return false;
 
     Student* s = dynamic_cast<Student*>(p);
 
-    if (!s) {
-        // Not a student (maybe librarian)
+    if (!s)
         return false;
-    }
 
-    s->setmembership(createMembership(tier, id));
+    Membership* newMembership = createMembership(tier, id);
 
+    if (!newMembership)
+        return false;
+
+    // replace membership
+    s->setmembership(newMembership);
     return true;
 }
+
+
 std::vector<Person*> AuthManager::getAllUsers() const {
     return registeredUsers;
 }

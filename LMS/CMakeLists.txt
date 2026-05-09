@@ -4,7 +4,7 @@ project(LMS VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick  Core Sql)
+find_package(Qt6 REQUIRED COMPONENTS Quick  Core Sql  PrintSupport)
 
 qt_standard_project_setup()
 
@@ -17,7 +17,7 @@ qt_add_executable(appLMS
     ${BACKEND_SOURCES}
 )
 target_link_libraries(appLMS
-    PRIVATE Qt6::Core Qt6::Sql Qt6::Quick
+    PRIVATE Qt6::Core Qt6::Sql Qt6::Quick Qt6::PrintSupport
 )
 
 qt_add_qml_module(appLMS

@@ -126,24 +126,76 @@ public:
 Membership* createMembership(std::string tier, std::string studentId);
 
 // ========= WALLET SYSTEM =========
+// class Wallet {
+// private:
+//     std::string studentId;
+//     double balance;
+//     bool suspended;
+
+// public:
+//     Wallet(std::string id, double initialDeposit);
+//     Wallet(std::string user_id, double Deposit, bool suspended);
+//     std::string getStudentId() const;
+//     double getBalance() const;
+//     bool isSuspended() const;
+//     void addAmount(double amount);
+//     void deductFine(double fineAmount);
+//     void deductMembershipRenewalFee(double feeAmount);
+// };
+
+// class WalletLog {
+// private:
+//     struct WalletEntry {
+//         std::string studentId;
+//         double amount;
+//         std::string type;
+//         time_t timestamp;
+//     };
+//     std::vector<Wallet> wallets;
+//     std::vector<WalletEntry> logs;
+
+// public:
+//     static void  addWallet( Wallet& w, const std::string& sid, double initialDeposit);
+//     void createWallet(std::string studentId, double initialDeposit);
+//     void createWallet(std::string studentId, double initialDeposit, int sus);
+//     Wallet* getWallet(std::string studentId);
+//     bool isUserSuspended(std::string studentId);
+//     void applyFine(std::string studentId, double fineAmount);
+//     void payMembershipRenewalFee(std::string studentId, double feeAmount);
+//     void addMoney(std::string studentId, double amount);
+// };
 class Wallet {
 private:
     std::string studentId;
     double balance;
     bool suspended;
-    static constexpr double SUSPENSION_THRESHOLD = -30.0;
-
 public:
-    Wallet(std::string id, double initialDeposit);
-    Wallet(std::string user_id, double Deposit, bool suspended);
+    Wallet(std::string id,double initialDeposit);
+    Wallet(std::string id,double deposit,bool suspended);
     std::string getStudentId() const;
     double getBalance() const;
     bool isSuspended() const;
+    void suspendWallet();
+    void activateWallet();
+    void setbalance(double b);
     void addAmount(double amount);
+    bool deductAmount(double amount);
     void deductFine(double fineAmount);
-    void deductMembershipRenewalFee(double feeAmount);
-};
-
+    void deductMembershipRenewalFee(double feeAmount);};
+// ========= WALLET TRANSACTION =========
+class WalletTransaction {
+private:
+    std::string studentId;
+    double amount;
+    std::string type;
+    time_t timestamp;
+public:
+    WalletTransaction(std::string sid,double amt,std::string t);
+    std::string getStudentId() const;
+    double getAmount() const;
+    std::string getType() const;
+    time_t getTimestamp() const;};
+// ========= WALLET LOG =========
 class WalletLog {
 private:
     struct WalletEntry {
@@ -152,18 +204,11 @@ private:
         std::string type;
         time_t timestamp;
     };
-    std::vector<Wallet> wallets;
-    std::vector<WalletEntry> logs;
-
-public:
-    static void  addWallet( Wallet& w, const std::string& sid, double initialDeposit);
-    void createWallet(std::string studentId, double initialDeposit);
-    void createWallet(std::string studentId, double initialDeposit, int sus);
-    Wallet* getWallet(std::string studentId);
-    bool isUserSuspended(std::string studentId);
-    void applyFine(std::string studentId, double fineAmount);
-    void payMembershipRenewalFee(std::string studentId, double feeAmount);
-    void addMoney(std::string studentId, double amount);
+    std::vector<WalletEntry>
+        logs;public:
+    void addLog(std::string studentId,double amount,std::string type);
+    std::vector<WalletEntry> getAllLogs() const;
+    std::vector<WalletEntry> getLogsByStudent(std::string studentId) const;
 };
-
 #endif
+

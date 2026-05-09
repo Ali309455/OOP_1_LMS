@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-
+import LMS
 Rectangle {
     id: dashboard
     color: "#0f1117"
@@ -9,28 +9,43 @@ Rectangle {
 
     signal quickActionClicked(string action)
     property var txData: lms.getTransactions();
+    property var userData:lms.getUsers();
 
     // ───────────────── DATA ─────────────────
     property var colW: [140, 160, 190, 120, 120]
-
+    // add balance parameters
+    property bool showAddBalanceDialog: false
+    property string selectedBalanceStudent: ""
+    property string selectedBalanceStudentId: ""
+    property string balanceStudentSearchText: ""
+    property bool showBalanceStudentDropdown: false
+    // generate pdf parameters
+    property double librarybalance: lms.getlibraryBalance();
+    property int totalbooks: lms.gettotalBooks();
+    property int activetransactions: lms.getactiveTransations();
+    property int pendingreviews: lms.getpendingReviews();
+    property bool showReportDialog: false;
+    property string reportPath: "";
+    // console.log(totalbooks, activetransactions,pendingreviews);
     property var statsData: [
-        { icon: "qrc:/assets/icons/book.png", value: "2,847", label: "Total Books",         iconColor: '#FF5722' },
-        { icon: "qrc:/assets/icons/transaction.png", value: "156",   label: "Active Transactions", iconColor: "#FF5722" },
-        { icon: "qrc:/assets/icons/addreview.png", value: "23",    label: "Overdue Books",       iconColor: "#091291" },
-        { icon: "qrc:/assets/icons/addreview.png", value: "8",     label: "Pending Reviews",     iconColor: "#091291" }
+        { icon: "qrc:/assets/icons/book.png", value: totalbooks, label: "Total Books",         iconColor: '#FF5722' },
+        { icon: "qrc:/assets/icons/transaction.png", value: activetransactions,   label: "Active Transactions", iconColor: "#FF5722" },
+        { icon: "qrc:/assets/icons/addreview.png", value: librarybalance,    label: "Library Balance",       iconColor: "#091291" },
+        { icon: "qrc:/assets/icons/addreview.png", value:pendingreviews ,     label: "Pending Reviews",     iconColor: "#091291" }
     ]
 
+    ListModel {
+      id: students
+    }
     ListModel{
         id:transactions
     }
 
     property var quickActions: [
-        { label: "Add Book",       color: "#3b82f6", action: "addBook"       },
-        { label: "Issue Book",    color: "#10b981", action: "issueBook"     },
-        { label: "Return Book",    color: "#10b981", action: "returnBook"    },
-        { label: "Approve Review", color: "#8b5cf6", action: "approveReview" }
+        { label: "Generate Report", color: "#3b82f6", action: "generateReport" },
+        { label: "Add Balance", color: "#10b981", action: "addBalance" }
     ]
-
+    // static graph data (future insight make it dynamic)
     property var chartData: [
         { month: "Jan", value: 180 },
         { month: "Feb", value: 210 },
@@ -39,6 +54,7 @@ Rectangle {
         { month: "May", value: 370 },
         { month: "Jun", value: 340 }
     ]
+    // recent transactions
     function transactiondatafetching() {
         transactions.clear()
 
@@ -48,12 +64,14 @@ Rectangle {
             count = 10
 
         for (let i = 0; i < count; i++) {
-            console.log(JSON.stringify(txData[i]))
             transactions.append(txData[i])
         }
     }
     Component.onCompleted: {
         transactiondatafetching();
+        for(let j =0; j<dashboard.userData.length; j++){
+            students.append(dashboard.userData[j]);
+        }
 
     }
     property int chartMax: 600
@@ -300,7 +318,25 @@ Rectangle {
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
-                                    onClicked: dashboard.quickActionClicked(modelData.action)
+
+                                    onClicked: {
+                                        if (modelData.action === "addBalance") {
+                                            dashboard.showAddBalanceDialog = true
+                                        }
+                                        else if (modelData.action === "generateReport") {
+
+                                            let path = "Report/report.pdf"
+
+                                            let success = lms.exportDatabaseReportPdf(path)
+                                            if (success) {
+                                                dashboard.reportPath = path
+                                                dashboard.showReportDialog = true
+                                            }
+                                        }
+                                        else {
+                                            dashboard.quickActionClicked(modelData.action)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -437,8 +473,8 @@ Rectangle {
                                                  : status === "returned" ? "#1e3a5f"
                                                  : "#3b0f0f"
 
-                                            border.color: modelData.status === "active"   ? "#10b981"
-                                                        : modelData.status === "returned" ? "#3b82f6"
+                                            border.color: status === "active"   ? "#10b981"
+                                                        : status === "returned" ? "#3b82f6"
                                                         : "#ef4444"
                                             border.width: 1
 
@@ -497,4 +533,540 @@ Rectangle {
             if (!vBar.pressed) vBar.position = flick.contentY / flick.contentHeight
         }
     }
+
+
+
+
+
+// ───────────────── ADD BALANCE OVERLAY ─────────────────
+Rectangle {
+    visible: dashboard.showAddBalanceDialog
+    anchors.fill: parent
+    color: "#000000"
+    opacity: 0.65
+    z: 100
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: dashboard.showAddBalanceDialog= false
+    }
+}
+
+// ───────────────── ADD BALANCE DIALOG ─────────────────
+Rectangle {
+    visible: dashboard.showAddBalanceDialog
+
+    anchors.centerIn: parent
+
+    width: 480
+    implicitHeight: balanceDialogCol.implicitHeight + 48
+
+    radius: 14
+    color: "#171e2f"
+
+    border.color: "#2d3748"
+    border.width: 1
+
+    z: 101
+
+    Column {
+        id: balanceDialogCol
+
+        anchors.fill: parent
+        anchors.margins: 28
+
+        spacing: 20
+
+        // ───── Header ─────
+        RowLayout {
+            width: parent.width
+
+            Text {
+                text: "Add Balance"
+                color: "#ffffff"
+                font.pixelSize: 18
+                font.bold: true
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Text {
+                text: "✕"
+                color: "#9ca3af"
+                font.pixelSize: 16
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        dashboard.showAddBalanceDialog= false
+                    }
+                }
+            }
+        }
+
+        // ───────────────── STUDENT SELECT ─────────────────
+        Column {
+            width: parent.width
+            spacing: 8
+
+            Text {
+                text: "Student"
+                color: "#e5e7eb"
+                font.pixelSize: 12
+                font.bold: true
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 44
+                radius: 8
+
+                color: "#0f1117"
+
+                border.color: "#2d3748"
+                border.width: 1
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
+
+                    Text {
+                        Layout.fillWidth: true
+
+                        text: dashboard.selectedBalanceStudent !== ""
+                              ? dashboard.selectedBalanceStudent + " (" + dashboard.selectedBalanceStudentId + ")"
+                              : "Select a student"
+
+                        color: dashboard.selectedBalanceStudent !== ""
+                               ? "#ffffff"
+                               : "#6b7280"
+
+                        font.pixelSize: 13
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        text: dashboard.showselectedBalanceStudentDropdown ? "▲" : "▼"
+                        color: "#9ca3af"
+                        font.pixelSize: 9
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    onClicked: {
+                        dashboard.showBalanceStudentDropdown =
+                                !dashboard.showBalanceStudentDropdown
+                    }
+                }
+            }
+
+            // ───── Dropdown ─────
+            Rectangle {
+                visible: dashboard.showBalanceStudentDropdown
+
+                width: parent.width
+                height: 220
+
+                radius: 8
+
+                color: "#111827"
+
+                border.color: "#2d3748"
+                border.width: 1
+
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: 10
+
+                    spacing: 8
+
+                    // Search
+                    Rectangle {
+                        width: parent.width
+                        height: 38
+
+                        radius: 6
+
+                        color: "#0f1117"
+
+                        border.color: "#2d3748"
+
+                        TextInput {
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+
+                            color: "#ffffff"
+
+                            font.pixelSize: 13
+
+                            verticalAlignment: Text.AlignVCenter
+
+                            onTextChanged:
+                                dashboard.balanceStudentSearchText = text
+
+                            Text {
+                                visible: parent.text === ""
+
+                                text: "Search student..."
+
+                                color: "#6b7280"
+
+                                anchors.verticalCenter:
+                                         parent.verticalCenter
+                            }
+                        }
+                    }
+
+                    // Student List
+                    Flickable {
+                        width: parent.width
+                        height: 150
+
+                        clip: true
+
+                        contentHeight: balanceStudentList.height
+
+                        Column {
+                            id: balanceStudentList
+
+                            width: parent.width
+                            spacing: 4
+
+                            Repeater {
+                                model: students
+
+                                delegate: Rectangle {
+                                    width: parent.width
+
+                                    height: visible ? 40 : 0
+
+                                    visible:
+                                        name.toLowerCase().includes(
+                                            dashboard.balanceStudentSearchText.toLowerCase()
+                                        )
+                                        ||
+                                        userId.toLowerCase().includes(
+                                            dashboard.balanceStudentSearchText.toLowerCase()
+                                        )
+
+                                    radius: 6
+
+                                    color:
+                                        balanceHover.containsMouse
+                                        ? "#1e293b"
+                                        : "transparent"
+
+                                    Text {
+                                        anchors.verticalCenter:
+                                                 parent.verticalCenter
+
+                                        anchors.left: parent.left
+                                        anchors.leftMargin: 12
+
+                                        width: parent.width - 24
+
+                                        text:
+                                            name + " (" + userId + ")"
+
+                                        color: "#e5e7eb"
+
+                                        font.pixelSize: 12
+
+                                        elide: Text.ElideRight
+                                    }
+
+                                    MouseArea {
+                                        id: balanceHover
+
+                                        anchors.fill: parent
+
+                                        hoverEnabled: true
+
+                                        cursorShape:
+                                            Qt.PointingHandCursor
+
+                                        onClicked: {
+                                            dashboard.selectedBalanceStudent = name
+                                            dashboard.selectedBalanceStudentId = userId
+
+                                            dashboard.showBalanceStudentDropdown = false
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ───────────────── BALANCE INPUT ─────────────────
+        Column {
+            width: parent.width
+            spacing: 8
+
+            Text {
+                text: "Balance Amount"
+                color: "#e5e7eb"
+                font.pixelSize: 12
+                font.bold: true
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 44
+
+                radius: 8
+
+                color: "#0f1117"
+
+                border.color: "#2d3748"
+                border.width: 1
+
+                TextInput {
+                    id: balanceInput
+
+                    anchors.fill: parent
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
+
+                    color: "#ffffff"
+
+                    font.pixelSize: 13
+
+                    verticalAlignment: Text.AlignVCenter
+
+                    validator: DoubleValidator {
+                        bottom: 0
+                    }
+
+                    Text {
+                        visible: balanceInput.text === ""
+
+                        text: balance
+
+                        color: "#6b7280"
+
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+            }
+        }
+
+        // ───────────────── ACTION BUTTONS ─────────────────
+        Row {
+            width: parent.width
+            spacing: 12
+
+            Rectangle {
+                width: (parent.width - 12) / 2
+                height: 44
+
+                radius: 8
+
+                color: "#374151"
+
+                Text {
+                    anchors.centerIn: parent
+
+                    text: "Cancel"
+
+                    color: "#ffffff"
+
+                    font.bold: true
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        dashboard.showAddBalanceDialog = false
+                    }
+                }
+            }
+
+            Rectangle {
+                width: (parent.width - 12) / 2
+                height: 44
+
+                radius: 8
+
+                color: "#10b981"
+
+                Text {
+                    anchors.centerIn: parent
+
+                    text: "Add Balance"
+
+                    color: "#ffffff"
+
+                    font.bold: true
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+
+                        if (dashboard.selectedBalanceStudentId === ""
+                                || balanceInput.text === "")
+                            return
+                        let success = lms.addBalance(
+                                    dashboard.selectedBalanceStudentId,
+                                    parseFloat(balanceInput.text)
+                                    )
+
+                        if (success) {
+
+                            dashboard.showAddBalanceDialog = false
+
+                            balanceInput.text = ""
+
+                            dashboard.balanceStudent = ""
+                            dashboard.balanceStudentId = ""
+                        }
+                        else console.log(success);
+                    }
+                }
+            }
+        }
+    }
+}
+// ───────────────── REPORT SUCCESS OVERLAY ─────────────────
+Rectangle {
+    visible: dashboard.showReportDialog
+    anchors.fill: parent
+    color: "#000000"
+    opacity: 0.6
+    z: 200
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: dashboard.showReportDialog = false
+    }
+}
+
+// ───────────────── REPORT SUCCESS DIALOG ─────────────────
+Rectangle {
+    visible: dashboard.showReportDialog
+
+    anchors.centerIn: parent
+
+    width: 460
+    height: 220
+
+    radius: 14
+
+    color: "#171e2f"
+
+    border.color: "#2d3748"
+    border.width: 1
+
+    z: 201
+
+    Column {
+        anchors.fill: parent
+        anchors.margins: 28
+
+        spacing: 20
+
+        RowLayout {
+            width: parent.width
+
+            Text {
+                text: "Report Generated"
+                color: "#ffffff"
+                font.pixelSize: 18
+                font.bold: true
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            Text {
+                text: "✕"
+                color: "#9ca3af"
+                font.pixelSize: 16
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: dashboard.showReportDialog = false
+                }
+            }
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 70
+
+            radius: 10
+
+            color: "#0f1117"
+
+            border.color: "#2d3748"
+            border.width: 1
+
+            Text {
+                anchors.fill: parent
+                anchors.margins: 14
+
+                text: dashboard.reportPath
+
+                color: "#10b981"
+
+                font.pixelSize: 13
+
+                wrapMode: Text.WrapAnywhere
+
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
+
+        Text {
+            text: "PDF report exported successfully."
+            color: "#9ca3af"
+            font.pixelSize: 12
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 42
+
+            radius: 8
+
+            color: "#3b82f6"
+
+            Text {
+                anchors.centerIn: parent
+
+                text: "OK"
+
+                color: "#ffffff"
+
+                font.bold: true
+            }
+
+            MouseArea {
+                anchors.fill: parent
+
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: dashboard.showReportDialog = false
+            }
+        }
+    }
+}
 }
