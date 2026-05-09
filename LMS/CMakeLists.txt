@@ -36,13 +36,11 @@ qt_add_qml_module(appLMS
                qml/screens/student/StudentDashboard.qml
                qml/screens/student/Membership.qml
                qml/screens/librarian/LibrarianDashboard.qml
-               qml/screens/librarian/Reports.qml
                qml/screens/librarian/UserManagement.qml
                qml/components/AppButton.qml
                qml/layouts/Sidebar.qml
                qml/layouts/Centralbox.qml
                qml/layouts/Navbar.qml
-               qml/navigation/Router.qml
 
 )
 qt_add_resources(appLMS "resources"

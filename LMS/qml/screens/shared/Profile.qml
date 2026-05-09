@@ -68,9 +68,10 @@ Rectangle {
             n,                  // name
             e,                  // email
             "",                 // keep password (empty means no change)
+            currentUser.status,
             currentUser.membership || "-", // or something like "Silver" or "N/A"
-            currentUser.role,   // role ("STUDENT" or "LIBRARIAN")
-            currentUser.status  // status ("active" etc)
+            currentUser.role   // role ("STUDENT" or "LIBRARIAN")
+              // status ("active" etc)
         );
 
         if (ok) {
@@ -103,9 +104,10 @@ Rectangle {
             currentUser.name,                  // name
             currentUser.email,                  // email
             nw,                 // keep password (empty means no change)
+            currentUser.status,// status ("active" etc)
             currentUser.membership || "-", // or something like "Silver" or "N/A"
-            currentUser.role,   // role ("STUDENT" or "LIBRARIAN")
-            currentUser.status  // status ("active" etc)
+            currentUser.role  // role ("STUDENT" or "LIBRARIAN")
+
         );
 
         if (ok) {
@@ -210,7 +212,7 @@ Rectangle {
             // Account Stats card — USER ONLY
             Rectangle {
                 width: parent.width
-                visible: profileView.userRole === "user"
+                visible: false
                 height: visible ? statsInner.implicitHeight + 48 : 0
                 radius: 12
                 color: "#1a1f2e"; border.color: "#2d3748"; border.width: 1

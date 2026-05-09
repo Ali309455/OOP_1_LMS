@@ -579,6 +579,7 @@ bool LibrarySystem::returnBook(const string& txnID) {
     if (!b) return false;
     b->returnOneCopy();
     bool bookupdate = Database::updateBook(QString::fromStdString(t->getIsbn()), b->getTotalCopies(),b->getAvailableCopies());
+    --activeTransations;
     // ✅ Step 7: update DB
     return bookupdate && Database::updateTransaction(
                QString::fromStdString(t->getTransactionId()),
@@ -796,12 +797,12 @@ bool LibrarySystem::updateStudent(
 
     // ✅ Only upgrade if different
     if (membership != currentMembership) {
-        authManager.upgrademembership(membership, id);
+        upgradeStudentMembership(id, membership);
         finalMembership = membership;
     }
 
     // ✅ Update basic details
-    authManager.updateUser(id, name, email, pwd, status);
+    authManager.updateUser(id, name, email, pwd, status, s->getWalletBalance());
 
     return Database::updateUser(
         QString::fromStdString(id),
@@ -895,7 +896,7 @@ bool LibrarySystem::upgradeStudentMembership(const string& studentId,const strin
     // Deduct from student wallet
     qDebug()<<fee;
     s->paymembershipfee(fee);
-    qDebug() <<s->getstudentwallet()->getBalance();
+    qDebug() <<"here" << s->getWalletBalance();
 
     // Add money to library wallet
     libraryWallet.addAmount(fee);
@@ -1053,7 +1054,7 @@ QVariantMap LibrarySystem::getStudentDashboardData(const std::string& studentId)
 
     map["borrowedBooks"] = borrowedBooks;
     map["dueBooks"] = dueBooks;
-    map["balance"] = 0;
+    map["balance"] = s->getWalletBalance();
     map["membership"] = membership;
 
     return map;

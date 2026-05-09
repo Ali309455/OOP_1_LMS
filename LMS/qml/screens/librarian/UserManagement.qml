@@ -174,9 +174,10 @@ Rectangle {
             editName,
             editEmail,
             editPassword,
+            editStatus,
             editMembership,
-            editRole,
-            editStatus
+            editRole
+
         )
 
         console.log("Update result:", ok)
