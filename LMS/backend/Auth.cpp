@@ -72,9 +72,6 @@ std::string Student::getMembershipTier() const {
 int Student::getTotalFineOwed() const {
     return totalfineowed;
 }
-int Student::getBalance() const {
-    return balance;
-}
 
 int Student::get_BorrowedCount() const {
     return borrowedCount;

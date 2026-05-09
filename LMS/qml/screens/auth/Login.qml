@@ -208,22 +208,6 @@ Rectangle {
 
         Item { width: 1; height: 20 }
 
-        // ── Sign up link ───────────────────────────────────────────────────
-        // Text {
-        //     anchors.horizontalCenter: parent.horizontalCenter
-        //     text: "Don't have an account? <font color='#0078d4'>Sign up</font>"
-        //     color: "#9ca3af"
-        //     font.pixelSize: 13
-        //     textFormat: Text.RichText
-
-        //     MouseArea {
-        //         anchors.fill: parent
-        //         hoverEnabled: true
-        //         cursorShape: Qt.PointingHandCursor
-        //         onClicked: loginPage.signupRequested()
-        //     }
-        // }
-
         Item { width: 1; height: 32 }
 
         // ── Demo credentials ───────────────────────────────────────────────
@@ -239,8 +223,8 @@ Rectangle {
                 spacing: 8
 
                 Text { text: "Demo credentials:"; color: "#8b949e"; font.pixelSize: 11 }
-                Text { text: "Librarian: admin@lib.com"; color: "#c9d1d9"; font.pixelSize: 12 }
-                Text { text: "Student: any other email"; color: "#c9d1d9"; font.pixelSize: 12 }
+                Text { text: "Librarian: admin@lib.com Password: admin"; color: "#c9d1d9"; font.pixelSize: 12 }
+                Text { text: "Student user@gmail.com  Password: User123"; color: "#c9d1d9"; font.pixelSize: 12 }
             }
         }
     }

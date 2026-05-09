@@ -10,7 +10,7 @@ Rectangle {
     property var historyData: []
     anchors.fill: parent
     color: "#0f172a"
-
+    // backend data fetching
     Component.onCompleted: {
 
         if (!currentUser)
@@ -106,18 +106,6 @@ Rectangle {
                                     fillMode: Image.PreserveAspectFit
 
                                 }
-                                // ColorOverlay {
-                                //     id: overlay
-                                //     anchors.fill: rawIcon
-                                //     source: rawIcon
-                                //     color: modelData.col
-                                //     visible: false
-                                // }
-                                // OpacityMask {
-                                //     anchors.fill: rawIcon
-                                //     source: overlay
-                                //     maskSource: rawIcon
-                                // }
                             }
 
                             Item { Layout.fillHeight: true }
@@ -218,6 +206,7 @@ Rectangle {
             }
         }
     }
+    // scroll  bar
     Rectangle {
         id: scrollTrack
         anchors.right: parent.right

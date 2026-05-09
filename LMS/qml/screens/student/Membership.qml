@@ -14,7 +14,7 @@ Rectangle {
     property string fineDiscount: "—"
     property string expiryDate: "—"
     property string userId: ""
-
+    // refresh in case of reloading
     function refreshMembership() {
         var data = lms.getMembership()
 
@@ -92,11 +92,6 @@ Rectangle {
                                 source: "qrc:/assets/icons/shield-user-fill.svg"
                                 fillMode: Image.PreserveAspectFit
                             }
-                            // ColorOverlay {
-                            //     anchors.fill: mainIconRaw
-                            //     source: mainIconRaw
-                            //     color: "#fbbf24"
-                            // }
                         }
 
                         ColumnLayout {
@@ -463,11 +458,6 @@ Rectangle {
                     source: "qrc:/assets/icons/" + planIcon
                     fillMode: Image.PreserveAspectFit
                 }
-                // ColorOverlay {
-                //     anchors.fill: pIcon
-                //     source: pIcon
-                //     color: "white"
-                // }
             }
             Text { Layout.alignment: Qt.AlignHCenter; text: tier; color: iconBg; font.pixelSize: 18; font.bold: true }
             Text { Layout.alignment: Qt.AlignHCenter; text: price; color: "white"; font.pixelSize: 28; font.bold: true }
@@ -484,7 +474,7 @@ Rectangle {
             }
             Item { Layout.fillHeight: true }
             Button {
-                id: control
+                id: control2
                 hoverEnabled: true
                 Layout.fillWidth: true; text: {
                     if (!membershipRoot.isMembershipActive) return "Select Plan"

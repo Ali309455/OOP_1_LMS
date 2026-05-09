@@ -11,7 +11,8 @@ Rectangle {
 
     signal navigationRequested(string page)
     property bool islibrarian: false
-    property string activePage: "Dashboard"
+    property string activePage: "Dashboard" // default
+    // side bar options for admin
     property var librarianItems: [
         { label: "Dashboard",    icon: "🏠" },
         { label: "Books",        icon: "📖" },
@@ -20,6 +21,7 @@ Rectangle {
         { label: "Users",        icon: "👥" },
         { label: "Settings",     icon: "⚙️"  }
     ]
+    // side bar options for User
     property var studentItems: [
         { label: "Dashboard",    icon: "🏠" },
         { label: "Books",        icon: "📖" },

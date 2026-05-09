@@ -15,6 +15,7 @@ Item {
     ColumnLayout{
         anchors.fill: parent
         spacing: 0
+        //uper section for central area
         Navbar {
             id: navbar
             Layout.preferredWidth: 800
@@ -34,7 +35,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-
+        // man content area
         Loader {
             anchors.fill: parent
             sourceComponent: {

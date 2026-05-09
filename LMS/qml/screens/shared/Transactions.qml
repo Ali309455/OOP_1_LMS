@@ -6,7 +6,7 @@ Item {
     id: root
     anchors.fill: parent
     property var currentUser: null
-    // Temporary testing switch
+    // User based switch
 
     property bool isLibrarian: false;
 
@@ -14,7 +14,7 @@ Item {
         anchors.fill: parent
         sourceComponent: root.isLibrarian ? adminView : studentView
     }
-
+    // Admin
     Component {
         id: adminView
         TransactionsAdmin {
@@ -22,7 +22,7 @@ Item {
             currentUser : root.currentUser
         }
     }
-
+    // Student
     Component {
         id: studentView
         TransactionsStudent {

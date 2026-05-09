@@ -43,7 +43,6 @@ private:
     std::string status;
     Membership* membership;  // add
     Wallet studentwallet;
-    double balance;
 
 public:
     Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd,const std::string& status,const std::string& tier,double balance);
@@ -56,8 +55,6 @@ public:
     void setStatus(const std::string& s);
     int getTotalFineOwed() const;
     int get_BorrowedCount() const;
-    int getBalance() const;
-    void setmembership(Membership& m );
     void addWalletBalance(double amount);
     void payFine(double amount);
     void paymembershipfee(double amount);

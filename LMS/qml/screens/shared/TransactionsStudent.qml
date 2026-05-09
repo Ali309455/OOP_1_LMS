@@ -3,6 +3,8 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import LMS
 Rectangle {
+    /// the only change is filteration the tab shows only the current user transactions YES Violate DRY principle future Insight is
+    // making reusable component
     id: root
     color: "#0b1220"
     property var txData: lms.getTransactions();
@@ -53,12 +55,7 @@ Rectangle {
     // ── Transaction data ───────────────────────────────────────────────────
     ListModel {
         id: txModel
-    //     ListElement { txnId: "TXN-1245"; student: "John Doe";    sId: "S001"; book: "Clean Code";                 isbn: "978-0132350884"; issueDate: "2026-04-01"; dueDate: "2026-04-15"; returnDate: "-";          fine: "-";   status: "active"   }
-    //     ListElement { txnId: "TXN-1244"; student: "Jane Smith";  sId: "S002"; book: "Design Patterns";            isbn: "978-0201633612"; issueDate: "2026-03-28"; dueDate: "2026-04-11"; returnDate: "2026-04-10"; fine: "-";   status: "returned" }
-    //     ListElement { txnId: "TXN-1243"; student: "Bob Johnson"; sId: "S003"; book: "Effective Java";             isbn: "978-0134685991"; issueDate: "2026-03-25"; dueDate: "2026-04-08"; returnDate: "-";          fine: "$15"; status: "overdue"  }
-    //     ListElement { txnId: "TXN-1242"; student: "John Doe";    sId: "S001"; book: "The Pragmatic Programmer";   isbn: "978-0137081073"; issueDate: "2026-04-05"; dueDate: "2026-04-19"; returnDate: "-";          fine: "-";   status: "active"   }
-    //     ListElement { txnId: "TXN-1241"; student: "Alice Brown"; sId: "S004"; book: "Introduction to Algorithms"; isbn: "978-0262033848"; issueDate: "2026-03-20"; dueDate: "2026-04-03"; returnDate: "-";          fine: "$30"; status: "overdue"  }
-     }
+    }
     function transactiondatafetching(){
         txModel.clear()
 
@@ -538,6 +535,7 @@ Rectangle {
                 }
             }
         }
+
         // ── Stat cards ─────────────────────────────────────────────────────
         RowLayout {
             Layout.fillWidth: true; spacing: 14

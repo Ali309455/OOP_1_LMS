@@ -17,6 +17,10 @@
 #include <QApplication>
 using namespace std;
 
+void LibrarySystem::syncLibraryStats()
+{
+    Database::updateLibrary( "LIB-NED",totalBooks,activeTransations,pendingReviews,libraryWallet.getBalance());
+}
 static QString htmlEscape(QString s) {
     return s.replace('&', "&amp;")
     .replace('<', "&lt;")
@@ -44,7 +48,7 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
         FROM sqlite_master
         WHERE type='table'
         AND name NOT LIKE 'sqlite_%'
-        AND name NOT IN ('libraries', 'wallets')
+        AND name NOT IN ( 'wallets')
         ORDER BY name;
     )")) {
             if (outError)
@@ -61,7 +65,7 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
     html += "<html><head><meta charset='utf-8'/>";
     html += R"(
 <style>
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #111; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; color: #111; }
   .header { margin-bottom: 14px; }
   .title { font-size: 18pt; font-weight: 700; margin: 0; }
   .meta { color: #444; margin-top: 4px; }
@@ -153,7 +157,7 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
 
     // A4 with reasonable margins
     printer.setPageSize(QPageSize(QPageSize::A4));
-    printer.setPageMargins(QMarginsF(6, 6, 6, 6), QPageLayout::Millimeter);
+    printer.setPageMargins(QMarginsF(3, 1, 1, 3), QPageLayout::Millimeter);
 
     doc.print(&printer);
 
@@ -176,10 +180,14 @@ QString getDate(int addDays = 0)
     return date.toString("yyyy-MM-dd");  // DB-friendly format
 }
 
-LibrarySystem::LibrarySystem():libraryWallet("LIBRARY", 0),totalBooks(0),activeTransations(0),pendingReviews(0)
-{
-    initializeSystem();
+LibrarySystem::LibrarySystem(): libraryWallet("LIBRARY", 0),totalBooks(0),activeTransations(0),pendingReviews(0){
     Database::init();
+    initializeSystem();
+    QVariantMap data = Database::getLibraryById("LIB-NED");
+    if (!data.isEmpty()) {
+        double balance = data["balance"].toDouble();
+        libraryWallet.setbalance(balance);
+    }
 }
 string LibrarySystem::generateId(const std::string& prefix, int maxIdFromDB) {
     // return prefix + "-" + std::to_string(maxIdFromDB + 1);
@@ -428,6 +436,8 @@ void LibrarySystem::loadWalletsIntoSystem()
     }
 }
 
+
+
 void LibrarySystem::initializeSystem(){
     loadUsersIntoSystem();
     loadBooksIntoSystem();
@@ -541,6 +551,8 @@ bool LibrarySystem::issueBook(const string& isbn, const string& sid) {
     qDebug()<<activeTransations;
     if(isbn.empty() && total && available){qDebug()<<"book data fetching failed"; return false;}
     bool bookupdate = Database::updateBook(QString::fromStdString(isbn),total, available);
+    syncLibraryStats();
+
     return(dbresponse && bookupdate && TransactionManager.issueBook(txid,sid,username,isbn,getDate().toStdString(),getDate(borrowlimitdays).toStdString(),b->getTitle()));
 }
 
@@ -580,6 +592,8 @@ bool LibrarySystem::returnBook(const string& txnID) {
     b->returnOneCopy();
     bool bookupdate = Database::updateBook(QString::fromStdString(t->getIsbn()), b->getTotalCopies(),b->getAvailableCopies());
     --activeTransations;
+    syncLibraryStats();
+
     // ✅ Step 7: update DB
     return bookupdate && Database::updateTransaction(
                QString::fromStdString(t->getTransactionId()),
@@ -596,6 +610,7 @@ bool LibrarySystem::addbook(const string& isbn,const string&  title,const string
         return false;
     Book book(isbn, title, author, category, section,publisher, edition, language,totalCopies,publicationYear, pages, totalCopies);
     BooksManager.addBook(book);
+    Database::updateLibrary( QString::fromStdString("LIB-NED"),totalBooks,activeTransations,pendingReviews,libraryWallet.getBalance());
     return Database::addBook(QString::fromStdString(isbn),QString::fromStdString(title),QString::fromStdString(author),pages,QString::fromStdString(category),QString::fromStdString(section),QString::fromStdString(publisher),QString::fromStdString(edition),QString::fromStdString(language),publicationYear,totalCopies,totalCopies);
 }
 
@@ -612,6 +627,8 @@ bool LibrarySystem::removeBook(const string& isbn){
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
     BooksManager.removeBook(isbn);
+    Database::updateLibrary( QString::fromStdString("LIB-NED"),totalBooks,activeTransations,pendingReviews,libraryWallet.getBalance());
+
     return Database::deleteBook(QString::fromStdString(isbn));
 }
 
@@ -634,6 +651,8 @@ bool LibrarySystem::approveReview(const string& reviewID) {
 
     ReviewManager.approveReview(reviewID);
     --pendingReviews;
+    syncLibraryStats();
+
     return Database::updateReview(
         QString::fromStdString(reviewID),
         std::nullopt,
@@ -656,20 +675,20 @@ bool LibrarySystem::submitReview(const string& studentID ,const string& isbn, in
     }
 
     string role = currentUser->getRole();
-    qDebug()<<role;
     if (role != ROLE_STUDENT )
         return false;
     // qDebug()<<"id "<<Database::getMaxIdNumber("reviews", "reviewid", "RV")
-    qDebug()<<"here";
     string rid = generateId("RV",Database::getMaxIdNumber("reviews", "reviewid", "RV"));
     string sid = currentUser->getUserID();
     string uname = currentUser->getName();
     Book* b = BooksManager.findByIsbn(isbn);
     string bname = (b ? b->getTitle() : "");
     Review r(rid, sid, uname, isbn, bname, rating, comment,"pending", getDate().toStdString());
-    r.display();
 
-    if(ReviewManager.addReview(r)) return  Database::addReview(QString::fromStdString(rid),QString::fromStdString(sid), QString::fromStdString(uname), QString::fromStdString(isbn), QString::fromStdString(bname), rating, QString::fromStdString(comment),QString::fromStdString("pending"));
+    if(ReviewManager.addReview(r)){
+        ++pendingReviews;
+        syncLibraryStats();
+        return  Database::addReview(QString::fromStdString(rid),QString::fromStdString(sid), QString::fromStdString(uname), QString::fromStdString(isbn), QString::fromStdString(bname), rating, QString::fromStdString(comment),QString::fromStdString("pending"));}
     else{
 
         return false;
@@ -803,6 +822,8 @@ bool LibrarySystem::updateStudent(
 
     // ✅ Update basic details
     authManager.updateUser(id, name, email, pwd, status, s->getWalletBalance());
+
+    syncLibraryStats();
 
     return Database::updateUser(
         QString::fromStdString(id),

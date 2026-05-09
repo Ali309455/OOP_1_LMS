@@ -26,21 +26,21 @@ Rectangle {
     property int pendingreviews: lms.getpendingReviews();
     property bool showReportDialog: false;
     property string reportPath: "";
-    // console.log(totalbooks, activetransactions,pendingreviews);
+    // stats data
     property var statsData: [
         { icon: "qrc:/assets/icons/book.png", value: totalbooks, label: "Total Books",         iconColor: '#FF5722' },
         { icon: "qrc:/assets/icons/transaction.png", value: activetransactions,   label: "Active Transactions", iconColor: "#FF5722" },
         { icon: "qrc:/assets/icons/addreview.png", value: librarybalance,    label: "Library Balance",       iconColor: "#091291" },
         { icon: "qrc:/assets/icons/addreview.png", value:pendingreviews ,     label: "Pending Reviews",     iconColor: "#091291" }
     ]
-
+    // iteratable list models
     ListModel {
       id: students
     }
     ListModel{
         id:transactions
     }
-
+    // quick action data
     property var quickActions: [
         { label: "Generate Report", color: "#3b82f6", action: "generateReport" },
         { label: "Add Balance", color: "#10b981", action: "addBalance" }
@@ -54,7 +54,7 @@ Rectangle {
         { month: "May", value: 370 },
         { month: "Jun", value: 340 }
     ]
-    // recent transactions
+    // recent transactions loading from backend
     function transactiondatafetching() {
         transactions.clear()
 
@@ -76,7 +76,7 @@ Rectangle {
     }
     property int chartMax: 600
 
-    // ── Vertical scrollbar ─────────────────────────────────────────────────
+    // ── Dashbaord with Vertical scrollbar  ─────────────────────────────────────────────────
     Flickable {
         id: flick
         anchors.fill: parent

@@ -18,12 +18,15 @@ public:
     static bool addTransaction(QString txid, QString userId, QString isbn,QString duedate,QString returnDate,QString bookName, QString status, int fine);
     static bool addReview(QString review_id, QString userId, QString username, QString isbn,QString bookname, int rating, QString comment, QString status);
     static bool addWallet(QString user_id,int balance,int status);
+    static bool addLibrary(QString id,QString name,int totalBooks,int activeTransactions,int pendingReviews,int balance);
+
     // READ (Array of Objects)
     static QVariantList getUsers();
     static QVariantList getBooks();
     static QVariantList getTransactions();
     static QVariantList getReviews();
     static QVariantList getWallets();
+    static QVariantMap getLibraryById(const QString& id);
 
     //update
     static bool updateUser(QString id, QString name, QString email, QString password, QString membership, QString role,QString status = "");
@@ -31,6 +34,8 @@ public:
     static bool updateBook(QString isbn,int total,int available);
     static bool updateTransaction(QString txid, QString status, int fine,QString returndate = "");
     static bool updateReview(QString reviewId,std::optional<int> rating ,std::optional<QString> comment ,std::optional<QString> status );
+    static bool updateLibrary(QString id,int totalBooks,int activeTransactions,int pendingReviews,int balance);
+
 
     // delete
     static bool deleteUser(QString id);

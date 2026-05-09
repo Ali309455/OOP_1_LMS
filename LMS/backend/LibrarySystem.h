@@ -86,6 +86,7 @@ public:
     std::vector<Review> getAllReviews() const;
     void displayAllData() const ;
     static bool exportDatabaseReportPdf(const QString& outputPdfPath, QString* outError = nullptr);
+    void syncLibraryStats();
 
     double getLibraryBalance() const;
     bool addBalance(const std::string& sid, double amount);

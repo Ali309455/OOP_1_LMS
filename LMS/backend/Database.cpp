@@ -93,11 +93,11 @@ void Database::init() {
                "FOREIGN KEY(isbn) REFERENCES books(isbn) ON DELETE CASCADE)");
 
 
-    query.exec("CREATE TABLE IF NOT EXISTS wallets ("
-               "user_id TEXT PRIMARY KEY ,"
-               "balance INTEGER,"
-               "status INTEGER,"
-               "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
+    // query.exec("CREATE TABLE IF NOT EXISTS wallets ("
+    //            "user_id TEXT PRIMARY KEY ,"
+    //            "balance INTEGER,"
+    //            "status INTEGER,"
+    //            "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
 }
 
 bool Database::addUser(QString id,QString name, QString email, QString password, QString membership, QString role, QString status, double balance) { // can be used in register and add user both
@@ -199,8 +199,7 @@ bool Database::addBook(QString isbn, QString name, QString author,int pages, QSt
     return true;
 }
 
-bool Database::addWallet(QString user_id,int balance,int status)
-{
+bool Database::addWallet(QString user_id,int balance,int status){
     QSqlQuery query;
 
     query.prepare("INSERT INTO wallets"
@@ -218,6 +217,30 @@ bool Database::addWallet(QString user_id,int balance,int status)
 
     return true;
 };
+
+bool Database::addLibrary(QString id,QString name,int totalBooks,int activeTransactions,int pendingReviews,int balance){
+    QSqlQuery query;
+
+    query.prepare(
+        "INSERT INTO libraries "
+        "(id, name, totalBooks, activeTransactions, pendingReviews, balance) "
+        "VALUES (?, ?, ?, ?, ?, ?)"
+        );
+
+    query.addBindValue(id);
+    query.addBindValue(name);
+    query.addBindValue(totalBooks);
+    query.addBindValue(activeTransactions);
+    query.addBindValue(pendingReviews);
+    query.addBindValue(balance);
+
+    if (!query.exec()) {
+        qDebug() << "Add Library Error:" << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
 
 QVariantList Database::getUsers()
 {
@@ -340,6 +363,33 @@ QVariantList Database::getWallets()
 
     return wallets;
 }
+
+QVariantMap Database::getLibraryById(const QString& id)
+{
+    QVariantMap library;
+
+    QSqlQuery query;
+    query.prepare("SELECT * FROM libraries WHERE id = :id");
+    query.bindValue(":id", id);
+
+    if (!query.exec()) {
+        qDebug() << "DB Error:" << query.lastError().text();
+        return library; // empty map
+    }
+
+    if (query.next()) {
+        library["id"] = query.value("id");
+        library["name"] = query.value("name");
+        library["totalBooks"] = query.value("totalBooks");
+        library["activeTransactions"] = query.value("activeTransactions");
+        library["pendingReviews"] = query.value("pendingReviews");
+        library["balance"] = query.value("balance");
+    }
+
+    return library;
+}
+
+
 
 bool Database::updateUser(QString id, QString name, QString email, QString password, QString membership, QString role,QString status)
 {
@@ -465,6 +515,34 @@ bool Database::updateReview(QString reviewId,std::optional<int> rating ,std::opt
 
     return true;
 }
+
+bool Database::updateLibrary(QString id,int totalBooks,int activeTransactions,int pendingReviews, int balance){
+    QSqlQuery query;
+
+    query.prepare(
+        "UPDATE libraries SET "
+        "totalBooks=?, "
+        "activeTransactions=?, "
+        "pendingReviews=?, "
+        "balance=? "
+        "WHERE id=?"
+        );
+
+    query.addBindValue(totalBooks);
+    query.addBindValue(activeTransactions);
+    query.addBindValue(pendingReviews);
+    query.addBindValue(balance);
+    query.addBindValue(id);
+
+    if (!query.exec()) {
+        qDebug() << "Update Library Error:" << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+
 
 bool Database::deleteUser(QString id)
 {

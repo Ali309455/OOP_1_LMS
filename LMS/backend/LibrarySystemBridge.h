@@ -64,5 +64,5 @@ public:
 
 
 private:
-    LibrarySystem m_system;
+    LibrarySystem* m_system;
 };

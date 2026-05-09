@@ -105,7 +105,7 @@ Window {
                     }
                 }
 
-            }
+            } // login pages
             Login{
                 Layout.fillHeight: true
                 Layout.fillWidth: true
@@ -123,27 +123,7 @@ Window {
                     console.log(container.currentUser.name);
                 }
             }
-
-            Signup {
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-
-                visible: !container.isLoggedIn && container.authPage === "signup"
-
-                // 🔥 BACK TO LOGIN
-                onBackToLogin: {
-                    container.authPage = "login"
-                }
-
-                // OPTIONAL: after signup, auto go login
-                onSignupCompleted: function(name, email, role) {
-                    console.log("User created:", name, role)
-                    container.authPage = "login"
-                }
-            }
-
-
-            // ── Content Area ──
+            // ── Content Area Main section ──
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
