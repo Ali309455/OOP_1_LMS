@@ -189,7 +189,7 @@ Rectangle {
 
                 PlanCard { tier: "SILVER"; price: "Free"; iconBg: "#64748b"; planIcon: "vip-crown-2-fill.svg"; features: ["Borrow up to 3 Books", "Standard loan period (14 Days)", "No Fine Discount"] }
                 PlanCard { tier: "GOLD"; price: "$29/yr"; iconBg: "#f59e0b"; planIcon: "vip-crown-fill.svg"; features: ["Borrow up to 5 Books", "Extended loan period (21 Days)", "20% Fine Discount"] }
-                PlanCard { tier: "PLATINUM"; price: "$59/yr"; iconBg: "#8b5cf6"; planIcon: "vip-diamond-fill.svg"; features: ["Borrow up to 7 Books", "Maximum loan period (30 Days)", "50% Fine Discount", "Priority reservations"] }
+                PlanCard { tier: "PLATINUM"; price: "$59/yr"; iconBg: "#8b5cf6"; planIcon: "vip-diamond-fill.svg"; features: ["Borrow up to 7 Books", "Maximum loan period (30 Days)", "50% Fine Discount"] }
             }
         }
     }

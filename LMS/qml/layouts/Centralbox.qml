@@ -60,7 +60,7 @@ Item {
             currentUser: centralbox.currentUser
             } }
         Component { id: librariandashboardComp;  LibrarianDashboard {} }
-        Component { id: studentdashboardComp;  StudentDashboard {} }
+        Component { id: studentdashboardComp;  StudentDashboard { currentUser: centralbox.currentUser} }
         Component {
             id: booksComp
             BookCatalog {

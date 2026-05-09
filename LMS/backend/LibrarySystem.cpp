@@ -239,49 +239,49 @@ void LibrarySystem::loadBooksIntoSystem()
     QVariantList books = Database::getBooks();
 
     for (const auto& b : books) {
-              // qDebug() << b.toMap();
+        // qDebug() << b.toMap();
         QVariantMap map = b.toMap();
-              try {
-                  std::string isbn = map["isbn"].toString().toStdString();
-                  std::string title = map["bookname"].toString().toStdString();
-                  std::string author = map["author"].toString().toStdString();
-                  std::string category = map["genre"].toString().toStdString();
-                  std::string section = map["section"].toString().toStdString();
-                  std::string publisher = map["publisher"].toString().toStdString();
-                  std::string edition = map["edition"].toString().toStdString();
-                  std::string language = map["language"].toString().toStdString();
+        try {
+            std::string isbn = map["isbn"].toString().toStdString();
+            std::string title = map["bookname"].toString().toStdString();
+            std::string author = map["author"].toString().toStdString();
+            std::string category = map["genre"].toString().toStdString();
+            std::string section = map["section"].toString().toStdString();
+            std::string publisher = map["publisher"].toString().toStdString();
+            std::string edition = map["edition"].toString().toStdString();
+            std::string language = map["language"].toString().toStdString();
 
-                  int publicationYear = map["publicationyear"].toInt();
-                  int pages = map["pages"].toInt();
-                  int totalCopies = map["totalcopies"].toInt();
-                  int avaliableCopies = map["avaliablecopies"].toInt();
+            int publicationYear = map["publicationyear"].toInt();
+            int pages = map["pages"].toInt();
+            int totalCopies = map["totalcopies"].toInt();
+            int avaliableCopies = map["avaliablecopies"].toInt();
 
-                  // Check if any critical string field is empty
-                  if (isbn.empty() || title.empty() || author.empty() || category.empty() ||
-                      section.empty() || publisher.empty() || language.empty()) {
-                      throw std::runtime_error("One or more required text fields are empty.");
-                  }
+            // Check if any critical string field is empty
+            if (isbn.empty() || title.empty() || author.empty() || category.empty() ||
+                section.empty() || publisher.empty() || language.empty()) {
+                throw std::runtime_error("One or more required text fields are empty.");
+            }
 
-                  // Optional: Check for invalid numeric values
-                  if (publicationYear <= 0 || pages <= 0 || totalCopies < 0) {
-                      // qDebug()<< publicationYear<<","<<pages<<","<<totalCopies<<","<<avaliableCopies;
-                      throw std::runtime_error("Numeric fields must contain valid positive values.");
-                  }
-                  // qDebug() <<avaliableCopies;
-                  // Create Book object
-                  Book book(isbn, title, author, category, section,
-                            publisher, edition, language,
-                            publicationYear, pages, totalCopies,avaliableCopies);
+            // Optional: Check for invalid numeric values
+            if (publicationYear <= 0 || pages <= 0 || totalCopies < 0) {
+                // qDebug()<< publicationYear<<","<<pages<<","<<totalCopies<<","<<avaliableCopies;
+                throw std::runtime_error("Numeric fields must contain valid positive values.");
+            }
+            // qDebug() <<avaliableCopies;
+            // Create Book object
+            Book book(isbn, title, author, category, section,
+                      publisher, edition, language,
+                      publicationYear, pages, totalCopies,avaliableCopies);
 
                   BooksManager.addBook(book);
 
                   // Proceed with using the book object...
 
-              } catch (const std::exception& e) {
-                  // Handle the error (e.g., log it or show a message box to the user)
-                  qDebug() << "Error creating book:" << e.what();
-                  // If using Qt Widgets: QMessageBox::critical(nullptr, "Error", e.what());
-              }
+        } catch (const std::exception& e) {
+            // Handle the error (e.g., log it or show a message box to the user)
+            qDebug() << "Error creating book:" << e.what();
+            // If using Qt Widgets: QMessageBox::critical(nullptr, "Error", e.what());
+        }
         // Add to catalog
     }
     settotalBooks(BooksManager.bookcount);
@@ -570,9 +570,9 @@ bool LibrarySystem::returnBook(const string& txnID) {
     bool bookupdate = Database::updateBook(QString::fromStdString(t->getIsbn()), b->getTotalCopies(),b->getAvailableCopies());
     // ✅ Step 7: update DB
     return bookupdate && Database::updateTransaction(
-        QString::fromStdString(t->getTransactionId()),
-        "returned",fine,QString::fromStdString(returnDate)
-        );
+               QString::fromStdString(t->getTransactionId()),
+               "returned",fine,QString::fromStdString(returnDate)
+               );
 }
 
 // string getDueDate(const ){}
@@ -644,7 +644,7 @@ bool LibrarySystem::submitReview(const string& studentID ,const string& isbn, in
     }
 
     string role = currentUser->getRole();
-qDebug()<<role;
+    qDebug()<<role;
     if (role != ROLE_STUDENT )
         return false;
     // qDebug()<<"id "<<Database::getMaxIdNumber("reviews", "reviewid", "RV")
@@ -777,30 +777,30 @@ bool LibrarySystem::updateStudent(
     if (!p){ return false;}
 
     // 🟢 CASE 2: Student
-        Student* s = dynamic_cast<Student*>(p);
-        if (!s){ return false;}
+    Student* s = dynamic_cast<Student*>(p);
+    if (!s){ return false;}
 
-        string currentMembership = s->getMembershipTier();
-        string finalMembership = currentMembership;
+    string currentMembership = s->getMembershipTier();
+    string finalMembership = currentMembership;
 
-        // ✅ Only upgrade if different
-        if (membership != currentMembership) {
-            authManager.upgrademembership(membership, id);
-            finalMembership = membership;
-        }
+    // ✅ Only upgrade if different
+    if (membership != currentMembership) {
+        authManager.upgrademembership(membership, id);
+        finalMembership = membership;
+    }
 
-        // ✅ Update basic details
-        authManager.updateUser(id, name, email, pwd, status);
+    // ✅ Update basic details
+    authManager.updateUser(id, name, email, pwd, status);
 
-        return Database::updateUser(
-            QString::fromStdString(id),
-            QString::fromStdString(name),
-            QString::fromStdString(email),
-            QString::fromStdString(pwd),
-            QString::fromStdString(finalMembership),
-            QString::fromStdString(role),
-            QString::fromStdString(status)
-            );
+    return Database::updateUser(
+        QString::fromStdString(id),
+        QString::fromStdString(name),
+        QString::fromStdString(email),
+        QString::fromStdString(pwd),
+        QString::fromStdString(finalMembership),
+        QString::fromStdString(role),
+        QString::fromStdString(status)
+        );
 
 
     // ❌ Unknown role
@@ -985,7 +985,95 @@ vector<Review> LibrarySystem::getAllReviews() const {
     return ReviewManager.getAllReviews(); // Must exist in Reviewlog!
 }
 
+// -------------------> Dashboard <---------------------------
 
+QVariantMap LibrarySystem::getStudentDashboardData(const std::string& studentId)
+{
+    QVariantMap map;
+
+    int borrowedBooks = 0;
+    int dueBooks = 0;
+    int totalFine = 0;
+
+    QString membership = "N/A";
+
+    // -------- MEMBERSHIP --------
+    Person* p = authManager.findById(studentId);
+
+    Student* s = dynamic_cast<Student*>(p);
+
+    qDebug() << "Dashboard studentId:"
+             << QString::fromStdString(studentId);
+
+    qDebug() << "Person pointer:" << p;
+
+    if (s)
+    {
+        qDebug() << "Membership:"
+                 << QString::fromStdString(s->getMembershipTier());
+    }
+    else
+    {
+        qDebug() << "Dynamic cast FAILED";
+    }
+
+    if (s) {
+        membership = QString::fromStdString(
+            s->getMembershipTier()
+            );
+    }
+
+    // -------- TRANSACTIONS --------
+    std::vector<transaction> txs =
+        TransactionManager.getTransactionsByStudent(studentId);
+
+    borrowedBooks = txs.size();
+
+    for (const auto& tx : txs)
+    {
+        QString status =
+            QString::fromStdString(tx.getStatus()).toUpper();
+
+        if (status == "ACTIVE" || status == "PENDING")
+            dueBooks++;
+
+        totalFine += tx.getFine();
+    }
+
+    map["borrowedBooks"] = borrowedBooks;
+    map["dueBooks"] = dueBooks;
+    map["balance"] = 0;
+    map["membership"] = membership;
+
+    return map;
+}
+
+
+QVariantList LibrarySystem::getStudentBorrowHistory(const std::string& studentId)
+{
+    QVariantList list;
+
+    std::vector<transaction> txs =
+        TransactionManager.getTransactionsByStudent(studentId);
+
+    for (const auto& tx : txs)
+    {
+        QVariantMap map;
+
+        map["bookName"] =
+            QString::fromStdString(tx.getbookName());
+
+        map["dueDate"] =
+            QString::fromStdString(tx.getDueDate());
+
+        map["status"] =
+            QString::fromStdString(tx.getStatus()).toUpper();
+
+        list.append(map);
+    }
+
+    return list;
+}
 
 
 void LibrarySystem::displayAllData() const {
@@ -1015,7 +1103,7 @@ void LibrarySystem::displayAllData() const {
     // 4. Print Reviews
     std::cout << "\n--- REVIEWS ---\n";
     for (const auto& r : getAllReviews()) {
-         r.display() ;
+        r.display() ;
     }
 
     std::cout << "\n=======================================================\n";
