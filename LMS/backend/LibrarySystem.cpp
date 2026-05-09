@@ -1,7 +1,7 @@
-#include<iostream>
-#include"LibrarySystem.h"
-#include"BookMembership.h"
-#include<qDebug>
+#include <iostream>
+#include "LibrarySystem.h"
+#include "BookMembership.h"
+#include <qDebug>
 #include <QDate>
 #include <QString>
 #include <QSqlDatabase>
@@ -23,22 +23,23 @@ void LibrarySystem::syncLibraryStats()
 }
 static QString htmlEscape(QString s) {
     return s.replace('&', "&amp;")
-    .replace('<', "&lt;")
+        .replace('<', "&lt;")
         .replace('>', "&gt;")
         .replace('"', "&quot;")
         .replace('\'', "&#39;");
 }
-
-// Call this AFTER Database::connect() (so the default connection exists).
-// Example: Database::exportDatabaseReportPdf("D:/report/lms-report.pdf");
-bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QString* outError) {
-    QSqlDatabase db = QSqlDatabase::database(); // default connection created by Database::connect()
-    if (!db.isValid() || !db.isOpen()) {
-        if (outError) *outError = "Database is not open. Call Database::connect() first.";
+// function to export database report to pdf
+bool LibrarySystem::exportDatabaseReportPdf(const QString &outputPdfPath, QString *outError)
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.isValid() || !db.isOpen())
+    {
+        if (outError)
+            *outError = "Database is not open. Call Database::connect() first.";
         return false;
     }
 
-    // 1) Collect all user tables (skip SQLite internal tables)
+    // 1) Fetch table list
     QStringList tables;
     {
         QSqlQuery q(db);
@@ -50,7 +51,8 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
         AND name NOT LIKE 'sqlite_%'
         AND name NOT IN ( 'wallets')
         ORDER BY name;
-    )")) {
+    )"))
+        {
             if (outError)
                 *outError = "Failed to read table list: " + q.lastError().text();
             return false;
@@ -89,7 +91,8 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
     html += "<div class='meta'>Tables: " + QString::number(tables.size()) + "</div>";
     html += "</div>";
 
-    for (const QString& table : tables) {
+    for (const QString &table : tables)
+    {
         // Row count
         int rowCount = -1;
         {
@@ -103,7 +106,8 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
         html += "<div class='submeta'>Rows: " + QString::number(rowCount) + "</div>";
 
         QSqlQuery q(db);
-        if (!q.exec("SELECT * FROM \"" + table + "\";")) {
+        if (!q.exec("SELECT * FROM \"" + table + "\";"))
+        {
             html += "<div class='empty'>Error reading table: " + htmlEscape(q.lastError().text()) + "</div>";
             html += "</div>";
             continue;
@@ -112,7 +116,8 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
         QSqlRecord rec = q.record();
         const int colCount = rec.count();
 
-        if (colCount <= 0) {
+        if (colCount <= 0)
+        {
             html += "<div class='empty'>No columns found.</div></div>";
             continue;
         }
@@ -124,10 +129,12 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
         html += "</tr></thead><tbody>";
 
         bool anyRow = false;
-        while (q.next()) {
+        while (q.next())
+        {
             anyRow = true;
             html += "<tr>";
-            for (int c = 0; c < colCount; ++c) {
+            for (int c = 0; c < colCount; ++c)
+            {
                 const QVariant v = q.value(c);
                 QString cell = v.isNull() ? "NULL" : v.toString();
                 html += "<td>" + htmlEscape(cell) + "</td>";
@@ -136,7 +143,8 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
         }
         html += "</tbody></table>";
 
-        if (!anyRow) html += "<div class='empty'>No data.</div>";
+        if (!anyRow)
+            html += "<div class='empty'>No data.</div>";
         html += "</div>";
     }
 
@@ -151,7 +159,7 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
     QString basePath = QCoreApplication::applicationDirPath();
     QDir dir(basePath);
     dir.cdUp();
-    dir.cdUp();    // Debug/
+    dir.cdUp();
     QString pdfpath = dir.filePath(outputPdfPath);
     printer.setOutputFileName(pdfpath);
 
@@ -161,23 +169,22 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
 
     doc.print(&printer);
 
-    // QPrinter doesn't reliably signal write errors; do a basic existence check
-    if (!QFileInfo::exists(outputPdfPath) || QFileInfo(outputPdfPath).size() == 0) {
-        if (outError) {
-            qDebug()<< "PDF was not created (check output path permissions).";
+    if (!QFileInfo::exists(outputPdfPath) || QFileInfo(outputPdfPath).size() == 0)
+    {
+        if (outError)
+        {
+            qDebug() << "PDF was not created (check output path permissions).";
             return false;
         }
     }
     return true;
 }
 
-
-
-
+// Helper function to get current date as string
 QString getDate(int addDays = 0)
 {
     QDate date = QDate::currentDate().addDays(addDays);
-    return date.toString("yyyy-MM-dd");  // DB-friendly format
+    return date.toString("yyyy-MM-dd");
 }
 
 LibrarySystem::LibrarySystem(): libraryWallet("LIBRARY", 0),totalBooks(0),activeTransations(0),pendingReviews(0){
@@ -189,18 +196,23 @@ LibrarySystem::LibrarySystem(): libraryWallet("LIBRARY", 0),totalBooks(0),active
         libraryWallet.setbalance(balance);
     }
 }
-string LibrarySystem::generateId(const std::string& prefix, int maxIdFromDB) {
+// Function to generate unique IDs for users and books based on prefix and max ID from database
+string LibrarySystem::generateId(const std::string &prefix, int maxIdFromDB)
+{
     // return prefix + "-" + std::to_string(maxIdFromDB + 1);
     if (maxIdFromDB < 0)
         maxIdFromDB = 0;
     return prefix + "-" + std::to_string(maxIdFromDB + 1);
 }
+// function to load users from database into system memory
 void LibrarySystem::loadUsersIntoSystem()
 {
     QVariantList users = Database::getUsers();
 
-    for (auto u : users) {
-        try {
+    for (auto u : users)
+    {
+        try
+        {
             QVariantMap map = u.toMap();
 
             // Extract values
@@ -213,54 +225,64 @@ void LibrarySystem::loadUsersIntoSystem()
             std::string membership = map["membership"].toString().toStdString();
             int balance = map["balance"].toInt();
             // Check for empty fields using standard logic
-            if (id.empty() || name.empty() || email.empty() || password.empty() || role.empty()) {
+            if (id.empty() || name.empty() || email.empty() || password.empty() || role.empty())
+            {
                 // std::invalid_argument is the standard way to flag bad data input
                 throw std::invalid_argument("Crucial user data is missing in database record.");
             }
 
-            Person* person = nullptr;
+            Person *person = nullptr;
             transform(role.begin(), role.end(), role.begin(), ::toupper);
-            if ( role == ROLE_STUDENT) {
-                if (membership.empty()) {
+            if (role == ROLE_STUDENT)
+            {
+                if (membership.empty())
+                {
                     throw std::invalid_argument("Membership field is empty for student: " + name);
                 }
-                person = new Student(id, name, email, password,status, membership, balance);
+                person = new Student(id, name, email, password, status, membership, balance);
             }
-            else if (role == ROLE_LIBRARIAN) {
+            else if (role == ROLE_LIBRARIAN)
+            {
                 person = new Librarian(id, name, email, password, "cs211");
             }
-            else {
-                // std::runtime_error is used for errors found during execution (like unknown roles)
+            else
+            {
                 throw std::runtime_error("Unrecognized role type: " + role);
             }
 
-            if (person) {
+            if (person)
+            {
                 authManager.registerPerson(person);
             }
-
-        } catch (const std::invalid_argument& e) {
+        }
+        catch (const std::invalid_argument &e)
+        {
             qCritical() << "Data Validation Error:" << e.what();
-            // Skip this user and move to the next
             continue;
-        } catch (const std::runtime_error& e) {
+        }
+        catch (const std::runtime_error &e)
+        {
             qCritical() << "System Runtime Error:" << e.what();
             continue;
-        } catch (const std::exception& e) {
-            // Catch-all for any other standard exceptions
+        }
+        catch (const std::exception &e)
+        {
             qCritical() << "Standard Exception:" << e.what();
             continue;
         }
     }
 }
-
+// function to load books from database into system memory
 void LibrarySystem::loadBooksIntoSystem()
 {
     QVariantList books = Database::getBooks();
 
-    for (const auto& b : books) {
-        // qDebug() << b.toMap();
+    for (const auto &b : books)
+    {
         QVariantMap map = b.toMap();
-        try {
+        try
+        {
+            // Extract values
             std::string isbn = map["isbn"].toString().toStdString();
             std::string title = map["bookname"].toString().toStdString();
             std::string author = map["author"].toString().toStdString();
@@ -277,154 +299,162 @@ void LibrarySystem::loadBooksIntoSystem()
 
             // Check if any critical string field is empty
             if (isbn.empty() || title.empty() || author.empty() || category.empty() ||
-                section.empty() || publisher.empty() || language.empty()) {
+                section.empty() || publisher.empty() || language.empty())
+            {
                 throw std::runtime_error("One or more required text fields are empty.");
             }
-
-            // Optional: Check for invalid numeric values
-            if (publicationYear <= 0 || pages <= 0 || totalCopies < 0) {
-                // qDebug()<< publicationYear<<","<<pages<<","<<totalCopies<<","<<avaliableCopies;
+            // Check for invalid numeric values
+            if (publicationYear <= 0 || pages <= 0 || totalCopies < 0)
+            {
                 throw std::runtime_error("Numeric fields must contain valid positive values.");
             }
-            // qDebug() <<avaliableCopies;
             // Create Book object
             Book book(isbn, title, author, category, section,
                       publisher, edition, language,
-                      publicationYear, pages, totalCopies,avaliableCopies);
+                      publicationYear, pages, totalCopies, avaliableCopies);
 
-                  BooksManager.addBook(book);
-
-                  // Proceed with using the book object...
-
-        } catch (const std::exception& e) {
-            // Handle the error (e.g., log it or show a message box to the user)
-            qDebug() << "Error creating book:" << e.what();
-            // If using Qt Widgets: QMessageBox::critical(nullptr, "Error", e.what());
+            BooksManager.addBook(book);
         }
-        // Add to catalog
+        catch (const std::exception &e)
+        {
+            qDebug() << "Error creating book:" << e.what();
+        }
     }
     settotalBooks(BooksManager.bookcount);
 }
-
+// function to load transactions from database into system memory
 void LibrarySystem::loadTransactionsIntoSystem()
 {
     QVariantList transactions = Database::getTransactions();
     int activeCnt = 0;
-    for (const auto& t : transactions) {
-        try {
-
+    for (const auto &t : transactions)
+    {
+        try
+        {
             QVariantMap map = t.toMap();
-
             // Extract values
             std::string transactionId = map["txid"].toString().toStdString();
-            std::string studentId     = map["user_id"].toString().toStdString();
-            std::string username      = map["username"].toString().toStdString();
-            std::string isbn          = map["isbn"].toString().toStdString();
-            std::string issueDate     = map["issuedate"].toString().toStdString();
-            std::string dueDate       = map["duedate"].toString().toStdString();
-            std::string returnDate    = map["returnDate"].toString().toStdString();
-            std::string status        = map["status"].toString().toStdString();
-            std::string bookName        = map["bookName"].toString().toStdString();
-
-            // Note: returnDate might be empty if the book hasn't been returned yet,
-            // so we usually don't throw an error for that specific field.
+            std::string studentId = map["user_id"].toString().toStdString();
+            std::string username = map["username"].toString().toStdString();
+            std::string isbn = map["isbn"].toString().toStdString();
+            std::string issueDate = map["issuedate"].toString().toStdString();
+            std::string dueDate = map["duedate"].toString().toStdString();
+            std::string returnDate = map["returnDate"].toString().toStdString();
+            std::string status = map["status"].toString().toStdString();
+            std::string bookName = map["bookName"].toString().toStdString();
 
             // 1. Check for crucial empty fields
-            if (transactionId.empty() || studentId.empty() ||username.empty()|| isbn.empty() ||
-                issueDate.empty() || dueDate.empty() || status.empty()) {
+            if (transactionId.empty() || studentId.empty() || username.empty() || isbn.empty() ||
+                issueDate.empty() || dueDate.empty() || status.empty())
+            {
                 throw std::invalid_argument("Transaction " + transactionId + " is missing required data.");
             }
 
             int fine = map["fine"].toInt();
             // 2. Validate numeric logic (fine shouldn't be negative)
-            if (fine < 0) {
+            if (fine < 0)
+            {
                 throw std::runtime_error("Invalid fine amount for Transaction ID: " + transactionId);
             }
 
             // 3. Create object
             transaction tr(transactionId, studentId, username, isbn,
-                           issueDate, dueDate, returnDate,bookName,
+                           issueDate, dueDate, returnDate, bookName,
                            status, fine);
 
             // 4. Add to manager
-            qDebug()<<"status "+ status;
-            if(status == "active"){ qDebug()<<"here";setactiveTransations(++activeCnt);};
+            qDebug() << "status " + status;
+            if (status == "active")
+            {
+                qDebug() << "here";
+                setactiveTransations(++activeCnt);
+            };
             TransactionManager.addTransaction(tr);
-
-        } catch (const std::invalid_argument& e) {
+        }
+        catch (const std::invalid_argument &e)
+        {
             qCritical() << "Transaction Data Error:" << e.what();
-            continue; // Skip this transaction
-        } catch (const std::runtime_error& e) {
+            continue; 
+        }
+        catch (const std::runtime_error &e)
+        {
             qCritical() << "Transaction Runtime Error:" << e.what();
             continue;
-        } catch (const std::exception& e) {
+        }
+        catch (const std::exception &e)
+        {
             qCritical() << "General Exception during transaction load:" << e.what();
             continue;
         }
     }
 }
-
+// function to load reviews from database into system memory
 void LibrarySystem::loadReviewsIntoSystem()
 {
     QVariantList reviews = Database::getReviews();
     int pendingr = 0;
-    for (const auto& r : reviews) {
-        try {
+    for (const auto &r : reviews)
+    {
+        try
+        {
             QVariantMap map = r.toMap();
-
             // Extract values
-            std::string reviewId   = map["reviewid"].toString().toStdString();
-            std::string studentId  = map["user_id"].toString().toStdString();
-            std::string username   = map["username"].toString().toStdString();
-            std::string isbn       = map["isbn"].toString().toStdString();
-            std::string bookname   = map["bookname"].toString().toStdString();
-            std::string comment    = map["comment"].toString().toStdString();
-            std::string status     = map["status"].toString().toStdString();
+            std::string reviewId = map["reviewid"].toString().toStdString();
+            std::string studentId = map["user_id"].toString().toStdString();
+            std::string username = map["username"].toString().toStdString();
+            std::string isbn = map["isbn"].toString().toStdString();
+            std::string bookname = map["bookname"].toString().toStdString();
+            std::string comment = map["comment"].toString().toStdString();
+            std::string status = map["status"].toString().toStdString();
             std::string reviewDate = map["review_date"].toString().toStdString();
-            int rating             = map["rating"].toInt();
+            int rating = map["rating"].toInt();
 
             // 1. Check for crucial empty fields
-            // Note: comment might be allowed to be empty depending on your rules;
-            // if so, remove it from this check.
-            if (reviewId.empty() || studentId.empty() || isbn.empty() || status.empty()) {
+            if (reviewId.empty() || studentId.empty() || isbn.empty() || status.empty())
+            {
                 throw std::invalid_argument("Required review metadata is missing for ID: " + reviewId);
             }
-
             // 2. Validate rating range (Standard 1-5 scale check)
-            if (rating < 1 || rating > 5) {
+            if (rating < 1 || rating > 5)
+            {
                 throw std::out_of_range("Rating for review " + reviewId + " must be between 1 and 5.");
             }
-
             // 3. Create object
             Review review(reviewId, studentId, username, isbn, bookname,
                           rating, comment, status, reviewDate);
-
             // 4. Add to manager
-            if(status == "pending") {
+            if (status == "pending")
+            {
                 setpendingReviews(++pendingr);
             }
             ReviewManager.addReview(review);
-
-        } catch (const std::invalid_argument& e) {
+        }
+        catch (const std::invalid_argument &e)
+        {
             qCritical() << "Data Error:" << e.what();
-            continue; // Skip and move to next review
-        } catch (const std::out_of_range& e) {
+            continue; 
+        }
+        catch (const std::out_of_range &e)
+        {
             qCritical() << "Range Error:" << e.what();
             continue;
-        } catch (const std::exception& e) {
+        }
+        catch (const std::exception &e)
+        {
             qCritical() << "General Exception loading review:" << e.what();
             continue;
         }
     }
 }
-
+// function to load wallets from database into system memory
 void LibrarySystem::loadWalletsIntoSystem()
 {
     QVariantList wallets = Database::getWallets();
 
-    for (const auto& w : wallets) {
+    for (const auto &w : wallets)
+    {
         QVariantMap map = w.toMap();
-
+        // Extract values
         std::string id = map["id"].toString().toStdString();
         double balance = map["balance"].toDouble();
         int sus = map["suspended"].toInt();
@@ -446,81 +476,91 @@ void LibrarySystem::initializeSystem(){
     loadWalletsIntoSystem();
 }
 // ========= setters & getters =========
-int LibrarySystem::gettotalBooks() const {
+int LibrarySystem::gettotalBooks() const
+{
     return totalBooks;
 };
-int LibrarySystem::getactiveTransations() const{
+int LibrarySystem::getactiveTransations() const
+{
     return activeTransations;
 };
-int LibrarySystem::getpendingReviews() const{
+int LibrarySystem::getpendingReviews() const
+{
     return pendingReviews;
 };
 
-void LibrarySystem::settotalBooks(int tb){totalBooks =tb ;};
-void LibrarySystem::setactiveTransations(int transactions){activeTransations = transactions;};
-void LibrarySystem::setpendingReviews(int r){pendingReviews = r;};
+void LibrarySystem::settotalBooks(int tb) { totalBooks = tb; };
+void LibrarySystem::setactiveTransations(int transactions) { activeTransations = transactions; };
+void LibrarySystem::setpendingReviews(int r) { pendingReviews = r; };
 
-double LibrarySystem::getLibraryBalance() const {
+double LibrarySystem::getLibraryBalance() const
+{
     return libraryWallet.getBalance();
 }
 // -------------------> Auht <---------------------------
 
 #include <QVariantMap>
-
-QVariantMap LibrarySystem::login(const std::string& email, const std::string& password) {
+// function to authenticate user and return user details
+QVariantMap LibrarySystem::login(const std::string &email, const std::string &password) 
+{
     QVariantMap result;
-    try {
+    try
+    {
         currentUser = authManager.login(email, password);
-        if (!currentUser) {
+        if (!currentUser)
+        {
             result["success"] = false;
             result["message"] = "Invalid email or password";
             return result;
         }
 
         // Common fields for all
-        result["success"]    = true;
-        result["userId"]     = QString::fromStdString(currentUser->getUserID());
-        result["name"]       = QString::fromStdString(currentUser->getName());
-        result["email"]      = QString::fromStdString(currentUser->getEmail());
-        result["role"]       = QString::fromStdString(currentUser->getRole());
-        result["password"]       = QString::fromStdString(currentUser->getPassword());
+        result["success"] = true;
+        result["userId"] = QString::fromStdString(currentUser->getUserID());
+        result["name"] = QString::fromStdString(currentUser->getName());
+        result["email"] = QString::fromStdString(currentUser->getEmail());
+        result["role"] = QString::fromStdString(currentUser->getRole());
+        result["password"] = QString::fromStdString(currentUser->getPassword());
         // Dynamic fields for students
-        const Student* student = dynamic_cast<const Student*>(currentUser);
-        if (student) {
+        const Student *student = dynamic_cast<const Student *>(currentUser);
+        if (student)
+        {
             result["membership"] = QString::fromStdString(student->getMembershipTier());
             result["status"] = QString::fromStdString(student->getStatus());
-        } else {
-            // For librarians, status/membership might be "N/A" or something meaningful
+        }
+        else
+        {
+            // For librarians, status/membership might be "N/A" 
             result["membership"] = "N/A";
             result["status"] = "N/A";
         }
 
         return result;
-
-    } catch (const std::exception& ex) {
+    }
+    catch (const std::exception &ex)
+    {
         result["success"] = false;
         result["message"] = ex.what();
         return result;
     }
 }
-
+// function to log out the current user by clearing the user context
 void LibrarySystem::logout() { currentUser = nullptr; }
 
 // -------------------> transaction <---------------------------
-
-bool LibrarySystem::issueBook(const string& isbn, const string& sid) {
-    /*if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN){;
-        return false;
-    }*/        // permission check HERE
+// function to issue a book to a student, with checks for borrowing limits and book availability
+bool LibrarySystem::issueBook(const string &isbn, const string &sid)
+{
+    // permission check HERE
     vector<transaction> txs = TransactionManager.getAllTransactions();
-
+    // Check how many books the student has already borrowed today
     int todayBorrowCount = 0;
 
     QString today = getDate();
 
-    for (const auto& tx : txs)
+    for (const auto &tx : txs)
     {
-        if (tx.getStudentId() == sid && QString::fromStdString(tx.getIssueDate()) == today &&tx.getStatus() == "active")
+        if (tx.getStudentId() == sid && QString::fromStdString(tx.getIssueDate()) == today && tx.getStatus() == "active")
         {
             todayBorrowCount++;
         }
@@ -529,24 +569,30 @@ bool LibrarySystem::issueBook(const string& isbn, const string& sid) {
     // limit = 2 books per day
     if (todayBorrowCount >= 2)
     {
-        qDebug()<<"today's borrow count exeded";
+        qDebug() << "today's borrow count exeded";
         return false;
     }
     int borrowlimitdays;
-    Book* b = BooksManager.findByIsbn(isbn);
-    if (!b || b->getAvailableCopies() == 0) return false;
+    Book *b = BooksManager.findByIsbn(isbn); // association with book manager to get book details
+    if (!b || b->getAvailableCopies() == 0)
+        return false;
     b->issueOneCopy();
-    Person* p = authManager.findById(sid);
-    if (!p) return false;
-    auto* s = dynamic_cast<Student*>(p);
+    Person *p = authManager.findById(sid); // association with auth manager to get student details
+    if (!p)
+        return false;
+    auto *s = dynamic_cast<Student *>(p);
     string tier = s->getMembershipTier();
-    if(tier == "Silver") borrowlimitdays = 14;
-    if(tier == "Gold")borrowlimitdays = 21;
-    if(tier == "Platinum")borrowlimitdays = 30;
+    if (tier == "Silver")
+        borrowlimitdays = 14;
+    if (tier == "Gold")
+        borrowlimitdays = 21;
+    if (tier == "Platinum")
+        borrowlimitdays = 30;
     string username = p->getName();
-    string txid =  generateId("TX", Database::getMaxIdNumber("transactions", "txid", "TX"));
-    bool dbresponse = Database::addTransaction(QString::fromStdString(txid),QString::fromStdString(sid),QString::fromStdString(isbn),getDate(borrowlimitdays),"",QString::fromStdString(b->getTitle()),QString::fromStdString("active"),0);
-    int total = b->getTotalCopies(); int available = b->getAvailableCopies();
+    string txid = generateId("TX", Database::getMaxIdNumber("transactions", "txid", "TX")); // generate unique transaction ID
+    bool dbresponse = Database::addTransaction(QString::fromStdString(txid), QString::fromStdString(sid), QString::fromStdString(isbn), getDate(borrowlimitdays), "", QString::fromStdString(b->getTitle()), QString::fromStdString("active"), 0);
+    int total = b->getTotalCopies();
+    int available = b->getAvailableCopies();
     ++activeTransations;
     qDebug()<<activeTransations;
     if(isbn.empty() && total && available){qDebug()<<"book data fetching failed"; return false;}
@@ -555,75 +601,71 @@ bool LibrarySystem::issueBook(const string& isbn, const string& sid) {
 
     return(dbresponse && bookupdate && TransactionManager.issueBook(txid,sid,username,isbn,getDate().toStdString(),getDate(borrowlimitdays).toStdString(),b->getTitle()));
 }
-
-bool LibrarySystem::returnBook(const string& txnID) {
+// function to process the return of a book, calculate fines based on due date and membership tier, and update the transaction and book records accordingly
+bool LibrarySystem::returnBook(const string &txnID)
+{
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
 
-    transaction* t = TransactionManager.findTransactionById(txnID);
+    transaction *t = TransactionManager.findTransactionById(txnID); 
     if (!t || t->isReturned())
         return false;
 
-    // ✅ Step 1: get current return date
     string returnDate = getDate().toStdString();
 
-    // ✅ Step 2: get student
-    Person* p = authManager.findById(t->getStudentId());
-    auto* s = dynamic_cast<Student*>(p);
-    if (!s) return false;
+    Person *p = authManager.findById(t->getStudentId());
+    auto *s = dynamic_cast<Student *>(p);
+    if (!s)
+        return false;
 
-    // ✅ Step 3: get membership tier (you must implement this getter)
     string tier = s->getMembershipTier();
-
-    // ✅ Step 4: calculate fine correctly
-    double fine = FineCalc.calculateFinalFine(t->getDueDate(),returnDate,tier);
-    if (fine > 0) {
+    // Calculate fine using the FineCalculator utility class w.r.t due date, return date, and membership tier
+    double fine = FineCalc.calculateFinalFine(t->getDueDate(), returnDate, tier);
+    if (fine > 0)
+    {
         s->payFine(fine);
 
         // library receives money
         libraryWallet.addAmount(fine);
     }
-    // ✅ Step 5: update transaction
     t->markReturned(returnDate, fine);
 
-    // ✅ Step 6: safely update book copies
-    Book* b = BooksManager.findByIsbn(t->getIsbn());
-    if (!b) return false;
+    Book *b = BooksManager.findByIsbn(t->getIsbn());
+    if (!b)
+        return false;
     b->returnOneCopy();
-    bool bookupdate = Database::updateBook(QString::fromStdString(t->getIsbn()), b->getTotalCopies(),b->getAvailableCopies());
-    --activeTransations;
-    syncLibraryStats();
-
-    // ✅ Step 7: update DB
+    bool bookupdate = Database::updateBook(QString::fromStdString(t->getIsbn()), b->getTotalCopies(), b->getAvailableCopies());
     return bookupdate && Database::updateTransaction(
-               QString::fromStdString(t->getTransactionId()),
-               "returned",fine,QString::fromStdString(returnDate)
-               );
+                             QString::fromStdString(t->getTransactionId()),
+                             "returned", fine, QString::fromStdString(returnDate));
 }
 
-// string getDueDate(const ){}
 // -------------------> Book Manager <---------------------------
-
-bool LibrarySystem::addbook(const string& isbn,const string&  title,const string&  author, const string& category,const string&  section, const string& publisher,const string&  edition, const string& language, int publicationYear, int pages,int totalCopies){
-    // permission check HERE
+// add a new book to the library system, with permission checks for librarian role and database integration to persist the new book record
+bool LibrarySystem::addbook(const string &isbn, const string &title, const string &author, const string &category, const string &section, const string &publisher, const string &edition, const string &language, int publicationYear, int pages, int totalCopies)
+{
+    // permission check 
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
-    Book book(isbn, title, author, category, section,publisher, edition, language,totalCopies,publicationYear, pages, totalCopies);
+    Book book(isbn, title, author, category, section, publisher, edition, language, totalCopies, publicationYear, pages, totalCopies);
     BooksManager.addBook(book);
     Database::updateLibrary( QString::fromStdString("LIB-NED"),totalBooks,activeTransations,pendingReviews,libraryWallet.getBalance());
     return Database::addBook(QString::fromStdString(isbn),QString::fromStdString(title),QString::fromStdString(author),pages,QString::fromStdString(category),QString::fromStdString(section),QString::fromStdString(publisher),QString::fromStdString(edition),QString::fromStdString(language),publicationYear,totalCopies,totalCopies);
 }
-
-bool LibrarySystem::updateBook(const std::string& isbn,int totalCopies){
+// update the total copies of a book in the library system, with permission checks for librarian role and database integration to persist the updated book record
+bool LibrarySystem::updateBook(const std::string &isbn, int totalCopies)
+{
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
     int avaliablecopies;
-    bool res =BooksManager.updateBook(isbn,totalCopies);
-    if (res) avaliablecopies = BooksManager.findByIsbn(isbn)->getAvailableCopies()   ;
-    return res && Database::updateBook(QString::fromStdString(isbn),totalCopies,avaliablecopies) ;
+    bool res = BooksManager.updateBook(isbn, totalCopies);
+    if (res)
+        avaliablecopies = BooksManager.findByIsbn(isbn)->getAvailableCopies();
+    return res && Database::updateBook(QString::fromStdString(isbn), totalCopies, avaliablecopies);
 }
-
-bool LibrarySystem::removeBook(const string& isbn){
+// remove a book from the library system, with permission checks for librarian role and database integration to delete the book record
+bool LibrarySystem::removeBook(const string &isbn)
+{
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
     BooksManager.removeBook(isbn);
@@ -632,11 +674,10 @@ bool LibrarySystem::removeBook(const string& isbn){
     return Database::deleteBook(QString::fromStdString(isbn));
 }
 
-
 // -------------------> Review <---------------------------
-
-
-bool LibrarySystem::approveReview(const string& reviewID) {
+// approve a pending review, with permission checks for librarian role and database integration to update the review status
+bool LibrarySystem::approveReview(const string &reviewID)
+{
 
     qDebug() << "Approve called. User:"
              << (currentUser ? QString::fromStdString(currentUser->getRole()) : "NULL");
@@ -657,23 +698,24 @@ bool LibrarySystem::approveReview(const string& reviewID) {
         QString::fromStdString(reviewID),
         std::nullopt,
         std::nullopt,
-        QString::fromStdString("approved")
-        );
+        QString::fromStdString("approved"));
 }
-
-bool LibrarySystem::deleteReview(const string& reviewID){
+// delete a review from the library system, with permission checks for librarian role and database integration to remove the review record
+bool LibrarySystem::deleteReview(const string &reviewID)
+{
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
     ReviewManager.deleteReview(reviewID);
     --pendingReviews;
     return Database::deleteReview(QString::fromStdString(reviewID));
-
 }
-bool LibrarySystem::submitReview(const string& studentID ,const string& isbn, int rating, const string& comment) {
-    if (!currentUser){
+// submit a new review for a book, with permission checks for student role and database integration to persist the new review record
+bool LibrarySystem::submitReview(const string &studentID, const string &isbn, int rating, const string &comment)
+{
+    if (!currentUser)
+    {
         return false;
     }
-
     string role = currentUser->getRole();
     if (role != ROLE_STUDENT )
         return false;
@@ -681,7 +723,7 @@ bool LibrarySystem::submitReview(const string& studentID ,const string& isbn, in
     string rid = generateId("RV",Database::getMaxIdNumber("reviews", "reviewid", "RV"));
     string sid = currentUser->getUserID();
     string uname = currentUser->getName();
-    Book* b = BooksManager.findByIsbn(isbn);
+    Book *b = BooksManager.findByIsbn(isbn);
     string bname = (b ? b->getTitle() : "");
     Review r(rid, sid, uname, isbn, bname, rating, comment,"pending", getDate().toStdString());
 
@@ -696,7 +738,9 @@ bool LibrarySystem::submitReview(const string& studentID ,const string& isbn, in
 }
 
 // -------------------> User <---------------------------
-RegistrationResult LibrarySystem::registerStudent( const string& name, const string& email, const string& pwd,const string& status, const string& membership, const string& role, double balance){
+// register a new student in the library system, with permission checks for librarian role and database integration to persist the new user record
+RegistrationResult LibrarySystem::registerStudent(const string &name, const string &email, const string &pwd, const string &status, const string &membership, const string &role, double balance)
+{
 
     RegistrationResult result;
     result.success = false;
@@ -707,10 +751,9 @@ RegistrationResult LibrarySystem::registerStudent( const string& name, const str
     string id = generateId("SU", Database::getMaxIdNumber("users", "id", "SU"));
 
     // 2. Create the Student object (Heap allocation)
-    Student* student = new Student(id, name, email, pwd, status, membership,balance);
+    Student *student = new Student(id, name, email, pwd, status, membership, balance);
 
     // 3. Attempt to save to Database
-    // We assign the boolean return value to our struct's success member
     result.success = Database::addUser(
         QString::fromStdString(id),
         QString::fromStdString(name),
@@ -719,16 +762,18 @@ RegistrationResult LibrarySystem::registerStudent( const string& name, const str
         QString::fromStdString(membership),
         QString::fromStdString(role),
         QString::fromStdString(status),
-        balance
-        );
+        balance);
 
     // 4. Handle logic based on the boolean result
-    if (result.success) {
+    if (result.success)
+    {
         // Success: Track in memory and provide ID to the result
         authManager.registerPerson(student);
         result.userId = id;
         result.message = "Student registered successfully.";
-    } else {
+    }
+    else
+    {
         // Failure: Cleanup the memory to prevent leaks
         delete student;
         result.message = "Database insertion failed.";
@@ -736,11 +781,13 @@ RegistrationResult LibrarySystem::registerStudent( const string& name, const str
 
     return result;
 }
-RegistrationResult LibrarySystem::registerLibrarian(const string& name, const string& email, const string& pwd, const string& role) {
-    RegistrationResult result = { false, "", "" };
+// register a new librarian in the library system, with permission checks for librarian role and database integration to persist the new librarian record
+RegistrationResult LibrarySystem::registerLibrarian(const string &name, const string &email, const string &pwd, const string &role)
+{
+    RegistrationResult result = {false, "", ""};
 
     string id = generateId("LIB", Database::getMaxIdNumber("users", "id", "LIB"));
-    Librarian* librarian = new Librarian(id, name, email, pwd, "none");
+    Librarian *librarian = new Librarian(id, name, email, pwd, "none");
 
     result.success = Database::addUser(
         QString::fromStdString(id),
@@ -749,79 +796,95 @@ RegistrationResult LibrarySystem::registerLibrarian(const string& name, const st
         QString::fromStdString(pwd),
         "",
         QString::fromStdString(role),
-        "",0
-        );
+        "", 0);
 
-    if (result.success) {
+    if (result.success)
+    {
         authManager.registerPerson(librarian);
         result.userId = id;
         result.message = "Librarian registered successfully.";
-    } else {
+    }
+    else
+    {
         delete librarian;
         result.message = "Failed to save Librarian to database.";
     }
 
     return result;
 }
-RegistrationResult LibrarySystem::registerUser(const string& name, const string& email, const string& pwd, const string& status, const string& membership, const string& role, double balance)
+// main registration function that routes to specific registration logic based on the role, with comprehensive validation and error handling
+RegistrationResult LibrarySystem::registerUser(const string &name, const string &email, const string &pwd, const string &status, const string &membership, const string &role, double balance)
 {
     // 1. Authorization Check
     // Ensure only an authorized librarian can perform registration
-    if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN) {
-        return { false, "", "Unauthorized: Only librarians can register new users." };
+    if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
+    {
+        return {false, "", "Unauthorized: Only librarians can register new users."};
     }
 
     // 2. Basic Validation
-    if (name.empty() || email.empty() || pwd.empty() || role.empty()) {
-        return { false, "", "Registration failed: Missing required fields." };
+    if (name.empty() || email.empty() || pwd.empty() || role.empty())
+    {
+        return {false, "", "Registration failed: Missing required fields."};
     }
 
     // 3. Routing based on Role
-    // This calls your specific logic for Student or Librarian
-    if (role == ROLE_STUDENT) {
+    if (role == ROLE_STUDENT)
+    {
         return registerStudent(name, email, pwd, status, membership, role, balance);
     }
-    else if (role == ROLE_LIBRARIAN) {
+    else if (role == ROLE_LIBRARIAN)
+    {
         return registerLibrarian(name, email, pwd, role);
     }
-    else {
+    else
+    {
         // Handle unexpected roles
-        return { false, "", "Registration failed: Unknown role '" + role + "'." };
+        return {false, "", "Registration failed: Unknown role '" + role + "'."};
     }
 }
-bool LibrarySystem::removeUser(const string& id){
+// remove a user from the library system, with permission checks for librarian role and database integration to delete the user record
+bool LibrarySystem::removeUser(const string &id)
+{
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
     return Database::deleteUser(QString::fromStdString(id));
 };
-
+// update user details in the library system, with routing to specific update logic based on the role and database integration to persist the updated user record
 bool LibrarySystem::updateStudent(
-    const string& id,
-    const string& name,
-    const string& email,
-    const string& pwd,
-    const string& status,
-    const string& membership,
-    const string& role)
+    const string &id,
+    const string &name,
+    const string &email,
+    const string &pwd,
+    const string &status,
+    const string &membership,
+    const string &role)
 {
-    Person* p = authManager.findById(id);
-    if (!p){ return false;}
+    Person *p = authManager.findById(id);
+    if (!p)
+    {
+        return false;
+    }
 
-    // 🟢 CASE 2: Student
-    Student* s = dynamic_cast<Student*>(p);
-    if (!s){ return false;}
+    // Ensure it's a student
+    Student *s = dynamic_cast<Student *>(p);
+    if (!s)
+    {
+        return false;
+    }
 
     string currentMembership = s->getMembershipTier();
     string finalMembership = currentMembership;
 
-    // ✅ Only upgrade if different
-    if (membership != currentMembership) {
-        upgradeStudentMembership(id, membership);
+    // Handle membership upgrade if needed
+    if (membership != currentMembership)
+    {
+        authManager.upgrademembership(membership, id);
         finalMembership = membership;
     }
 
-    // ✅ Update basic details
-    authManager.updateUser(id, name, email, pwd, status, s->getWalletBalance());
+    // Update other details
+    authManager.updateUser(id, name, email, pwd, status);
 
     syncLibraryStats();
 
@@ -832,75 +895,83 @@ bool LibrarySystem::updateStudent(
         QString::fromStdString(pwd),
         QString::fromStdString(finalMembership),
         QString::fromStdString(role),
-        QString::fromStdString(status)
-        );
+        QString::fromStdString(status));
 
-
-    // ❌ Unknown role
     return false;
 }
-bool LibrarySystem::updateLibrarian( const string& id, const string& name, const string& email, const string& pwd, const string& role){
-
-
-    authManager.updateUser( id, name,  email, pwd);
-
-    return Database::updateUser(QString::fromStdString(id),QString::fromStdString(name),QString::fromStdString(email),QString::fromStdString(pwd),QString::fromStdString("none"),QString::fromStdString(role));
+// update librarian details in the library system, with database integration to persist the updated librarian record
+bool LibrarySystem::updateLibrarian(const string &id, const string &name, const string &email, const string &pwd, const string &role)
+{
+    authManager.updateUser(id, name, email, pwd);
+    return Database::updateUser(QString::fromStdString(id), QString::fromStdString(name), QString::fromStdString(email), QString::fromStdString(pwd), QString::fromStdString("none"), QString::fromStdString(role));
 }
-bool LibrarySystem::updateUser( const string& id, const string& name, const string& email, const string& pwd,  const string& membership, const string& role,const string& status)
+// main update function that routes to specific update logic based on the role, with comprehensive validation and error handling
+bool LibrarySystem::updateUser(const string &id, const string &name, const string &email, const string &pwd, const string &membership, const string &role, const string &status)
 {
 
     // Basic validation
-    if (id.empty() ||name.empty() || email.empty()  || role.empty()) {
+    if (id.empty() || name.empty() || email.empty() || role.empty())
+    {
         qDebug() << "Invalid input for user registration";
         return false;
     }
     string password = pwd;
-    qDebug()<<password;
-    if (password.empty()){
-        Person* p = authManager.findById(id);
-        if(p){
+    qDebug() << password;
+    if (password.empty())
+    {
+        Person *p = authManager.findById(id);
+        if (p)
+        {
             password = p->getPassword();
         }
-        else{qDebug() << "password fetching failed";}
+        else
+        {
+            qDebug() << "password fetching failed";
+        }
     }
-
 
     // Decide based on role
-    if (role == ROLE_STUDENT ) {
-        return updateStudent(id,name, email, password,  status , membership, role);
+    if (role == ROLE_STUDENT)
+    {
+        return updateStudent(id, name, email, password, status, membership, role);
     }
-    else if (role == ROLE_LIBRARIAN) {
-        return updateLibrarian(id,name, email, password, role);
+    else if (role == ROLE_LIBRARIAN)
+    {
+        return updateLibrarian(id, name, email, password, role);
     }
-    else {
+    else
+    {
         qDebug() << "Unknown user:" << QString::fromStdString(role);
         return false;
     }
 }
 // ---------------> wallet <---------------------------
-bool LibrarySystem::addBalance(const string& sid, double amount){
-    if(authManager.addBalance(sid,amount))
-        return Database::updateUser(QString::fromStdString(sid),authManager.getStudentBalance(sid));
+// add balance to a student's wallet, with database integration to persist the updated balance
+bool LibrarySystem::addBalance(const string &sid, double amount)
+{
+    if (authManager.addBalance(sid, amount))
+        return Database::updateUser(QString::fromStdString(sid), authManager.getStudentBalance(sid));
     return false;
 }
 
 // -------------------> membership <---------------------------
-bool LibrarySystem::upgradeStudentMembership(const string& studentId,const string& newTier)
+// upgrade a student's membership tier, with checks for valid student ID, creation of temporary membership object to calculate fees, wallet balance verification, deduction of fees from student wallet, addition of fees to library wallet, and database integration to persist the updated membership tier and wallet balance
+bool LibrarySystem::upgradeStudentMembership(const string &studentId, const string &newTier)
 {
     // Find user
-    Person* p = authManager.findById(studentId);
+    Person *p = authManager.findById(studentId);
 
     if (!p)
         return false;
 
     // Ensure student
-    Student* s = dynamic_cast<Student*>(p);
+    Student *s = dynamic_cast<Student *>(p);
 
     if (!s)
         return false;
 
     // Create temporary membership object
-    Membership* m = createMembership(newTier, studentId);
+    Membership *m = createMembership(newTier, studentId);
 
     if (!m)
         return false;
@@ -909,15 +980,16 @@ bool LibrarySystem::upgradeStudentMembership(const string& studentId,const strin
     double fee = m->getRenewalFee();
 
     // Optional: prevent insufficient balance
-    if (s->getWalletBalance() < fee) {
+    if (s->getWalletBalance() < fee)
+    {
         delete m;
         return false;
     }
 
     // Deduct from student wallet
-    qDebug()<<fee;
+    qDebug() << fee;
     s->paymembershipfee(fee);
-    qDebug() <<"here" << s->getWalletBalance();
+    qDebug() << s->getstudentwallet()->getBalance();
 
     // Add money to library wallet
     libraryWallet.addAmount(fee);
@@ -930,37 +1002,42 @@ bool LibrarySystem::upgradeStudentMembership(const string& studentId,const strin
 
     // Update DB
     return Database::updateUser(
-        QString::fromStdString(studentId),
-        QString::fromStdString(p->getName()),
-        QString::fromStdString(p->getEmail()),
-        QString::fromStdString(p->getPassword()),
-        QString::fromStdString(newTier),
-        QString::fromStdString(p->getRole()),
-        QString::fromStdString(s->getStatus())
-               ) && Database::updateUser(QString::fromStdString(studentId),s->getWalletBalance());
+               QString::fromStdString(studentId),
+               QString::fromStdString(p->getName()),
+               QString::fromStdString(p->getEmail()),
+               QString::fromStdString(p->getPassword()),
+               QString::fromStdString(newTier),
+               QString::fromStdString(p->getRole()),
+               QString::fromStdString(s->getStatus())) &&
+           Database::updateUser(QString::fromStdString(studentId), s->getWalletBalance());
 }
-
-QVariantMap LibrarySystem::getCurrentMembershipDetails() {
+// get the current membership details of the logged-in student, including tier, borrowing limit, fine discount, and expiry date, with database integration to fetch the latest expiry date
+QVariantMap LibrarySystem::getCurrentMembershipDetails()
+{
     QVariantMap map;
 
-    if (!currentUser) return map;
+    if (!currentUser)
+        return map;
 
-    Student* s = dynamic_cast<Student*>(currentUser);
-    if (!s) return map;
+    Student *s = dynamic_cast<Student *>(currentUser);
+    if (!s)
+        return map;
 
     string tier = s->getMembershipTier();
 
-    Membership* m = createMembership(tier, s->getUserID());
+    Membership *m = createMembership(tier, s->getUserID());
 
     map["tier"] = QString::fromStdString(tier);
     map["borrowLimit"] = m->getBorrowedLimit();
     map["fineDiscount"] = QString::number(m->getFineDiscount() * 100) + "%";
 
-    // expiry from DB (IMPORTANT)
+    // expiry from DB 
     QVariantList users = Database::getUsers();
-    for (auto u : users) {
+    for (auto u : users)
+    {
         QVariantMap um = u.toMap();
-        if (um["id"].toString().toStdString() == s->getUserID()) {
+        if (um["id"].toString().toStdString() == s->getUserID())
+        {
             map["expiry"] = um["expiry_date"].toString();
             break;
         }
@@ -971,15 +1048,15 @@ QVariantMap LibrarySystem::getCurrentMembershipDetails() {
     delete m;
     return map;
 }
-
-bool LibrarySystem::renewMembership(const string& studentId)
+// renew a student's membership, with checks for valid student ID, creation of temporary membership object to calculate renewal fees, wallet balance verification, deduction of fees from student wallet, addition of fees to library wallet, and database integration to persist the renewed membership details and wallet balance
+bool LibrarySystem::renewMembership(const string &studentId)
 {
-    Person* p = authManager.findById(studentId);
+    Person *p = authManager.findById(studentId);
 
     if (!p)
         return false;
 
-    Student* s = dynamic_cast<Student*>(p);
+    Student *s = dynamic_cast<Student *>(p);
 
     if (!s)
         return false;
@@ -993,34 +1070,32 @@ bool LibrarySystem::renewMembership(const string& studentId)
         QString::fromStdString(p->getPassword()),
         QString::fromStdString(tier),
         QString::fromStdString(p->getRole()),
-        QString::fromStdString(s->getStatus())
-        );
+        QString::fromStdString(s->getStatus()));
 }
-
-vector<Book> LibrarySystem::getAllBooks() const {
-    // BookCatalog: getAllBooks() returns a const vector<Book>&
+// -------------------> Accessors for Dashboard & Display <---------------------------
+vector<Book> LibrarySystem::getAllBooks() const
+{
     return BooksManager.getAllBooks();
 }
 
-vector<Person*> LibrarySystem::getAllUsers() const {
-    // If you have an accessor, such as AuthManager::getAllUsers(), use it
-    // Otherwise, maintain your own registry in AuthManager (vector/array)
-    return authManager.getAllUsers(); // Must exist in AuthManager!
+vector<Person *> LibrarySystem::getAllUsers() const
+{
+    return authManager.getAllUsers(); 
 }
 
-vector<transaction> LibrarySystem::getAllTransactions() const {
-    // TransactionLog: add a getter for const vector<transaction>&
-    return TransactionManager.getAllTransactions(); // Must exist in transactionlog!
+vector<transaction> LibrarySystem::getAllTransactions() const
+{
+    return TransactionManager.getAllTransactions();
 }
 
-vector<Review> LibrarySystem::getAllReviews() const {
-    // ReviewLog: add getter for const vector<Review>&
-    return ReviewManager.getAllReviews(); // Must exist in Reviewlog!
+vector<Review> LibrarySystem::getAllReviews() const
+{
+    return ReviewManager.getAllReviews(); 
 }
 
 // -------------------> Dashboard <---------------------------
 
-QVariantMap LibrarySystem::getStudentDashboardData(const std::string& studentId)
+QVariantMap LibrarySystem::getStudentDashboardData(const std::string &studentId)
 {
     QVariantMap map;
 
@@ -1031,9 +1106,9 @@ QVariantMap LibrarySystem::getStudentDashboardData(const std::string& studentId)
     QString membership = "N/A";
 
     // -------- MEMBERSHIP --------
-    Person* p = authManager.findById(studentId);
+    Person *p = authManager.findById(studentId);
 
-    Student* s = dynamic_cast<Student*>(p);
+    Student *s = dynamic_cast<Student *>(p);
 
     qDebug() << "Dashboard studentId:"
              << QString::fromStdString(studentId);
@@ -1050,10 +1125,10 @@ QVariantMap LibrarySystem::getStudentDashboardData(const std::string& studentId)
         qDebug() << "Dynamic cast FAILED";
     }
 
-    if (s) {
+    if (s)
+    {
         membership = QString::fromStdString(
-            s->getMembershipTier()
-            );
+            s->getMembershipTier());
     }
 
     // -------- TRANSACTIONS --------
@@ -1062,7 +1137,7 @@ QVariantMap LibrarySystem::getStudentDashboardData(const std::string& studentId)
 
     borrowedBooks = txs.size();
 
-    for (const auto& tx : txs)
+    for (const auto &tx : txs)
     {
         QString status =
             QString::fromStdString(tx.getStatus()).toUpper();
@@ -1080,16 +1155,15 @@ QVariantMap LibrarySystem::getStudentDashboardData(const std::string& studentId)
 
     return map;
 }
-
-
-QVariantList LibrarySystem::getStudentBorrowHistory(const std::string& studentId)
+// get the borrowing history of a student, including book names, due dates, and status of each transaction, with database integration to fetch the latest transaction records(for recent activity)
+QVariantList LibrarySystem::getStudentBorrowHistory(const std::string &studentId)
 {
     QVariantList list;
 
     std::vector<transaction> txs =
         TransactionManager.getTransactionsByStudent(studentId);
 
-    for (const auto& tx : txs)
+    for (const auto &tx : txs)
     {
         QVariantMap map;
 
@@ -1107,36 +1181,40 @@ QVariantList LibrarySystem::getStudentBorrowHistory(const std::string& studentId
 
     return list;
 }
-
-
-void LibrarySystem::displayAllData() const {
+// display all data in the system for debugging purposes, including books, users, transactions, and reviews, with clear sectioning and formatting for readability
+void LibrarySystem::displayAllData() const
+{
     std::cout << "================ LIBRARY SYSTEM REPORT ================\n\n";
 
     // 1. Print Books
     std::cout << "--- BOOKS ---\n";
-    for (const auto& book : getAllBooks()) {
-        // Assuming operator<< is overloaded, otherwise: std::cout << book.getTitle() << "\n";
+    for (const auto &book : getAllBooks())
+    {
         std::cout << book << "\n";
     }
 
     // 2. Print Users (Note: these are pointers!)
     std::cout << "\n--- USERS ---\n";
-    for (const auto* userPtr : getAllUsers()) {
-        if (userPtr) {
-            std::cout << *userPtr << "\n"; // Dereference pointer to print object
+    for (const auto *userPtr : getAllUsers())
+    {
+        if (userPtr)
+        {
+            std::cout << *userPtr << "\n"; 
         }
     }
 
     // 3. Print Transactions
     std::cout << "\n--- TRANSACTIONS ---\n";
-    for (const auto& t : getAllTransactions()) {
+    for (const auto &t : getAllTransactions())
+    {
         t.display();
     }
 
     // 4. Print Reviews
     std::cout << "\n--- REVIEWS ---\n";
-    for (const auto& r : getAllReviews()) {
-        r.display() ;
+    for (const auto &r : getAllReviews())
+    {
+        r.display();
     }
 
     std::cout << "\n=======================================================\n";

@@ -2,11 +2,13 @@
 #include <QSqlDatabase>
 #include <QString>
 
+// ========= LOGIN RESULT STRUCTURE =========
 struct LoginResult {
     bool success;
     QVariantMap user;
-    QString message; // optional (very useful for UI)
+    QString message; 
 };
+// ========= DATABASE CLASS =========
 class Database {
 public:
     static bool connect();

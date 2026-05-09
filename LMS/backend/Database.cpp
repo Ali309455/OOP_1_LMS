@@ -6,15 +6,14 @@
 #include <QDebug>
 
 QSqlDatabase db;
-
+// establish connection to database
 bool Database::connect() {
     db = QSqlDatabase::addDatabase("QSQLITE");
     QString basePath = QCoreApplication::applicationDirPath();
 
-    // Go up from build folder to project root
     QDir dir(basePath);
     dir.cdUp();
-    dir.cdUp();    // Debug/
+    dir.cdUp();    
     QString dbpath = dir.filePath("Database/lms.db");
     db.setDatabaseName(dbpath);
 
@@ -27,7 +26,7 @@ bool Database::connect() {
     qDebug() << "Database connected!";
     return true;
 }
-
+// create tables if not exist
 void Database::init() {
     QSqlQuery query;
 
@@ -99,7 +98,7 @@ void Database::init() {
     //            "status INTEGER,"
     //            "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
 }
-
+// function to add user to database
 bool Database::addUser(QString id,QString name, QString email, QString password, QString membership, QString role, QString status, double balance) { // can be used in register and add user both
     QSqlQuery query;
 
@@ -122,7 +121,7 @@ bool Database::addUser(QString id,QString name, QString email, QString password,
 
     return true;
 }
-
+// function to add transaction to database
 bool Database::addTransaction(QString txid, QString userId, QString isbn,QString duedate,QString returnDate,QString bookName,QString status , int fine) {
     QSqlQuery query;
     query.prepare("INSERT INTO transactions "
@@ -145,7 +144,7 @@ bool Database::addTransaction(QString txid, QString userId, QString isbn,QString
 
     return true;
 }
-
+// function to add review to database
 bool Database::addReview(QString review_id, QString userId, QString username, QString isbn, QString bookname, int rating, QString comment, QString status){
     QSqlQuery query;
     query.prepare("INSERT INTO reviews "
@@ -169,7 +168,7 @@ bool Database::addReview(QString review_id, QString userId, QString username, QS
 
     return true;
 }
-
+// function to add book to database
 bool Database::addBook(QString isbn, QString name, QString author,int pages, QString genre, QString section, QString publisher,QString edition, QString language,int publicationYear,int total, int available)
 {
     QSqlQuery query;
@@ -264,7 +263,7 @@ QVariantList Database::getUsers()
 
     return users;
 }
-
+// function to get all books from database
 QVariantList Database::getBooks()
 {
     QVariantList books;
@@ -290,7 +289,7 @@ QVariantList Database::getBooks()
 
     return books;
 }
-
+// function to get all transactions from database
 QVariantList Database::getTransactions()
 {
     QVariantList transactions;
@@ -319,7 +318,7 @@ QVariantList Database::getTransactions()
 
     return transactions;
 }
-
+// function to get all reviews from database
 QVariantList Database::getReviews()
 {
     QVariantList reviews;
@@ -346,7 +345,7 @@ QVariantList Database::getReviews()
 
     return reviews;
 }
-
+// function to get all wallets from database
 QVariantList Database::getWallets()
 {
     QVariantList wallets;
@@ -412,6 +411,7 @@ bool Database::updateUser(QString id, QString name, QString email, QString passw
 
     return true;
 }
+// function to update user wallet balance in database
 bool Database::updateUser(QString id, int balance)
 {
     QSqlQuery query;
@@ -428,7 +428,7 @@ bool Database::updateUser(QString id, int balance)
 
     return true;
 }
-
+// function to update book count in database
 bool Database::updateBook(QString isbn,int total,int available)
 {
     QSqlQuery query;
@@ -450,7 +450,7 @@ bool Database::updateBook(QString isbn,int total,int available)
 
     return true;
 }
-
+// function to update transaction status and fine in database
 bool Database::updateTransaction(QString txid, QString status, int fine, QString returndate)
 {
     QSqlQuery query;
@@ -469,7 +469,7 @@ bool Database::updateTransaction(QString txid, QString status, int fine, QString
 
     return true;
 }
-
+// function to update review rating, comment and status in database
 bool Database::updateReview(QString reviewId,std::optional<int> rating ,std::optional<QString> comment,std::optional<QString> status )
 {
     QSqlQuery query;
@@ -492,7 +492,6 @@ bool Database::updateReview(QString reviewId,std::optional<int> rating ,std::opt
         values.append(status.value());
     }
 
-    // ❌ Nothing to update
     if (updates.isEmpty()) {
         qDebug() << "No fields provided to update";
         return false;
@@ -558,7 +557,7 @@ bool Database::deleteUser(QString id)
 
     return true;
 }
-
+// function to delete book from database in case of book being outdated or any other reason
 bool Database::deleteBook(QString isbn)
 {
     QSqlQuery query;
@@ -574,7 +573,7 @@ bool Database::deleteBook(QString isbn)
     qDebug() << "Book deleted:" << isbn;
     return true;
 }
-
+// function to delete transaction from database in case of any error or any other reason
 bool Database::deleteTransaction(QString txid)
 {
     QSqlQuery query;
@@ -589,7 +588,7 @@ bool Database::deleteTransaction(QString txid)
 
     return true;
 }
-
+// function to delete review from database in case of inappropriate content or any other reason
 bool Database::deleteReview(QString reviewId)
 {
     QSqlQuery query;
@@ -604,7 +603,7 @@ bool Database::deleteReview(QString reviewId)
 
     return true;
 }
-
+// function to get maximum ID number for users or books to generate new ID in sequence
 int Database::getMaxIdNumber(const QString& table, const QString& column, const QString& prefix) {
     QSqlQuery query;
     query.prepare("SELECT MAX(CAST(SUBSTR(" + column + ", LENGTH(?) + 2) AS INTEGER)) FROM " + table);
@@ -617,6 +616,7 @@ int Database::getMaxIdNumber(const QString& table, const QString& column, const 
 
     return query.value(0).toInt();
 }
+// function to handle user login and return login result with user details if successful or error message if failed
 LoginResult Database::loginUser(QString email, QString password)
 {
     QSqlQuery query;
@@ -640,13 +640,10 @@ LoginResult Database::loginUser(QString email, QString password)
 
     QString dbPassword = query.value("password").toString();
 
-    // Plain text check (replace with hash later)
     if (dbPassword != password) {
         result.message = "Incorrect password";
         return result;
     }
-
-    // Success
     result.success = true;
     result.message = "Login successful";
 
@@ -659,91 +656,3 @@ LoginResult Database::loginUser(QString email, QString password)
     return result;
 }
 
-
-// 🔌 Connect DB
-// if (!Database::connect()) {
-//     qDebug() << "Failed to connect DB";
-//     return -1;
-// }
-
-// Database::init();
-
-// // =========================
-// // ADD TEST DATA
-// // =========================
-// qDebug() << "\n=== ADD DATA ===";
-
-// Database::addUser("cs-001","Ali", "ali@gmail.com", "123", "gold", "user");
-// Database::addUser("cs-002","Admin", "admin@gmail.com", "admin", "premium", "librarian");
-
-// Database::addBook("978-1", "C++ Basics", "Bjarne Stroustrup","Programming", "CS", "Pearson", "1st","English", 2015, 10, 10);
-
-// Database::addTransaction("TX1", 1, "001", "issued", 0);
-// Database::addReview("RV1", 1, "001", 5, "Great Book", "approved");
-
-
-// // =========================
-// // 📚 FETCH DATA
-// // =========================
-// qDebug() << "\n=== USERS ===";
-// for (auto u : Database::getUsers()) {
-//     qDebug() << u.toMap();
-// }
-
-// qDebug() << "\n=== BOOKS ===";
-// for (auto b : Database::getBooks()) {
-//     qDebug() << b.toMap();
-// }
-
-// qDebug() << "\n=== TRANSACTIONS ===";
-// for (auto t : Database::getTransactions()) {
-//     qDebug() << t.toMap();
-// }
-
-// qDebug() << "\n=== REVIEWS ===";
-// for (auto r : Database::getReviews()) {
-//     qDebug() << r.toMap();
-// }
-
-
-// // =========================
-// // 🔄 UPDATE TEST
-// // =========================
-// qDebug() << "\n=== UPDATE ===";
-
-// Database::updateUser(1, "Ali Updated", "ali@gmail.com", "123", "silver", "user");
-// Database::updateBook("001", "Clean Code 2", "Robert Martin", "Programming", "CS", 15, 12);
-// Database::updateTransaction("TX1", "returned", 50);
-// Database::updateReview("RV1", 4, "Good Book", "approved");
-
-// qDebug() << "After Update:";
-// for (auto u : Database::getUsers()) qDebug() << u.toMap();
-
-
-// // =========================
-// // 🔐 LOGIN TEST
-// // =========================
-// qDebug() << "\n=== LOGIN TEST ===";
-
-// LoginResult res = Database::loginUser("ali@gmail.com", "123");
-
-// if (res.success) {
-//     qDebug() << "Login Success:";
-//     qDebug() << res.user;
-// } else {
-//     qDebug() << "Login Failed:" << res.message;
-// }
-
-
-// // =========================
-// // ❌ DELETE TEST
-// // =========================
-// qDebug() << "\n=== DELETE ===";
-
-// Database::deleteReview("RV1");
-// Database::deleteTransaction("TX1");
-// Database::deleteBook("001");
-// Database::deleteUser(1);
-
-// qDebug() << "After Delete Users:";
-// for (auto u : Database::getUsers()) qDebug() << u.toMap();

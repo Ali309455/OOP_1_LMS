@@ -13,8 +13,8 @@ void LibrarySystemBridge::logout()
 {
     m_system->logout();
 }
-
-RegistrationResult LibrarySystemBridge::registerStudent(const QString &name, const QString &email, const QString &pwd,const QString &status ,const QString &membership, const QString &role)
+// -------------------- User Management --------------------
+RegistrationResult LibrarySystemBridge::registerStudent(const QString &name, const QString &email, const QString &pwd, const QString &status, const QString &membership, const QString &role)
 {
     return m_system->registerStudent(name.toStdString(), email.toStdString(), pwd.toStdString(), status.toStdString(), membership.toStdString(), role.toStdString(),0);
 }
@@ -22,11 +22,11 @@ RegistrationResult LibrarySystemBridge::registerLibrarian(const QString &name, c
 {
     return m_system->registerLibrarian(name.toStdString(), email.toStdString(), pwd.toStdString(), role.toStdString());
 }
-QVariantMap LibrarySystemBridge::registerUser(const QString& name, const QString& email, const QString& pwd,  const QString& status, const QString& membership, const QString& role, const double balance )
+QVariantMap LibrarySystemBridge::registerUser(const QString &name, const QString &email, const QString &pwd, const QString &status, const QString &membership, const QString &role, const double balance)
 {
     auto result = m_system->registerUser(name.toStdString(), email.toStdString(),
                                         pwd.toStdString(), status.toStdString(),
-                                        membership.toStdString(), role.toStdString(),balance);
+                                        membership.toStdString(), role.toStdString(), balance);
 
     QVariantMap map;
     map["success"] = result.success;
@@ -49,10 +49,11 @@ bool LibrarySystemBridge::updateUser(const QString& id,const QString& name, cons
         pwd.toStdString(),
         membership.toStdString(),
         role.toStdString(),
-        status.toStdString()
-        );
-// }
+        status.toStdString());
+    
 }
+
+// -------------------- Catalog Management --------------------
 bool LibrarySystemBridge::addBook(const QString &isbn, const QString &title, const QString &author, const QString &category, const QString &section, const QString &publisher, const QString &edition, const QString &language, int publicationYear, int pages, int totalCopies)
 {  // const string& isbn,const string&  title,const string&  author, const string& category,const string&  section, const string& publisher,const string&  edition, const string& language, int publicationYear, int pages,int totalCopies
     return m_system->addbook(isbn.toStdString(), title.toStdString(), author.toStdString(), category.toStdString(), section.toStdString(), publisher.toStdString(), edition.toStdString(), language.toStdString(), publicationYear, pages, totalCopies);
@@ -67,6 +68,7 @@ bool LibrarySystemBridge::updateBook(const QString& isbn,int totalCopies){
     return m_system->updateBook(isbn.toStdString(),  totalCopies);
 }
 
+// -------------------- Transaction Management -------------------------
 bool LibrarySystemBridge::issueBook(const QString &isbn, const QString &studentID)
 {
     return m_system->issueBook(isbn.toStdString(), studentID.toStdString());
@@ -77,6 +79,7 @@ bool LibrarySystemBridge::returnBook(const QString &transactionId)
     return m_system->returnBook(transactionId.toStdString());
 }
 
+// -------------------- Review Management -------------------------
 bool LibrarySystemBridge::submitReview(const QString &isbn, int rating, const QString &comment)
 {
     // Uses current logged-in student's ID from backend
@@ -113,10 +116,10 @@ int LibrarySystemBridge::getpendingReviews() const{
 }
 
 // ----------> Generate Pdf <---------------
-bool LibrarySystemBridge::exportDatabaseReportPdf(const QString& outputPdfPath, QString* outError ){
+bool LibrarySystemBridge::exportDatabaseReportPdf(const QString &outputPdfPath, QString *outError)
+{
     return LibrarySystem::exportDatabaseReportPdf(outputPdfPath);
 }
-
 
 // ------------------ Data for QML ListModels ------------------
 
@@ -150,7 +153,8 @@ QVariantList LibrarySystemBridge::getUsers()
     QVariantList list;
     for (const auto *person : m_system->getAllUsers())
     {
-        if (!person) continue;
+        if (!person)
+            continue;
 
         QVariantMap map;
         // Common Person fields
@@ -160,9 +164,10 @@ QVariantList LibrarySystemBridge::getUsers()
         map["role"] = QString::fromStdString(person->getRole());
 
         // Try to cast to Student
-        const Student* student = dynamic_cast<const Student*>(person);
+        const Student *student = dynamic_cast<const Student *>(person);
 
-        if (student) {
+        if (student)
+        {
             // Student-specific fields
             map["status"] = QString::fromStdString(student->getStatus());
 
@@ -194,13 +199,13 @@ QVariantList LibrarySystemBridge::getTransactions()
         map["issueDate"] = QString::fromStdString(tx.getIssueDate());
         map["dueDate"] = QString::fromStdString(tx.getDueDate());
         map["returnDate"] = tx.getReturnDate().empty()
-            ? "--"
-            : QString::fromStdString(tx.getReturnDate());
+                                ? "--"
+                                : QString::fromStdString(tx.getReturnDate());
         map["bookName"] = QString::fromStdString(tx.getbookName());
         map["status"] = QString::fromStdString(tx.getStatus());
         map["fine"] = (tx.getFine() == 0.0)
-            ? "--"
-            : "$" + QString::number(tx.getFine());
+                          ? "--"
+                          : "$" + QString::number(tx.getFine());
         list.append(map);
     }
     return list;
@@ -221,7 +226,7 @@ QVariantList LibrarySystemBridge::getReviews()
         map["status"] = QString::fromStdString(rev.getStatus());
         map["rating"] = rev.getRating();
         map["date"] = QString::fromStdString(rev.getReviewDate());
-        qDebug()<<"here";
+        qDebug() << "here";
         list.append(map);
     }
     return list;
@@ -234,15 +239,14 @@ QVariantMap LibrarySystemBridge::getMembership()
     return m_system->getCurrentMembershipDetails();
 }
 
-bool LibrarySystemBridge::upgradeMembership(const QString& userId, const QString& tier)
+bool LibrarySystemBridge::upgradeMembership(const QString &userId, const QString &tier)
 {
     return m_system->upgradeStudentMembership(
         userId.toStdString(),
-        tier.toStdString()
-        );
+        tier.toStdString());
 }
 
-bool LibrarySystemBridge::renewMembership(const QString& userId)
+bool LibrarySystemBridge::renewMembership(const QString &userId)
 {
     return m_system->renewMembership(
         userId.toStdString()
@@ -251,14 +255,14 @@ bool LibrarySystemBridge::renewMembership(const QString& userId)
 
 // ---------------- Dashboard ----------------
 
-QVariantMap LibrarySystemBridge::getStudentDashboard(const QString& studentId)
+QVariantMap LibrarySystemBridge::getStudentDashboard(const QString &studentId)
 {
     return m_system->getStudentDashboardData(
         studentId.toStdString()
         );
 }
 
-QVariantList LibrarySystemBridge::getStudentBorrowHistory(const QString& studentId)
+QVariantList LibrarySystemBridge::getStudentBorrowHistory(const QString &studentId)
 {
     return m_system->getStudentBorrowHistory(
         studentId.toStdString()

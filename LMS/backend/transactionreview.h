@@ -28,6 +28,7 @@ private:
     double fine;
 
 public:
+    // constructors for transaction class
     transaction();
     transaction(std::string transactionId, std::string studentId, std::string username, std::string isbn,
                 std::string issueDate, std::string dueDate, std::string returnDate,std::string bookName,
@@ -55,11 +56,11 @@ public:
     std::string getbookName() const ;
     std::string getStatus() const;
     double getFine() const;
-
+    // Helper functions to check transaction status
     bool isActive() const;
     bool isReturned() const;
     bool isOverdue() const;
-
+    // Marks the transaction as returned by setting the return date, calculating the fine, and updating the status
     void markReturned(std::string returnedOn, double calculatedFine);
     void updateOverdueStatus(std::string todayDate);
     void display() const;
@@ -71,7 +72,8 @@ private:
 
 public:
     static int transactioncount;
-    void addTransaction(const transaction& t);
+    // transaction management functions
+    void addTransaction(const transaction& t); //
     bool removeTransaction(std::string transactionId);
     transaction* findTransactionById(std::string transactionId);
     bool hasActiveTransaction(std::string studentId, std::string isbn);
