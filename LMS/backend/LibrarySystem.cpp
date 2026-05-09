@@ -38,11 +38,22 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
     QStringList tables;
     {
         QSqlQuery q(db);
-        if (!q.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name;")) {
-            if (outError) *outError = "Failed to read table list: " + q.lastError().text();
+
+        if (!q.exec(R"(
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+        AND name NOT LIKE 'sqlite_%'
+        AND name NOT IN ('libraries', 'wallets')
+        ORDER BY name;
+    )")) {
+            if (outError)
+                *outError = "Failed to read table list: " + q.lastError().text();
             return false;
         }
-        while (q.next()) tables << q.value(0).toString();
+
+        while (q.next())
+            tables << q.value(0).toString();
     }
 
     // 2) Build HTML
@@ -142,7 +153,7 @@ bool LibrarySystem::exportDatabaseReportPdf(const QString& outputPdfPath, QStrin
 
     // A4 with reasonable margins
     printer.setPageSize(QPageSize(QPageSize::A4));
-    printer.setPageMargins(QMarginsF(12, 12, 12, 12), QPageLayout::Millimeter);
+    printer.setPageMargins(QMarginsF(6, 6, 6, 6), QPageLayout::Millimeter);
 
     doc.print(&printer);
 
