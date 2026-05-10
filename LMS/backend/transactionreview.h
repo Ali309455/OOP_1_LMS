@@ -104,15 +104,6 @@ public:
     Review(std::string reviewId, std::string studentId, std::string username, std::string isbn,
            std::string bookname, int rating, std::string comment, std::string status, std::string reviewDate);
 
-    void setReviewId(std::string reviewId);
-    void setStudentId(std::string studentId);
-    void setUsername(std::string username);
-    void setIsbn(std::string isbn);
-    void setBookname(std::string bookname);
-    void setRating(int rating);
-    void setComment(std::string comment);
-    void setStatus(std::string status);
-    void setReviewDate(std::string reviewDate);
 
     std::string getReviewId() const;
     std::string getStudentId() const;
@@ -136,9 +127,7 @@ private:
 
 public:
     static int reviewcount;
-    bool hasStudentReviewedBook(std::string studentId, std::string isbn);
     bool addReview(const Review& r);
-    Review* findReviewById(std::string reviewId);
     bool approveReview(std::string reviewId);
     bool deleteReview(std::string reviewId);
     std::vector<Review> getReviewsByBook(std::string isbn);

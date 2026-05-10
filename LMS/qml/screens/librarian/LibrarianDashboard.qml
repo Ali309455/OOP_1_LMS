@@ -9,7 +9,6 @@ Rectangle {
 
     signal quickActionClicked(string action)
     property var txData: lms.getTransactions();
-    property var userData:lms.getUsers();
 
     // ───────────────── DATA ─────────────────
     property var colW: [140, 160, 190, 120, 120]
@@ -67,11 +66,27 @@ Rectangle {
             transactions.append(txData[i])
         }
     }
+    function refreshUsers() {
+        students.clear()
+
+        let data = lms.getUsers()
+
+        for (let j = 0; j < data.length; j++) {
+            let u = data[j]
+
+            students.append({
+                name: u.name,
+                userId: u.userId,
+                email: u.email,
+                role: u.role,
+                membership: u.membership,
+                balance: Number(u.balance)
+            })
+        }
+    }
     Component.onCompleted: {
         transactiondatafetching();
-        for(let j =0; j<dashboard.userData.length; j++){
-            students.append(dashboard.userData[j]);
-        }
+        refreshUsers();
 
     }
     property int chartMax: 600
@@ -772,7 +787,7 @@ Rectangle {
                                         width: parent.width - 24
 
                                         text:
-                                            name + " (" + userId + ")"
+                                         name + " (" + userId + ")  Balance: " + balance
 
                                         color: "#e5e7eb"
 
@@ -889,6 +904,7 @@ Rectangle {
 
                     onClicked: {
                         dashboard.showAddBalanceDialog = false
+
                     }
                 }
             }
@@ -934,6 +950,7 @@ Rectangle {
 
                             dashboard.balanceStudent = ""
                             dashboard.balanceStudentId = ""
+                            refreshUsers()
                         }
                         else console.log(success);
                     }

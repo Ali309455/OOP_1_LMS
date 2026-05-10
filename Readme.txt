@@ -7,7 +7,7 @@ Project Identification
 GROUP ID    : G3-8
 Full Names  : Abdul Wahab, Mohammad Ali , Mohammad Hassan Khan , Shaffay Zia 
 Roll Number : CS-25138, CS-25088, CS-25078, CS-25082
-Section     : G3, B
+Section     :  B (Group G3)
 
 
 ============================================================
@@ -22,13 +22,11 @@ Prerequisites
 - CMake 3.16+ and Ninja available in PATH
 - sqlite database , sqlite Viewer
 Recommended Build Steps (Out-of-source Build)
-1) Open a terminal in the LMS project directory (the folder containing CMakeLists.txt).
-2) Configure with Ninja:
-   cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
-3) Build:
-   cmake --build build
-4) Run:
-   .\build\appLMS.exe
+1) Open the LMS project directory (the folder containing CMakeLists.txt) in Qt Creator by:
+	- Go to File at top bar , open Project(ctrl + o)
+	- Go to the LMS folder and click on CMakeLists.txt file.
+2) Run:
+   Run button in left corner or (CTRL + R)
 
 Notes
 - QML is included through qt_add_qml_module(...) and the application loads the QML module "LMS".
@@ -154,11 +152,3 @@ Resources
 - OOP / Design Pattern Guides:
   - Bridge Pattern (Gang of Four / reputable OOP pattern references)
 
-
-============================================================
-Submission Hygiene (Student Note)
-============================================================
-- Avoid submitting large build folders. Prefer submitting only the source code
-  (CMake/QML/C++ files) unless your instructor requests build artifacts.
-- For final demonstration, test a clean build on a fresh system and confirm Qt kits,
-  CMake, Ninja, and database configuration steps are documented.

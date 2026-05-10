@@ -40,7 +40,6 @@ public:
 
 class Student : public Person {
 private:
-    std::string department;
     int borrowedCount;
     int totalfineowed;
     std::string status;
@@ -94,6 +93,7 @@ public:
     Person* findById(const std::string id);
     std::vector<Person*> getAllUsers() const;
     void registerPerson(Person* p);
+    bool removeUser(const std::string& id);
     bool upgrademembership(const std::string& tier, const std::string& id);
     Person* login(const std::string& email, const std::string& password) const;
     bool updateUser(const std::string& id,const std::string& name, const std::string& email, const std::string& password, const std::string& status="", double b=0);

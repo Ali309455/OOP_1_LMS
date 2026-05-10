@@ -848,7 +848,7 @@ bool LibrarySystem::removeUser(const string &id)
 {
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
-    return Database::deleteUser(QString::fromStdString(id));
+    return authManager.removeUser(id) && Database::deleteUser(QString::fromStdString(id));
 };
 // update user details in the library system, with routing to specific update logic based on the role and database integration to persist the updated user record
 bool LibrarySystem::updateStudent(

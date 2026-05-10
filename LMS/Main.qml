@@ -24,7 +24,7 @@ Window {
         // optional shadow effect
         border.color: "#696969"
         property string currentRoute: "dashboard" // default screen
-        property string authPage: "login"   // "login" or "signup"
+        property string authPage: "login"   // "login"
         property bool islibrarian:true
         property bool isLoggedIn: false
         property var currentUser;

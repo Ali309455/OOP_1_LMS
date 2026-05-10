@@ -60,7 +60,7 @@ Rectangle {
             booksModel.append(item);
         }
 
-        console.log("--- Sync Complete. Model count: " + booksModel.count + " ---");
+        // console.log("--- Sync Complete. Model count: " + booksModel.count + " ---");
     }
 
     // ── Available color helper ─────────────────────────────────────────────
@@ -109,12 +109,15 @@ Rectangle {
     property int editIndex;
 
     function resetForm() {
-        formIsbn = ""; formTitle = ""; formAuthor = ""
-        formGenre = "Programming"; formSection = "CS-A"
+        formIsbn = ""
+        formTitle = ""
+        formAuthor = ""
+        formGenre = "Programming"
+        formSection = "CS-A"
         formTotalCopies = 1
         formPublisher = ""
         formEdition = ""
-        formLanguage = ""
+        formLanguage = "English"
         formYear = 2024
         formPages = 1
     }
@@ -140,11 +143,10 @@ Rectangle {
             // Re-fetch data from backend (highly recommended):
             bookList = lms.getBooks()
             syncBooksModel()
+            booksView.isEditMode = false
             resetForm()
-            showAddDialog = false
-            isEditMode = false
-        }
-    }
+            booksView.showAddDialog = false
+    }}
 
     // ══════════════════════════════════════════════════════════════════════
     // LAYOUT
@@ -202,8 +204,9 @@ Rectangle {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                                booksView.showAddDialog = true
-                                booksView.addBook()
+                            booksView.isEditMode = false
+                                booksView.resetForm()
+                            booksView.showAddDialog = true
                         }
                     }
                 }
@@ -234,7 +237,11 @@ Rectangle {
                             id: searchInput
                             Layout.fillWidth: true; color: "#e5e7eb"; font.pixelSize: 13
                             clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
-                            onTextChanged: booksView.searchText = text
+                            text: booksView.searchText
+                            onTextChanged: {
+                                if (booksView.searchText !== text)
+                                    booksView.searchText = text
+                            }
                             Text { visible: !parent.text; text: "Search by title, author, ISBN..."; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
                         }
                     }
@@ -809,8 +816,6 @@ Rectangle {
                         enabled: booksView.formIsbn && booksView.formTitle && booksView.formAuthor
                         onClicked: {
                             booksView.addBook()
-                            // clear input text fields
-                            isbnInput.text = ""; titleInput.text = ""; authorInput.text = ""; copiesInput.text = "1"
                         }
                     }
                 }

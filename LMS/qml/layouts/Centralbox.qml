@@ -12,6 +12,7 @@ Item {
     property bool islibrarian: false
     property var selectedBook : null
     property var currentUser: null
+    property string globalSearchText: ""
     ColumnLayout{
         anchors.fill: parent
         spacing: 0
@@ -26,7 +27,12 @@ Item {
             notificationCount: 3
 
             onSearchTextChanged: function(text) {
-            console.log("Search:", text)
+                centralbox.globalSearchText = text
+
+                // auto-switch to books view when searching
+                if (text.length > 0) {
+                    centralbox.routeChangeRequested("Books")
+                }
             }
 
         }
@@ -65,6 +71,7 @@ Item {
         Component {
             id: booksComp
             BookCatalog {
+                searchText: centralbox.globalSearchText
                 isLibrarian: centralbox.islibrarian
                 onBookSelected: function(book) {
                             centralbox.selectedBook = book

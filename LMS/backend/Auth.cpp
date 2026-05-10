@@ -149,6 +149,22 @@ void AuthManager::registerPerson(Person* p) {
     userCount++;
 }
 
+bool AuthManager::removeUser(const std::string& id)
+{
+    for (auto it = registeredUsers.begin(); it != registeredUsers.end(); ++it)
+    {
+        if ((*it)->getUserID() == id)
+        {
+            delete *it; // free heap memory
+
+            registeredUsers.erase(it); // remove from vector
+
+            userCount--;
+
+            return true;
+        }
+    }
+}
 int AuthManager::getuserCount(){return userCount;}
 // add balance to student's wallet
 bool AuthManager::addBalance(const std::string& studentId, double amount)

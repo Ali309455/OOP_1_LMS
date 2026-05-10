@@ -16,11 +16,7 @@ Rectangle {
     property var allBooks: []
 
     ListModel {
-        id: reviewsModel/*
-        ListElement { book: "Clean Code";             rating: 5; author: "John Doe";    date: "2026-04-10"; text: "Excellent book for learning clean coding practices. Highly recommended!"; status: "approved" }
-        ListElement { book: "Design Patterns";        rating: 4; author: "Jane Smith";  date: "2026-04-11"; text: "Great reference book, but can be dense at times.";                       status: "pending"  }
-        ListElement { book: "Effective Java";         rating: 5; author: "Bob Johnson"; date: "2026-04-08"; text: "Must-read for Java developers. Clear and concise.";                       status: "approved" }
-        ListElement { book: "The Pragmatic Programmer"; rating: 4; author: "Alice Brown"; date: "2026-04-12"; text: "Good insights into software development practices.";                   status: "pending"  }*/
+        id: reviewsModel
     }
 
     Component.onCompleted: {

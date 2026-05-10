@@ -137,28 +137,18 @@ Rectangle {
             formRole,
             formbalance
         )
-        // console.log(result.success);
         if (result.success) {
-
-            usersModel.append({
-                        userId: result.userId,
-                        name: formName,
-                        email: formEmail,
-                        role: formRole,
-                        membership: formRole === "LIBRARIAN" ? "-" : formMembership,
-                        status: formStatus
-                    });
-
-
             // Optionally reload your users model from backend
-            usersModel = lms.getUsers()   // Replace or refresh with a call to your bridge
+            usersList = lms.getUsers()   // Replace or refresh with a call to your bridge
             syncUsersModel() ;
-            resetForm()
-            showAddDialog = false
+            resetForm();
+            console.log("Dialog before close:", usersView.showAddDialog)
+            usersView.showAddDialog = false
+            console.log("Dialog after close:", usersView.showAddDialog)
             statsRefresh.restart()
         } else {
             // Show error message to user
-            console.log(result.message);
+            console.log("ADD USER UI ERROR: ", result.message);
             // Optionally, display error (e.g. a dialog or toast)
         }
     }
@@ -200,9 +190,9 @@ Rectangle {
         var user = usersModel.get(deletingIndex)
         var userId = user.userId   // ✅ get ID BEFORE removing
 
-        console.log("Deleting ID:", userId)
-        lms.login("admin@lib.com","admin");
+
         if (lms.removeUser(userId)) {
+             console.log("Deleting ID:", userId)
             usersModel.remove(deletingIndex, 1)
         } else {
             console.log("Failed to delete from DB")
@@ -765,7 +755,7 @@ Rectangle {
     // ══════════════════════════════════════════════════════════════════════
 
     Rectangle {
-        visible: usersView.showAddDialog || usersView.showEditDialog
+        visible: usersView.showAddDialog
         anchors.fill: parent
         color: "#000000"
         opacity: 0.6

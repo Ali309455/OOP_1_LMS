@@ -20,16 +20,14 @@ class LibrarySystem {
     FineCalculator FineCalc; // calculates fines for overdue books
     Person* currentUser = nullptr; // tracks the currently logged-in user
     Wallet libraryWallet; // manages the library's funds from fines and membership fees
-    double libraryBalance = 0;
     int totalBooks;
     int activeTransations;
     int pendingReviews;
 public:
     LibrarySystem();
-
+    ~LibrarySystem() = default;
     // ========== System Lifecycle ==========
     void initializeSystem();
-    void saveSystem();
    // ========== database fetching =========
     void loadUsersIntoSystem();
     void loadBooksIntoSystem();
@@ -37,12 +35,10 @@ public:
     void loadReviewsIntoSystem();
     void loadWalletsIntoSystem();
     // ========= setters & getters =========
-    double getlibraryBalance() const;
     int gettotalBooks() const;
     int getactiveTransations() const;
     int getpendingReviews() const;
 
-    void setlibraryBalance(double b);
     void settotalBooks(int totalbooks);
     void setactiveTransations(int transactions);
     void setpendingReviews(int r);
