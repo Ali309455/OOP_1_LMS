@@ -18,7 +18,7 @@
 using namespace std;
 
 void LibrarySystem::syncLibraryStats()
-{
+{  // qDebug()<<libraryWallet.getBalance();
     Database::updateLibrary( "LIB-NED",totalBooks,activeTransations,pendingReviews,libraryWallet.getBalance());
 }
 static QString htmlEscape(QString s) {
@@ -193,6 +193,7 @@ LibrarySystem::LibrarySystem(): libraryWallet("LIBRARY", 0),totalBooks(0),active
     QVariantMap data = Database::getLibraryById("LIB-NED");
     if (!data.isEmpty()) {
         double balance = data["balance"].toDouble();
+        qDebug() << balance;
         libraryWallet.setbalance(balance);
     }
 }
@@ -649,7 +650,7 @@ bool LibrarySystem::addbook(const string &isbn, const string &title, const strin
         return false;
     Book book(isbn, title, author, category, section, publisher, edition, language, totalCopies, publicationYear, pages, totalCopies);
     BooksManager.addBook(book);
-    Database::updateLibrary( QString::fromStdString("LIB-NED"),totalBooks,activeTransations,pendingReviews,libraryWallet.getBalance());
+    syncLibraryStats();
     return Database::addBook(QString::fromStdString(isbn),QString::fromStdString(title),QString::fromStdString(author),pages,QString::fromStdString(category),QString::fromStdString(section),QString::fromStdString(publisher),QString::fromStdString(edition),QString::fromStdString(language),publicationYear,totalCopies,totalCopies);
 }
 // update the total copies of a book in the library system, with permission checks for librarian role and database integration to persist the updated book record
@@ -851,14 +852,7 @@ bool LibrarySystem::removeUser(const string &id)
     return authManager.removeUser(id) && Database::deleteUser(QString::fromStdString(id));
 };
 // update user details in the library system, with routing to specific update logic based on the role and database integration to persist the updated user record
-bool LibrarySystem::updateStudent(
-    const string &id,
-    const string &name,
-    const string &email,
-    const string &pwd,
-    const string &status,
-    const string &membership,
-    const string &role)
+bool LibrarySystem::updateStudent(const string &id,const string &name,const string &email,const string &pwd,const string &status,const string &membership,const string &role)
 {
     Person *p = authManager.findById(id);
     if (!p)
@@ -879,16 +873,29 @@ bool LibrarySystem::updateStudent(
     // Handle membership upgrade if needed
     if (membership != currentMembership)
     {
+
+        Membership* m = createMembership(membership, id);
+        if (!m) return false;
+        double fee = m->getRenewalFee();
+        delete m;
+        // block if insufficient funds
+        if (s->getWalletBalance() < fee)
+            return false;
+        // deduct from student wallet
+        s->paymembershipfee(fee);
+        // add to library wallet
+        libraryWallet.addAmount(fee);
+        // actually change membership tier in-memory
         authManager.upgrademembership(membership, id);
         finalMembership = membership;
+        Database::updateUser(QString::fromStdString(id),s->getWalletBalance());
     }
-
     // Update other details
-    authManager.updateUser(id, name, email, pwd, status);
+    authManager.updateUser(id, name, email, pwd, status,s->getWalletBalance());
 
     syncLibraryStats();
 
-    return Database::updateUser(
+    return  Database::updateUser(
         QString::fromStdString(id),
         QString::fromStdString(name),
         QString::fromStdString(email),
@@ -896,8 +903,6 @@ bool LibrarySystem::updateStudent(
         QString::fromStdString(finalMembership),
         QString::fromStdString(role),
         QString::fromStdString(status));
-
-    return false;
 }
 // update librarian details in the library system, with database integration to persist the updated librarian record
 bool LibrarySystem::updateLibrarian(const string &id, const string &name, const string &email, const string &pwd, const string &role)
@@ -987,16 +992,16 @@ bool LibrarySystem::upgradeStudentMembership(const string &studentId, const stri
     }
 
     // Deduct from student wallet
-    qDebug() << fee;
+    qDebug() <<"fee "<< fee;
     s->paymembershipfee(fee);
     qDebug() << s->getstudentwallet()->getBalance();
 
     // Add money to library wallet
     libraryWallet.addAmount(fee);
-
+    qDebug() << libraryWallet.getBalance();
     // Upgrade membership
     authManager.upgrademembership(newTier, studentId);
-
+    syncLibraryStats();
     // Cleanup
     delete m;
 
@@ -1009,7 +1014,8 @@ bool LibrarySystem::upgradeStudentMembership(const string &studentId, const stri
                QString::fromStdString(newTier),
                QString::fromStdString(p->getRole()),
                QString::fromStdString(s->getStatus())) &&
-           Database::updateUser(QString::fromStdString(studentId), s->getWalletBalance());
+           Database::updateUser(
+               QString::fromStdString(studentId), s->getWalletBalance());
 }
 // get the current membership details of the logged-in student, including tier, borrowing limit, fine discount, and expiry date, with database integration to fetch the latest expiry date
 QVariantMap LibrarySystem::getCurrentMembershipDetails()

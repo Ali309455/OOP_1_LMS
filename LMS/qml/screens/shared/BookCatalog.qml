@@ -41,7 +41,7 @@ Rectangle {
     function syncBooksModel() {
         booksModel.clear();
 
-        console.log("--- Starting Sync. Total items in bookList: " + bookList.length + " ---");
+        // console.log("--- Starting Sync. Total items in bookList: " + bookList.length + " ---");
 
         for (var i = 0; i < bookList.length; i++) {
             var item = bookList[i];
@@ -54,7 +54,7 @@ Rectangle {
 
             // 2. Stringify the object to see its full structure in the console
             // This helps if the object is valid but the console just says [object Object]
-            console.log("Index " + i + ": " + JSON.stringify(item));
+            // console.log("Index " + i + ": " + JSON.stringify(item));
 
             // 3. Append to model
             booksModel.append(item);
@@ -258,7 +258,7 @@ Rectangle {
                     MouseArea { anchors.fill: parent; onClicked: genreCombo.popup.open() }
                     ComboBox {
                         id: genreCombo; visible: false
-                        model: ["All Genres", "Programming", "Algorithms", "Web"]
+                        model: ["All Genres", "Programming", "Database", "Networking", "Artificial Intelligence", "Machine Learning", "Cyber Security", "Web Development", "Operating Systems", "Software Engineering", "Data Structures", "Algorithms", "Mathematics", "Physics", "Chemistry", "Biology", "History", "Economics", "Business", "Law", "Medicine", "Psychology", "English Literature", "Graphic Design", "Philosophy", "Statistics"]
                         onCurrentTextChanged: booksView.filterGenre = currentText === "All Genres" ? "" : currentText
                     }
                 }
@@ -274,7 +274,7 @@ Rectangle {
                     MouseArea { anchors.fill: parent; onClicked: sectionCombo.popup.open() }
                     ComboBox {
                         id: sectionCombo; visible: false
-                        model: ["All Sections", "CS-A", "CS-B", "CS-C", "WEB-A", "WEB-B"]
+                        model: ["All Sections", "CS-A", "CS-B", "CS-C", "CS-D", "CS-E","CS-F", "CS-G", "MATH-A", "SCI-A", "SCI-B", "EE-A", "BIO-A", "BIO-B", "PHY-A", "CHEM-A", "BIO-A"]
                         onCurrentTextChanged: booksView.filterSection = currentText === "All Sections" ? "" : currentText
                     }
                 }

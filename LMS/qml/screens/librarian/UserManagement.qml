@@ -26,7 +26,7 @@ Rectangle {
     function syncUsersModel() {
         usersModel.clear();
 
-        console.log("--- Starting Sync. Total items in UsersList: " + usersList.length + " ---");
+        // console.log("--- Starting Sync. Total items in UsersList: " + usersList.length + " ---");
 
         for (var i = 0; i < usersList.length; i++) {
             var item = usersList[i];
@@ -39,13 +39,13 @@ Rectangle {
 
             // 2. Stringify the object to see its full structure in the console
             // This helps if the object is valid but the console just says [object Object]
-            console.log("Index " + i + ": " + JSON.stringify(item));
+            // console.log("Index " + i + ": " + JSON.stringify(item));
 
             // 3. Append to model
             usersModel.append(item);
         }
 
-        console.log("--- Sync Complete. Model count: " + usersModel.count + " ---");
+        // console.log("--- Sync Complete. Model count: " + usersModel.count + " ---");
     }
     // ── Counters (computed from model) ─────────────────────────────────────
     function totalUsers()    { return usersModel.count }
