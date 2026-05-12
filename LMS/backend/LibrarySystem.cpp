@@ -635,6 +635,8 @@ bool LibrarySystem::returnBook(const string &txnID)
     if (!b)
         return false;
     b->returnOneCopy();
+    --activeTransations;
+    syncLibraryStats();
     bool bookupdate = Database::updateBook(QString::fromStdString(t->getIsbn()), b->getTotalCopies(), b->getAvailableCopies());
     return bookupdate && Database::updateTransaction(
                              QString::fromStdString(t->getTransactionId()),

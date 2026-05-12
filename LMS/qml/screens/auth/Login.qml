@@ -34,6 +34,8 @@ Rectangle {
             if(result.role === "LIBRARIAN")islibrarian(true);
             if(result.role === "STUDENT")islibrarian(false);
             console.log("Login success!", JSON.stringify(result))
+            emailInput.text = "";
+            passwordInput.text = "";
             // Example: store user info in a singleton, navigate, emit signal, etc.
             // e.g. appGlobals.currentUser = result;
             // parent.gotoDashboard(result);
@@ -224,7 +226,7 @@ Rectangle {
 
                 Text { text: "Demo credentials:"; color: "#8b949e"; font.pixelSize: 11 }
                 Text { text: "Librarian: admin@lib.com Password: admin"; color: "#c9d1d9"; font.pixelSize: 12 }
-                Text { text: "Student user@gmail.com  Password: User123"; color: "#c9d1d9"; font.pixelSize: 12 }
+                Text { text: "Student user@gmail.com  Password: 123"; color: "#c9d1d9"; font.pixelSize: 12 }
             }
         }
     }

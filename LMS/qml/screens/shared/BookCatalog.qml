@@ -452,7 +452,7 @@ Rectangle {
                                     }
                                 }
 
-                                // Edit button
+                                // bookName button
                                 Rectangle {
                                     Layout.preferredWidth: 60; height: 32; radius: 8
                                     visible: booksView.isLibrarian
@@ -484,7 +484,7 @@ Rectangle {
                                             booksView.formEdition = model.edition
                                             booksView.formLanguage = model.language
                                             booksView.formYear = model.year || 2024
-                                            booksView.formPages = model.pages || 1
+                                            booksView.formPages = model.pages
                                             booksView.formTotalCopies = model.totalCopies
                                         }
                                     }
@@ -713,7 +713,7 @@ Rectangle {
                             validator: IntValidator { bottom: 1500; top: 2100 }
                             onTextChanged: booksView.formYear = parseInt(text)||2024
                             readOnly: booksView.isEditMode
-                            Text { visible: !parent.text; text: booksView.isEditMode? formYear:"2024"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                            Text { visible: !parent.text; text: booksView.isEditMode? booksView.formYear:"2024"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
                         }
                     }
                 }
@@ -732,7 +732,7 @@ Rectangle {
                             validator: IntValidator { bottom: 1; top: 20000 }
                             onTextChanged: booksView.formPages = parseInt(text)||1
                             readOnly: booksView.isEditMode
-                            Text { visible: !parent.text; text: booksView.isEditMode? formPages:"1"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
+                            Text { visible: !parent.text; text: booksView.isEditMode? booksView.formPages:"1"; color: "#6b7280"; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
                         }
                     }
                 }
@@ -788,7 +788,7 @@ Rectangle {
                             anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
                             color: "#e5e7eb"; font.pixelSize: 13; clip: true; selectByMouse: true; verticalAlignment: TextInput.AlignVCenter
                             inputMethodHints: Qt.ImhDigitsOnly
-                            text: booksView.isEditMode? formTotalCopies:"1"
+                            text: booksView.isEditMode? booksView.formTotalCopies:"1"
                             validator: IntValidator { bottom: 0; top: 999 }
                             onTextChanged: booksView.formTotalCopies = parseInt(text) || 0
                         }

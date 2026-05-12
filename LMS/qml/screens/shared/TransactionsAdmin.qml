@@ -105,9 +105,9 @@ Rectangle {
         if (statusFilter !== "All Status" && item.status !== statusFilter) return false
         if (searchText.length > 0) {
             var s = searchText.toLowerCase()
-            if (!item.txnId.toLowerCase().includes(s)   &&
-                !item.student.toLowerCase().includes(s) &&
-                !item.book.toLowerCase().includes(s))   return false
+            if (!(item.txnId || "").toLowerCase().includes(s) &&
+                !(item.student || "").toLowerCase().includes(s) &&
+                !(item.bookName || "").toLowerCase().includes(s))   return false
         }
         return true
     }
@@ -954,7 +954,7 @@ Rectangle {
                                         height: visible ? 46 : 0
 
                                         visible:
-                                            title.toLowerCase().includes(root.bookSearchText.toLowerCase())
+                                            bookName.toLowerCase().includes(root.bookSearchText.toLowerCase())
                                             || isbn.toLowerCase().includes(root.bookSearchText.toLowerCase())
 
                                         radius: 6
