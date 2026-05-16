@@ -10,7 +10,7 @@ const int YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
 // ========= BOOK IMPLEMENTATION =========
 // Constructor
 Book::Book(string isbn, string title, string author, string category, string section,
-           string publisher, string edition, string language, int publicationYear, int pages, int totalCopies, int avaliableCopies) {
+           string publisher, string edition, string language, int publicationYear, int pages, int totalCopies, int availableCopies) {
     if(isbn.empty() || title.empty() || author.empty() || category.empty() || section.empty() || totalCopies <= 0) {
         throw invalid_argument("Invalid book details provided.");
     }
@@ -25,7 +25,7 @@ Book::Book(string isbn, string title, string author, string category, string sec
     this->publicationYear = publicationYear;
     this->pages = pages;
     this->totalCopies = totalCopies;
-    this->availableCopies = avaliableCopies;
+    this->availableCopies = availableCopies;
     updateStatus();
 }
 // Getter Functions
@@ -105,14 +105,14 @@ string Book::statusToString() const {
 
 // ========= CATALOG IMPLEMENTATION =========
 
-int BookCatalog::bookcount = 0;
+int BookCatalog::bookCount = 0;
 // function to add books into catalog
 bool BookCatalog::addBook(const Book& book) {
     for (const auto& b : books) {
         if (b.getIsbn() == book.getIsbn()) throw runtime_error("ISBN already exists.");
     }
     books.push_back(book);
-    bookcount++;
+    bookCount++;
     return true;
 }
 // funtion to uodate the total copies in case of restock
@@ -132,7 +132,7 @@ bool BookCatalog::removeBook(const string& isbn) {
     for (auto it = books.begin(); it != books.end(); ++it) {
         if (it->getIsbn() == isbn) {
             books.erase(it);
-            bookcount--;
+            bookCount--;
             return true;
         }
     }
@@ -294,7 +294,7 @@ void Wallet::deductFine(double fineAmount)
     }
 }
 
-void Wallet::setbalance(double b){
+void Wallet::setBalance(double b){
     balance = b;
 }
 // function to deduct membership renewal fee from wallet balance and suspend if balance is insufficient

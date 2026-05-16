@@ -19,10 +19,10 @@ Rectangle {
     property string balanceStudentSearchText: ""
     property bool showBalanceStudentDropdown: false
     // generate pdf parameters
-    property double librarybalance: lms.getlibraryBalance();
-    property int totalbooks: lms.gettotalBooks();
-    property int activetransactions: lms.getactiveTransations();
-    property int pendingreviews: lms.getpendingReviews();
+    property double librarybalance: lms.getLibraryBalance();
+    property int totalbooks: lms.getTotalBooks();
+    property int activetransactions: lms.getActiveTransactions();
+    property int pendingreviews: lms.getPendingReviews();
     property bool showReportDialog: false;
     property string reportPath: "";
     // stats data

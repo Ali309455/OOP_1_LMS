@@ -14,7 +14,7 @@ public:
 };
 
 // ========= TRANSACTION SYSTEM =========
-class transaction {
+class Transaction {
 private:
     std::string transactionId;
     std::string studentId;
@@ -28,13 +28,11 @@ private:
     double fine;
 
 public:
-    // constructors for transaction class
-    transaction();
-    transaction(std::string transactionId, std::string studentId, std::string username, std::string isbn,
-                std::string issueDate, std::string dueDate, std::string returnDate,std::string bookName,
+    Transaction();
+    Transaction(std::string transactionId, std::string studentId, std::string username, std::string isbn,
+                std::string issueDate, std::string dueDate, std::string returnDate, std::string bookName,
                 std::string status, double fine);
 
-    // Setters
     void setTransactionId(std::string transactionId);
     void setStudentId(std::string studentId);
     void setUsername(std::string username);
@@ -45,7 +43,6 @@ public:
     void setStatus(std::string status);
     void setFine(double fine);
 
-    // Getters
     std::string getTransactionId() const;
     std::string getStudentId() const;
     std::string getUsername() const;
@@ -53,37 +50,35 @@ public:
     std::string getIssueDate() const;
     std::string getDueDate() const;
     std::string getReturnDate() const;
-    std::string getbookName() const ;
+    std::string getBookName() const;
     std::string getStatus() const;
     double getFine() const;
-    // Helper functions to check transaction status
+
     bool isActive() const;
     bool isReturned() const;
     bool isOverdue() const;
-    // Marks the transaction as returned by setting the return date, calculating the fine, and updating the status
     void markReturned(std::string returnedOn, double calculatedFine);
     void updateOverdueStatus(std::string todayDate);
     void display() const;
 };
 
-class transactionlog {
+class TransactionLog {
 private:
-    std::vector<transaction> transactions;
+    std::vector<Transaction> transactions;
 
 public:
-    static int transactioncount;
-    // transaction management functions
-    void addTransaction(const transaction& t); //
+    static int transactionCount;
+    void addTransaction(const Transaction& t);
     bool removeTransaction(std::string transactionId);
-    transaction* findTransactionById(std::string transactionId);
+    Transaction* findTransactionById(std::string transactionId);
     bool hasActiveTransaction(std::string studentId, std::string isbn);
     bool issueBook(std::string transactionId, std::string studentId, std::string username, std::string isbn, std::string issueDate, std::string dueDate, std::string bookName);
     bool returnBook(std::string transactionId, std::string returnDate, std::string membershipType);
     void updateAllOverdue(std::string todayDate);
-    std::vector<transaction> getTransactionsByStudent(std::string studentId);
-    std::vector<transaction> getOverdueTransactions();
+    std::vector<Transaction> getTransactionsByStudent(std::string studentId);
+    std::vector<Transaction> getOverdueTransactions();
     void displayAllTransactions();
-    std::vector<transaction> getAllTransactions() const;
+    std::vector<Transaction> getAllTransactions() const;
 };
 
 // ========= REVIEW SYSTEM =========
@@ -93,7 +88,7 @@ private:
     std::string studentId;
     std::string username;
     std::string isbn;
-    std::string bookname;
+    std::string bookName;
     int rating;
     std::string comment;
     std::string status;
@@ -102,14 +97,13 @@ private:
 public:
     Review();
     Review(std::string reviewId, std::string studentId, std::string username, std::string isbn,
-           std::string bookname, int rating, std::string comment, std::string status, std::string reviewDate);
-
+           std::string bookName, int rating, std::string comment, std::string status, std::string reviewDate);
 
     std::string getReviewId() const;
     std::string getStudentId() const;
     std::string getUsername() const;
     std::string getIsbn() const;
-    std::string getBookname() const;
+    std::string getBookName() const;
     int getRating() const;
     std::string getComment() const;
     std::string getStatus() const;
@@ -121,12 +115,12 @@ public:
     void display() const;
 };
 
-class Reviewlog {
+class ReviewLog {
 private:
     std::vector<Review> reviews;
 
 public:
-    static int reviewcount;
+    static int reviewCount;
     bool addReview(const Review& r);
     bool approveReview(std::string reviewId);
     bool deleteReview(std::string reviewId);
@@ -138,4 +132,4 @@ public:
     std::vector<Review> getAllReviews() const;
 };
 
-#endif
+#endif // TRANSACTION_REVIEW_H

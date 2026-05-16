@@ -19,7 +19,7 @@ using namespace std;
 
 void LibrarySystem::syncLibraryStats()
 {  // qDebug()<<libraryWallet.getBalance();
-    Database::updateLibrary( "LIB-NED",totalBooks,activeTransations,pendingReviews,libraryWallet.getBalance());
+    Database::updateLibrary( "LIB-NED",totalBooks,activeTransactions,pendingReviews,libraryWallet.getBalance());
 }
 static QString htmlEscape(QString s) {
     return s.replace('&', "&amp;")
@@ -187,14 +187,14 @@ QString getDate(int addDays = 0)
     return date.toString("yyyy-MM-dd");
 }
 
-LibrarySystem::LibrarySystem(): libraryWallet("LIBRARY", 0),totalBooks(0),activeTransations(0),pendingReviews(0){
+LibrarySystem::LibrarySystem(): libraryWallet("LIBRARY", 0),totalBooks(0),activeTransactions(0),pendingReviews(0){
     Database::init();
     initializeSystem();
     QVariantMap data = Database::getLibraryById("LIB-NED");
     if (!data.isEmpty()) {
         double balance = data["balance"].toDouble();
         qDebug() << balance;
-        libraryWallet.setbalance(balance);
+        libraryWallet.setBalance(balance);
     }
 }
 // Function to generate unique IDs for users and books based on prefix and max ID from database
@@ -285,7 +285,7 @@ void LibrarySystem::loadBooksIntoSystem()
         {
             // Extract values
             std::string isbn = map["isbn"].toString().toStdString();
-            std::string title = map["bookname"].toString().toStdString();
+            std::string title = map["bookName"].toString().toStdString();
             std::string author = map["author"].toString().toStdString();
             std::string category = map["genre"].toString().toStdString();
             std::string section = map["section"].toString().toStdString();
@@ -293,10 +293,10 @@ void LibrarySystem::loadBooksIntoSystem()
             std::string edition = map["edition"].toString().toStdString();
             std::string language = map["language"].toString().toStdString();
 
-            int publicationYear = map["publicationyear"].toInt();
+            int publicationYear = map["publicationYear"].toInt();
             int pages = map["pages"].toInt();
-            int totalCopies = map["totalcopies"].toInt();
-            int avaliableCopies = map["avaliablecopies"].toInt();
+            int totalCopies = map["totalCopies"].toInt();
+            int availableCopies = map["availableCopies"].toInt();
 
             // Check if any critical string field is empty
             if (isbn.empty() || title.empty() || author.empty() || category.empty() ||
@@ -312,16 +312,16 @@ void LibrarySystem::loadBooksIntoSystem()
             // Create Book object
             Book book(isbn, title, author, category, section,
                       publisher, edition, language,
-                      publicationYear, pages, totalCopies, avaliableCopies);
+                      publicationYear, pages, totalCopies, availableCopies);
 
-            BooksManager.addBook(book);
+            bookCatalog.addBook(book);
         }
         catch (const std::exception &e)
         {
             qDebug() << "Error creating book:" << e.what();
         }
     }
-    settotalBooks(BooksManager.bookcount);
+    setTotalBooks(BookCatalog::bookCount);
 }
 // function to load transactions from database into system memory
 void LibrarySystem::loadTransactionsIntoSystem()
@@ -334,12 +334,12 @@ void LibrarySystem::loadTransactionsIntoSystem()
         {
             QVariantMap map = t.toMap();
             // Extract values
-            std::string transactionId = map["txid"].toString().toStdString();
-            std::string studentId = map["user_id"].toString().toStdString();
+            std::string transactionId = map["txId"].toString().toStdString();
+            std::string studentId = map["userId"].toString().toStdString();
             std::string username = map["username"].toString().toStdString();
             std::string isbn = map["isbn"].toString().toStdString();
-            std::string issueDate = map["issuedate"].toString().toStdString();
-            std::string dueDate = map["duedate"].toString().toStdString();
+            std::string issueDate = map["issueDate"].toString().toStdString();
+            std::string dueDate = map["dueDate"].toString().toStdString();
             std::string returnDate = map["returnDate"].toString().toStdString();
             std::string status = map["status"].toString().toStdString();
             std::string bookName = map["bookName"].toString().toStdString();
@@ -359,7 +359,7 @@ void LibrarySystem::loadTransactionsIntoSystem()
             }
 
             // 3. Create object
-            transaction tr(transactionId, studentId, username, isbn,
+            Transaction tr(transactionId, studentId, username, isbn,
                            issueDate, dueDate, returnDate, bookName,
                            status, fine);
 
@@ -368,9 +368,9 @@ void LibrarySystem::loadTransactionsIntoSystem()
             if (status == "active")
             {
                 qDebug() << "here";
-                setactiveTransations(++activeCnt);
+                setActiveTransactions(++activeCnt);
             };
-            TransactionManager.addTransaction(tr);
+            transactionManager.addTransaction(tr);
         }
         catch (const std::invalid_argument &e)
         {
@@ -393,21 +393,21 @@ void LibrarySystem::loadTransactionsIntoSystem()
 void LibrarySystem::loadReviewsIntoSystem()
 {
     QVariantList reviews = Database::getReviews();
-    int pendingr = 0;
+    int pendingCount = 0;
     for (const auto &r : reviews)
     {
         try
         {
             QVariantMap map = r.toMap();
             // Extract values
-            std::string reviewId = map["reviewid"].toString().toStdString();
-            std::string studentId = map["user_id"].toString().toStdString();
+            std::string reviewId = map["reviewId"].toString().toStdString();
+            std::string studentId = map["userId"].toString().toStdString();
             std::string username = map["username"].toString().toStdString();
             std::string isbn = map["isbn"].toString().toStdString();
-            std::string bookname = map["bookname"].toString().toStdString();
+            std::string bookName = map["bookName"].toString().toStdString();
             std::string comment = map["comment"].toString().toStdString();
             std::string status = map["status"].toString().toStdString();
-            std::string reviewDate = map["review_date"].toString().toStdString();
+            std::string reviewDate = map["reviewDate"].toString().toStdString();
             int rating = map["rating"].toInt();
 
             // 1. Check for crucial empty fields
@@ -421,14 +421,14 @@ void LibrarySystem::loadReviewsIntoSystem()
                 throw std::out_of_range("Rating for review " + reviewId + " must be between 1 and 5.");
             }
             // 3. Create object
-            Review review(reviewId, studentId, username, isbn, bookname,
+            Review review(reviewId, studentId, username, isbn, bookName,
                           rating, comment, status, reviewDate);
             // 4. Add to manager
             if (status == "pending")
             {
-                setpendingReviews(++pendingr);
+                setPendingReviews(++pendingCount);
             }
-            ReviewManager.addReview(review);
+            reviewManager.addReview(review);
         }
         catch (const std::invalid_argument &e)
         {
@@ -477,22 +477,22 @@ void LibrarySystem::initializeSystem(){
     loadWalletsIntoSystem();
 }
 // ========= setters & getters =========
-int LibrarySystem::gettotalBooks() const
+int LibrarySystem::getTotalBooks() const
 {
     return totalBooks;
 };
-int LibrarySystem::getactiveTransations() const
+int LibrarySystem::getActiveTransactions() const
 {
-    return activeTransations;
+    return activeTransactions;
 };
-int LibrarySystem::getpendingReviews() const
+int LibrarySystem::getPendingReviews() const
 {
     return pendingReviews;
 };
 
-void LibrarySystem::settotalBooks(int tb) { totalBooks = tb; };
-void LibrarySystem::setactiveTransations(int transactions) { activeTransations = transactions; };
-void LibrarySystem::setpendingReviews(int r) { pendingReviews = r; };
+void LibrarySystem::setTotalBooks(int tb) { totalBooks = tb; };
+void LibrarySystem::setActiveTransactions(int transactions) { activeTransactions = transactions; };
+void LibrarySystem::setPendingReviews(int r) { pendingReviews = r; };
 
 double LibrarySystem::getLibraryBalance() const
 {
@@ -553,7 +553,7 @@ void LibrarySystem::logout() { currentUser = nullptr; }
 bool LibrarySystem::issueBook(const string &isbn, const string &sid)
 {
     // permission check HERE
-    vector<transaction> txs = TransactionManager.getAllTransactions();
+    vector<Transaction> txs = transactionManager.getAllTransactions();
     // Check how many books the student has already borrowed today
     int todayBorrowCount = 0;
 
@@ -574,7 +574,7 @@ bool LibrarySystem::issueBook(const string &isbn, const string &sid)
         return false;
     }
     int borrowlimitdays;
-    Book *b = BooksManager.findByIsbn(isbn); // association with book manager to get book details
+    Book *b = bookCatalog.findByIsbn(isbn); // association with book manager to get book details
     if (!b || b->getAvailableCopies() == 0)
         return false;
     b->issueOneCopy();
@@ -594,13 +594,13 @@ bool LibrarySystem::issueBook(const string &isbn, const string &sid)
     bool dbresponse = Database::addTransaction(QString::fromStdString(txid), QString::fromStdString(sid), QString::fromStdString(isbn), getDate(borrowlimitdays), "", QString::fromStdString(b->getTitle()), QString::fromStdString("active"), 0);
     int total = b->getTotalCopies();
     int available = b->getAvailableCopies();
-    ++activeTransations;
-    qDebug()<<activeTransations;
+    ++activeTransactions;
+    qDebug()<<activeTransactions;
     if(isbn.empty() && total && available){qDebug()<<"book data fetching failed"; return false;}
     bool bookupdate = Database::updateBook(QString::fromStdString(isbn),total, available);
     syncLibraryStats();
 
-    return(dbresponse && bookupdate && TransactionManager.issueBook(txid,sid,username,isbn,getDate().toStdString(),getDate(borrowlimitdays).toStdString(),b->getTitle()));
+    return(dbresponse && bookupdate && transactionManager.issueBook(txid,sid,username,isbn,getDate().toStdString(),getDate(borrowlimitdays).toStdString(),b->getTitle()));
 }
 // function to process the return of a book, calculate fines based on due date and membership tier, and update the transaction and book records accordingly
 bool LibrarySystem::returnBook(const string &txnID)
@@ -608,7 +608,7 @@ bool LibrarySystem::returnBook(const string &txnID)
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
 
-    transaction *t = TransactionManager.findTransactionById(txnID); 
+    Transaction *t = transactionManager.findTransactionById(txnID); 
     if (!t || t->isReturned())
         return false;
 
@@ -620,8 +620,8 @@ bool LibrarySystem::returnBook(const string &txnID)
         return false;
 
     string tier = s->getMembershipTier();
-    // Calculate fine using the FineCalculator utility class w.r.t due date, return date, and membership tier
-    double fine = FineCalc.calculateFinalFine(t->getDueDate(), returnDate, tier);
+    // Calculate fine using the fineCalculatorulator utility class w.r.t due date, return date, and membership tier
+    double fine = fineCalculator.calculateFinalFine(t->getDueDate(), returnDate, tier);
     if (fine > 0)
     {
         s->payFine(fine);
@@ -631,11 +631,11 @@ bool LibrarySystem::returnBook(const string &txnID)
     }
     t->markReturned(returnDate, fine);
 
-    Book *b = BooksManager.findByIsbn(t->getIsbn());
+    Book *b = bookCatalog.findByIsbn(t->getIsbn());
     if (!b)
         return false;
     b->returnOneCopy();
-    --activeTransations;
+    --activeTransactions;
     syncLibraryStats();
     bool bookupdate = Database::updateBook(QString::fromStdString(t->getIsbn()), b->getTotalCopies(), b->getAvailableCopies());
     return bookupdate && Database::updateTransaction(
@@ -645,13 +645,13 @@ bool LibrarySystem::returnBook(const string &txnID)
 
 // -------------------> Book Manager <---------------------------
 // add a new book to the library system, with permission checks for librarian role and database integration to persist the new book record
-bool LibrarySystem::addbook(const string &isbn, const string &title, const string &author, const string &category, const string &section, const string &publisher, const string &edition, const string &language, int publicationYear, int pages, int totalCopies)
+bool LibrarySystem::addBook(const string &isbn, const string &title, const string &author, const string &category, const string &section, const string &publisher, const string &edition, const string &language, int publicationYear, int pages, int totalCopies)
 {
     // permission check 
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
-    Book book(isbn, title, author, category, section, publisher, edition, language, totalCopies, publicationYear, pages, totalCopies);
-    BooksManager.addBook(book);
+    Book book(isbn, title, author, category, section, publisher, edition, language, publicationYear, pages, totalCopies, totalCopies);
+    bookCatalog.addBook(book);
     syncLibraryStats();
     return Database::addBook(QString::fromStdString(isbn),QString::fromStdString(title),QString::fromStdString(author),pages,QString::fromStdString(category),QString::fromStdString(section),QString::fromStdString(publisher),QString::fromStdString(edition),QString::fromStdString(language),publicationYear,totalCopies,totalCopies);
 }
@@ -660,19 +660,19 @@ bool LibrarySystem::updateBook(const std::string &isbn, int totalCopies)
 {
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
-    int avaliablecopies;
-    bool res = BooksManager.updateBook(isbn, totalCopies);
+    int availableCopies = 0;
+    bool res = bookCatalog.updateBook(isbn, totalCopies);
     if (res)
-        avaliablecopies = BooksManager.findByIsbn(isbn)->getAvailableCopies();
-    return res && Database::updateBook(QString::fromStdString(isbn), totalCopies, avaliablecopies);
+        availableCopies = bookCatalog.findByIsbn(isbn)->getAvailableCopies();
+    return res && Database::updateBook(QString::fromStdString(isbn), totalCopies, availableCopies);
 }
 // remove a book from the library system, with permission checks for librarian role and database integration to delete the book record
 bool LibrarySystem::removeBook(const string &isbn)
 {
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
-    BooksManager.removeBook(isbn);
-    Database::updateLibrary( QString::fromStdString("LIB-NED"),totalBooks,activeTransations,pendingReviews,libraryWallet.getBalance());
+    bookCatalog.removeBook(isbn);
+    Database::updateLibrary( QString::fromStdString("LIB-NED"),totalBooks,activeTransactions,pendingReviews,libraryWallet.getBalance());
 
     return Database::deleteBook(QString::fromStdString(isbn));
 }
@@ -693,7 +693,7 @@ bool LibrarySystem::approveReview(const string &reviewID)
     if (role != ROLE_LIBRARIAN && role != "LIBRARIAN" && role != "librarian")
         return false;
 
-    ReviewManager.approveReview(reviewID);
+    reviewManager.approveReview(reviewID);
     --pendingReviews;
     syncLibraryStats();
 
@@ -708,7 +708,7 @@ bool LibrarySystem::deleteReview(const string &reviewID)
 {
     if (!currentUser || currentUser->getRole() != ROLE_LIBRARIAN)
         return false;
-    ReviewManager.deleteReview(reviewID);
+    reviewManager.deleteReview(reviewID);
     --pendingReviews;
     return Database::deleteReview(QString::fromStdString(reviewID));
 }
@@ -726,11 +726,11 @@ bool LibrarySystem::submitReview(const string &studentID, const string &isbn, in
     string rid = generateId("RV",Database::getMaxIdNumber("reviews", "reviewid", "RV"));
     string sid = currentUser->getUserID();
     string uname = currentUser->getName();
-    Book *b = BooksManager.findByIsbn(isbn);
+    Book *b = bookCatalog.findByIsbn(isbn);
     string bname = (b ? b->getTitle() : "");
     Review r(rid, sid, uname, isbn, bname, rating, comment,"pending", getDate().toStdString());
 
-    if(ReviewManager.addReview(r)){
+    if(reviewManager.addReview(r)){
         ++pendingReviews;
         syncLibraryStats();
         return  Database::addReview(QString::fromStdString(rid),QString::fromStdString(sid), QString::fromStdString(uname), QString::fromStdString(isbn), QString::fromStdString(bname), rating, QString::fromStdString(comment),QString::fromStdString("pending"));}
@@ -884,11 +884,11 @@ bool LibrarySystem::updateStudent(const string &id,const string &name,const stri
         if (s->getWalletBalance() < fee)
             return false;
         // deduct from student wallet
-        s->paymembershipfee(fee);
+        s->payMembershipFee(fee);
         // add to library wallet
         libraryWallet.addAmount(fee);
         // actually change membership tier in-memory
-        authManager.upgrademembership(membership, id);
+        authManager.upgradeMembership(membership, id);
         finalMembership = membership;
         Database::updateUser(QString::fromStdString(id),s->getWalletBalance());
     }
@@ -995,14 +995,14 @@ bool LibrarySystem::upgradeStudentMembership(const string &studentId, const stri
 
     // Deduct from student wallet
     qDebug() <<"fee "<< fee;
-    s->paymembershipfee(fee);
-    qDebug() << s->getstudentwallet()->getBalance();
+    s->payMembershipFee(fee);
+    qDebug() << s->getStudentWallet()->getBalance();
 
     // Add money to library wallet
     libraryWallet.addAmount(fee);
     qDebug() << libraryWallet.getBalance();
     // Upgrade membership
-    authManager.upgrademembership(newTier, studentId);
+    authManager.upgradeMembership(newTier, studentId);
     syncLibraryStats();
     // Cleanup
     delete m;
@@ -1083,7 +1083,7 @@ bool LibrarySystem::renewMembership(const string &studentId)
 // -------------------> Accessors for Dashboard & Display <---------------------------
 vector<Book> LibrarySystem::getAllBooks() const
 {
-    return BooksManager.getAllBooks();
+    return bookCatalog.getAllBooks();
 }
 
 vector<Person *> LibrarySystem::getAllUsers() const
@@ -1091,14 +1091,14 @@ vector<Person *> LibrarySystem::getAllUsers() const
     return authManager.getAllUsers(); 
 }
 
-vector<transaction> LibrarySystem::getAllTransactions() const
+vector<Transaction> LibrarySystem::getAllTransactions() const
 {
-    return TransactionManager.getAllTransactions();
+    return transactionManager.getAllTransactions();
 }
 
 vector<Review> LibrarySystem::getAllReviews() const
 {
-    return ReviewManager.getAllReviews(); 
+    return reviewManager.getAllReviews(); 
 }
 
 // -------------------> Dashboard <---------------------------
@@ -1140,8 +1140,8 @@ QVariantMap LibrarySystem::getStudentDashboardData(const std::string &studentId)
     }
 
     // -------- TRANSACTIONS --------
-    std::vector<transaction> txs =
-        TransactionManager.getTransactionsByStudent(studentId);
+    std::vector<Transaction> txs =
+        transactionManager.getTransactionsByStudent(studentId);
 
     borrowedBooks = txs.size();
 
@@ -1168,15 +1168,15 @@ QVariantList LibrarySystem::getStudentBorrowHistory(const std::string &studentId
 {
     QVariantList list;
 
-    std::vector<transaction> txs =
-        TransactionManager.getTransactionsByStudent(studentId);
+    std::vector<Transaction> txs =
+        transactionManager.getTransactionsByStudent(studentId);
 
     for (const auto &tx : txs)
     {
         QVariantMap map;
 
         map["bookName"] =
-            QString::fromStdString(tx.getbookName());
+            QString::fromStdString(tx.getBookName());
 
         map["dueDate"] =
             QString::fromStdString(tx.getDueDate());

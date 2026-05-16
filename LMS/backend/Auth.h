@@ -2,8 +2,8 @@
 #define AUTH_H
 
 #include <string>
-#include<vector>
-#include"BookMembership.h"
+#include <vector>
+#include "BookMembership.h"
 const std::string ROLE_LIBRARIAN = "LIBRARIAN";
 const std::string ROLE_STUDENT   = "STUDENT";
 // ========= ENTITY BASE CLASS =========
@@ -41,10 +41,10 @@ public:
 class Student : public Person {
 private:
     int borrowedCount;
-    int totalfineowed;
+    int totalFineOwed;
     std::string status;
-    Membership* membership;  // add
-    Wallet studentwallet;
+    Membership* membership;
+    Wallet studentWallet;
 
 public:
     // Constructor with membership tier and initial wallet balance
@@ -52,17 +52,17 @@ public:
     // Destructor to clean up heap memory
     ~Student();
     // Getter Setter Functions & Methods of Student Class
-    void setmembership(Membership* m);
+    void setMembership(Membership* m);
     std::string getMembershipTier() const;
     std::string getRole() const override;
     std::string getStatus() const;
-    Wallet* getstudentwallet();
+    Wallet* getStudentWallet();
     void setStatus(const std::string& s);
     int getTotalFineOwed() const;
-    int get_BorrowedCount() const;
+    int getBorrowedCount() const;
     void addWalletBalance(double amount);
     void payFine(double amount);
-    void paymembershipfee(double amount);
+    void payMembershipFee(double amount);
     double getWalletBalance() const;
     bool isWalletSuspended() const;
 
@@ -89,12 +89,12 @@ public:
     AuthManager() = default;
     ~AuthManager(); // Destructor to clean up heap memory
     // getter setter and other methods
-    int getuserCount();
+    int getUserCount();
     Person* findById(const std::string id);
     std::vector<Person*> getAllUsers() const;
     void registerPerson(Person* p);
     bool removeUser(const std::string& id);
-    bool upgrademembership(const std::string& tier, const std::string& id);
+    bool upgradeMembership(const std::string& tier, const std::string& id);
     Person* login(const std::string& email, const std::string& password) const;
     bool updateUser(const std::string& id,const std::string& name, const std::string& email, const std::string& password, const std::string& status="", double b=0);
     bool addBalance(const std::string& studentId, double amount);
@@ -103,4 +103,4 @@ public:
     bool isWalletSuspended(const std::string& studentId);
 };
 
-#endif // LIBRARY_SYSTEM_H
+#endif // AUTH_H

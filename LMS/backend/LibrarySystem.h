@@ -3,7 +3,7 @@
 #include "Auth.h"
 #include "Database.h"
 #include "BookMembership.h"
-#include "transactionreview.h"
+#include "TransactionReview.h"
 
 // Used for both Student and Librarian registration
 struct RegistrationResult { 
@@ -14,14 +14,14 @@ struct RegistrationResult {
 // main library system class that manages users, books, transactions, reviews, and overall system operations, with integration to the database for persistence and retrieval of data
 class LibrarySystem {
     AuthManager authManager; // manages user authentication and registration
-    transactionlog TransactionManager; // manages book issue/return transactions
-    Reviewlog ReviewManager; // manages book reviews and approvals
-    BookCatalog BooksManager; // manages the library's book catalog
-    FineCalculator FineCalc; // calculates fines for overdue books
+    TransactionLog transactionManager; // manages book issue/return transactions
+    ReviewLog reviewManager; // manages book reviews and approvals
+    BookCatalog bookCatalog; // manages the library's book catalog
+    FineCalculator fineCalculator; // calculates fines for overdue books
     Person* currentUser = nullptr; // tracks the currently logged-in user
     Wallet libraryWallet; // manages the library's funds from fines and membership fees
     int totalBooks;
-    int activeTransations;
+    int activeTransactions;
     int pendingReviews;
 public:
     LibrarySystem();
@@ -35,13 +35,13 @@ public:
     void loadReviewsIntoSystem();
     void loadWalletsIntoSystem();
     // ========= setters & getters =========
-    int gettotalBooks() const;
-    int getactiveTransations() const;
-    int getpendingReviews() const;
+    int getTotalBooks() const;
+    int getActiveTransactions() const;
+    int getPendingReviews() const;
 
-    void settotalBooks(int totalbooks);
-    void setactiveTransations(int transactions);
-    void setpendingReviews(int r);
+    void setTotalBooks(int totalBooks);
+    void setActiveTransactions(int transactions);
+    void setPendingReviews(int pendingReviews);
     // ========== Authentication ===========
     QVariantMap login(const std::string& email, const std::string& password);
     void logout();
@@ -55,7 +55,7 @@ public:
     bool updateLibrarian( const std::string& id ,const std::string& name, const std::string& email, const std::string& pwd, const std::string& role);
     bool updateUser( const std::string& id, const std::string& name, const std::string& email, const std::string& pwd,  const std::string& membership, const std::string& role,const std::string& status ="");
     // ========== Catalog Operations ==========
-    bool addbook(const std::string& isbn,const std::string&  title,const std::string&  author, const std::string& category,const std::string&  section, const std::string& publisher,const std::string&  edition, const std::string& language, int publicationYear, int pages,int totalCopies);
+    bool addBook(const std::string& isbn,const std::string&  title,const std::string&  author, const std::string& category,const std::string&  section, const std::string& publisher,const std::string&  edition, const std::string& language, int publicationYear, int pages,int totalCopies);
     bool removeBook(const std::string& isbn);
     bool updateBook(const std::string& isbn,int totalCopies);
     // ========== Transaction/Book Operations ==========
@@ -77,7 +77,7 @@ public:
     QVariantList getStudentBorrowHistory(const std::string& studentId);
     std::vector<Book> getAllBooks() const;
     std::vector<Person*> getAllUsers() const;
-    std::vector<transaction> getAllTransactions() const;
+    std::vector<Transaction> getAllTransactions() const;
     std::vector<Review> getAllReviews() const;
     void displayAllData() const ;
     static bool exportDatabaseReportPdf(const QString& outputPdfPath, QString* outError = nullptr);

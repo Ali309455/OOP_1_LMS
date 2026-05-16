@@ -34,10 +34,9 @@ bool Person::authenticate(const std::string& tryPass) const {
 Student::Student(const std::string& id, const std::string& nm, const std::string& em, const std::string& pwd, const std::string& stat, const std::string& tier, double balance)
     : Person(id, nm, em, pwd),
     borrowedCount(0),
-    totalfineowed(0),
+    totalFineOwed(0),
     status(stat),
-    // composition
-    studentwallet(id, balance)
+    studentWallet(id, balance)
 {
     membership = createMembership(tier, id);
 
@@ -47,7 +46,7 @@ Student::Student(const std::string& id, const std::string& nm, const std::string
 }
 
 // Getter Setter Functions & Methods of Student Class
-void Student::setmembership(Membership* m) {
+void Student::setMembership(Membership* m) {
     delete membership;
     membership = m;
 }
@@ -64,13 +63,13 @@ std::string Student::getMembershipTier() const {
     return membership ? membership->getTierName() : "silver";
 }
 int Student::getTotalFineOwed() const {
-    return totalfineowed;
+    return totalFineOwed;
 }
-int Student::get_BorrowedCount() const {
+int Student::getBorrowedCount() const {
     return borrowedCount;
 }
-void Student::paymembershipfee(double amount){
-    studentwallet.deductMembershipRenewalFee(amount);
+void Student::payMembershipFee(double amount){
+    studentWallet.deductMembershipRenewalFee(amount);
 }
 // Destructor to clean up heap memory
 Student::~Student() {
@@ -79,26 +78,26 @@ Student::~Student() {
 
 // ========= WALLET OPERATIONS =========
 void Student::addWalletBalance(double amount) {
-    studentwallet.addAmount(amount);
+    studentWallet.addAmount(amount);
 }
 // Pay fine and update total fine owed
 void Student::payFine(double amount) {
-    studentwallet.deductFine(amount);
+    studentWallet.deductFine(amount);
 
-    if (totalfineowed >= amount)
-        totalfineowed -= amount;
+    if (totalFineOwed >= amount)
+        totalFineOwed -= amount;
 }
 // Get current wallet balance
 double Student::getWalletBalance() const {
-    return studentwallet.getBalance();
+    return studentWallet.getBalance();
 }
 // Get pointer to the student's wallet
-Wallet* Student::getstudentwallet(){
-    return &studentwallet;
+Wallet* Student::getStudentWallet(){
+    return &studentWallet;
 }
 // Check if the student's wallet is suspended
 bool Student::isWalletSuspended() const {
-    return studentwallet.isSuspended();
+    return studentWallet.isSuspended();
 }
 
 // ========= LIBRARIAN IMPLEMENTATION =========
@@ -164,8 +163,9 @@ bool AuthManager::removeUser(const std::string& id)
             return true;
         }
     }
+    return false;
 }
-int AuthManager::getuserCount(){return userCount;}
+int AuthManager::getUserCount(){return userCount;}
 // add balance to student's wallet
 bool AuthManager::addBalance(const std::string& studentId, double amount)
 {
@@ -246,7 +246,7 @@ bool AuthManager::updateUser(const std::string& id,const std::string& name,const
     if (!password.empty())
         user->setPassword(password);
     Student* student = dynamic_cast<Student*>(user);
-    if(student ){ student->setStatus(status); student->getstudentwallet()->setbalance(balance);};
+    if(student ){ student->setStatus(status); student->getStudentWallet()->setBalance(balance);};
     return true;
 }
 // User login
@@ -262,7 +262,7 @@ Person* AuthManager::login(const std::string& email, const std::string& password
     throw std::runtime_error("User not found.");
 };
 // Upgrade student membership
-bool AuthManager::upgrademembership(const std::string& tier,
+bool AuthManager::upgradeMembership(const std::string& tier,
                                     const std::string& id)
 {
     Person* p = findById(id);
@@ -281,7 +281,7 @@ bool AuthManager::upgrademembership(const std::string& tier,
         return false;
 
     // replace membership
-    s->setmembership(newMembership);
+    s->setMembership(newMembership);
     return true;
 }
 // Get all registered users

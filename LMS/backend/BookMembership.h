@@ -20,8 +20,8 @@ private:
 
 public:
     Book(std::string isbn, std::string title, std::string author, std::string category, std::string section,
-         std::string publisher = "", std::string edition = "", std::string language = "",int avaliableCopies = 0,
-         int publicationYear = 0, int pages = 0, int totalCopies = 0);
+         std::string publisher = "", std::string edition = "", std::string language = "",
+         int publicationYear = 0, int pages = 0, int totalCopies = 0, int availableCopies = 0);
 
     // friend function to print book details
     friend std::ostream& operator<<(std::ostream& os, const Book& book);
@@ -61,7 +61,7 @@ private:
     std::vector<Book> books; // association with Book class
 
 public:
-    static int bookcount;
+    static int bookCount;
     // Catalog management functions
     bool addBook(const Book& book);
     bool updateBook(const std::string& isbn,int totalCopies);
@@ -152,7 +152,7 @@ public:
     void suspendWallet();
     void activateWallet();
     // function to add/deduct amount from wallet balance
-    void setbalance(double b);
+    void setBalance(double b);
     void addAmount(double amount);
     bool deductAmount(double amount);
     void deductFine(double fineAmount);

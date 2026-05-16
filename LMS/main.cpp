@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     // sys.upgradeStudentMembership("cs-001","silver");
     // qDebug() << sys.removeUser("cs-001");
 
-    // sys.addbook("278-2", "AI essentails", "Bjarne ","SI", "CS", "Pearson", "2st","English", 2022,520, 10);
+    // sys.addBook("278-2", "AI essentails", "Bjarne ","SI", "CS", "Pearson", "2st","English", 2022,520, 10);
     // sys.removeBook("278-2");
     // bool ok = sys.submitReview("SU-1","978-2",4,"good for fe students");
     // qDebug()<<"Review status: "<<ok;

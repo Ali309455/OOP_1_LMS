@@ -145,17 +145,17 @@ bool Database::addTransaction(QString txid, QString userId, QString isbn,QString
     return true;
 }
 // function to add review to database
-bool Database::addReview(QString review_id, QString userId, QString username, QString isbn, QString bookname, int rating, QString comment, QString status){
+bool Database::addReview(QString reviewId, QString userId, QString username, QString isbn, QString bookName, int rating, QString comment, QString status){
     QSqlQuery query;
     query.prepare("INSERT INTO reviews "
                   "(reviewid, user_id, username, isbn, bookname, rating, comment,review_date, status) "
                   "VALUES ( ?, ?, ?, ?, ?, ?, ?,date('now'), ?)");
 
-    query.addBindValue(review_id);
+    query.addBindValue(reviewId);
     query.addBindValue(userId);
     query.addBindValue(username);
     query.addBindValue(isbn);
-    query.addBindValue(bookname);
+    query.addBindValue(bookName);
     query.addBindValue(rating);
     query.addBindValue(comment);
     query.addBindValue(status);
@@ -272,16 +272,16 @@ QVariantList Database::getBooks()
     while (query.next()) {
         QVariantMap book;
         book["isbn"] = query.value("isbn");
-        book["bookname"] = query.value("bookname");
+        book["bookName"] = query.value("bookname");
         book["author"] = query.value("author");
         book["genre"] = query.value("genre");
         book["section"] = query.value("section");
-        book["totalcopies"] = query.value("totalcopies");
+        book["totalCopies"] = query.value("totalcopies");
         book["edition"] = query.value("edition");
         book["language"] = query.value("language");
-        book["publicationyear"] = query.value("publicationyear");
+        book["publicationYear"] = query.value("publicationYear");
         book["publisher"] = query.value("publisher");
-        book["avaliablecopies"] = query.value("availablecopies");
+        book["availableCopies"] = query.value("availablecopies");
         book["pages"] = query.value("pages");
 
         books.append(book);
@@ -302,12 +302,12 @@ QVariantList Database::getTransactions()
 
     while (query.next()) {
         QVariantMap tx;
-        tx["txid"] = query.value("txid");
-        tx["user_id"] = query.value("user_id");
+        tx["txId"] = query.value("txid");
+        tx["userId"] = query.value("user_id");
         tx["username"] = query.value("username");
         tx["isbn"] = query.value("isbn");
-        tx["issuedate"] = query.value("issuedate");
-        tx["duedate"] = query.value("duedate");
+        tx["issueDate"] = query.value("issuedate");
+        tx["dueDate"] = query.value("duedate");
         tx["returnDate"] = query.value("returnDate");
         tx["bookName"] = query.value("bookName");
         tx["status"] = query.value("status");
@@ -331,15 +331,15 @@ QVariantList Database::getReviews()
 
     while (query.next()) {
         QVariantMap review;
-        review["reviewid"] = query.value("reviewid");
-        review["user_id"] = query.value("user_id");
+        review["reviewId"] = query.value("reviewid");
+        review["userId"] = query.value("user_id");
         review["username"] = query.value("username");
         review["isbn"] = query.value("isbn");
-        review["bookname"] = query.value("bookname");
+        review["bookName"] = query.value("bookname");
         review["rating"] = query.value("rating");
         review["comment"] = query.value("comment");
         review["status"] = query.value("status");
-        review["review_date"] = query.value("review_date");
+        review["reviewDate"] = query.value("review_date");
         reviews.append(review);
     }
 

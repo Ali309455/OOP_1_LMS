@@ -50,10 +50,10 @@ public:
     static Q_INVOKABLE bool exportDatabaseReportPdf(const QString& outputPdfPath, QString* outError = nullptr);
 
     // ------------------ stats card ----------------------
-    Q_INVOKABLE double getlibraryBalance() const;
-    Q_INVOKABLE int gettotalBooks() const;
-    Q_INVOKABLE int getactiveTransations() const;
-    Q_INVOKABLE int getpendingReviews() const;
+    Q_INVOKABLE double getLibraryBalance() const;
+    Q_INVOKABLE int getTotalBooks() const;
+    Q_INVOKABLE int getActiveTransactions() const;
+    Q_INVOKABLE int getPendingReviews() const;
     // -------------------- Data Fetching (QML ListModel support) --------------------
     Q_INVOKABLE QVariantList getBooks();
     Q_INVOKABLE QVariantList getUsers();

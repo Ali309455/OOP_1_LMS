@@ -56,7 +56,7 @@ bool LibrarySystemBridge::updateUser(const QString& id,const QString& name, cons
 // -------------------- Catalog Management --------------------
 bool LibrarySystemBridge::addBook(const QString &isbn, const QString &title, const QString &author, const QString &category, const QString &section, const QString &publisher, const QString &edition, const QString &language, int publicationYear, int pages, int totalCopies)
 {  // const string& isbn,const string&  title,const string&  author, const string& category,const string&  section, const string& publisher,const string&  edition, const string& language, int publicationYear, int pages,int totalCopies
-    return m_system->addbook(isbn.toStdString(), title.toStdString(), author.toStdString(), category.toStdString(), section.toStdString(), publisher.toStdString(), edition.toStdString(), language.toStdString(), publicationYear, pages, totalCopies);
+    return m_system->addBook(isbn.toStdString(), title.toStdString(), author.toStdString(), category.toStdString(), section.toStdString(), publisher.toStdString(), edition.toStdString(), language.toStdString(), publicationYear, pages, totalCopies);
 }
 
 bool LibrarySystemBridge::removeBook(const QString &isbn)
@@ -102,17 +102,17 @@ bool LibrarySystemBridge::addBalance(const QString& sid, double amount){
 }
 
 // ----------> Stats card data <---------------
-double LibrarySystemBridge::getlibraryBalance() const {
+double LibrarySystemBridge::getLibraryBalance() const {
     return m_system->getLibraryBalance();
 }
-int LibrarySystemBridge::gettotalBooks() const{
-    return m_system->gettotalBooks();
+int LibrarySystemBridge::getTotalBooks() const{
+    return m_system->getTotalBooks();
 }
-int LibrarySystemBridge::getactiveTransations() const{
-    return m_system->getactiveTransations();
+int LibrarySystemBridge::getActiveTransactions() const{
+    return m_system->getActiveTransactions();
 }
-int LibrarySystemBridge::getpendingReviews() const{
-    return m_system->getpendingReviews();
+int LibrarySystemBridge::getPendingReviews() const{
+    return m_system->getPendingReviews();
 }
 
 // ----------> Generate Pdf <---------------
@@ -201,7 +201,7 @@ QVariantList LibrarySystemBridge::getTransactions()
         map["returnDate"] = tx.getReturnDate().empty()
                                 ? "--"
                                 : QString::fromStdString(tx.getReturnDate());
-        map["bookName"] = QString::fromStdString(tx.getbookName());
+        map["bookName"] = QString::fromStdString(tx.getBookName());
         map["status"] = QString::fromStdString(tx.getStatus());
         map["fine"] = (tx.getFine() == 0.0)
                           ? "--"
@@ -221,7 +221,7 @@ QVariantList LibrarySystemBridge::getReviews()
         map["studentId"] = QString::fromStdString(rev.getStudentId());
         map["author"] = QString::fromStdString(rev.getUsername());
         map["isbn"] = QString::fromStdString(rev.getIsbn());
-        map["book"] = QString::fromStdString(rev.getBookname());
+        map["book"] = QString::fromStdString(rev.getBookName());
         map["text"] = QString::fromStdString(rev.getComment());
         map["status"] = QString::fromStdString(rev.getStatus());
         map["rating"] = rev.getRating();
